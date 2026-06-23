@@ -139,10 +139,12 @@ const PatientAppointments = () => {
 
   const handleBook = async (e) => {
     e.preventDefault();
-    if (!bookingForm.doctorId || !bookingForm.date || !bookingForm.time || !bookingForm.reason) {
-      toast.error('Please fill all required fields');
-      return;
-    }
+    
+    // Validate all input fields before saving
+    if (!bookingForm.doctorId) return toast.error('Please select a doctor');
+    if (!bookingForm.date) return toast.error('Please select an appointment date');
+    if (!bookingForm.time) return toast.error('Please select an appointment time');
+    if (!bookingForm.reason.trim()) return toast.error('Please provide a reason for the visit');
 
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
@@ -155,10 +157,32 @@ const PatientAppointments = () => {
         type: bookingForm.type
       };
 
-      await axios.post('http://localhost:5000/api/appointments', payload, config);
+      // Persist in backend API
+      const response = await axios.post('http://localhost:5000/api/appointments', payload, config);
+      const newApt = response.data.data;
+      
+      // Create a proper appointment object with matching field names used by the UI cards
+      const selectedDoc = doctors.find(d => (d.user?._id || d._id) === bookingForm.doctorId);
+      const optimisticApt = {
+        ...newApt,
+        doctorProfile: {
+          specialization: selectedDoc?.specialization || 'Consultation'
+        }
+      };
+
+      // Save the new appointment to state immediately
+      setAppointments(prev => [optimisticApt, ...prev]);
+      
+      // Make sure new appointments appear under the Upcoming tab
+      setActiveTab('Upcoming');
+      
       toast.success('Appointment booked successfully!');
-      setShowBookingModal(false);
+      
+      // After saving, reset the form and close modal
       setBookingForm({ doctorId: '', date: '', time: '', type: 'general', mode: 'video', reason: '' });
+      setShowBookingModal(false);
+      
+      // Sync with backend in background
       fetchAppointments();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to book appointment');

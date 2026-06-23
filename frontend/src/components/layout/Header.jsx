@@ -100,50 +100,54 @@ const Header = ({ onToggleSidebar }) => {
         </button>
 
         {showNotif && (
-          <div className="absolute right-0 mt-3 w-80 md:w-96 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[200] overflow-hidden origin-top-right animate-in fade-in zoom-in-95 duration-200 ring-1 ring-black/5">
-            <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-              <h3 className="font-bold text-gray-900">Notifications</h3>
-              {unread > 0 && (
-                <button 
-                  onClick={markAllAsRead} 
-                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
-                >
-                  <CheckCheck className="w-4 h-4" /> Mark all read
-                </button>
-              )}
-            </div>
+          <div className="absolute -right-2 sm:-right-4 top-full mt-3 w-80 md:w-96 z-[200] origin-top-right animate-in fade-in zoom-in-95 duration-200">
+            <div className="absolute -top-1.5 right-6 sm:right-8 w-3.5 h-3.5 bg-gray-50 border-t border-l border-gray-200 transform rotate-45 z-10 rounded-tl-sm"></div>
             
-            <div className="max-h-[360px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
-              {notifications.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <Bell className="w-8 h-8 mx-auto text-gray-300 mb-2" />
-                  <p className="text-sm">No notifications yet.</p>
-                </div>
-              ) : (
-                notifications.map(n => (
-                  <div 
-                    key={n.id} 
-                    className={`p-4 border-b border-gray-50 flex gap-4 transition-colors hover:bg-gray-50 ${n.read ? 'opacity-70' : 'bg-indigo-50/30'}`}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden ring-1 ring-black/5 relative z-20">
+              <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h3 className="font-bold text-gray-900">Notifications</h3>
+                {unread > 0 && (
+                  <button 
+                    onClick={markAllAsRead} 
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
                   >
-                    <div className="shrink-0 mt-0.5">
-                      {n.type === "success" && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
-                      {n.type === "warning" && <XCircle className="w-5 h-5 text-red-500" />}
-                      {n.type === "info" && <Info className="w-5 h-5 text-blue-500" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${n.read ? 'text-gray-600 font-medium' : 'text-gray-900 font-bold'}`}>
-                        {n.message}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1.5 font-medium">{n.time}</p>
-                    </div>
-                    {!n.read && (
-                      <div className="shrink-0 flex items-center">
-                        <div className="w-2 h-2 rounded-full bg-indigo-500" />
-                      </div>
-                    )}
+                    <CheckCheck className="w-4 h-4" /> Mark all read
+                  </button>
+                )}
+              </div>
+              
+              <div className="max-h-[360px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                {notifications.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500 bg-white">
+                    <Bell className="w-8 h-8 mx-auto text-gray-300 mb-2" />
+                    <p className="text-sm">No notifications yet.</p>
                   </div>
-                ))
-              )}
+                ) : (
+                  notifications.map(n => (
+                    <div 
+                      key={n.id} 
+                      className={`p-4 border-b border-gray-50 flex gap-4 transition-colors hover:bg-gray-50 ${n.read ? 'bg-white opacity-75' : 'bg-indigo-50/30'}`}
+                    >
+                      <div className="shrink-0 mt-0.5">
+                        {n.type === "success" && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+                        {n.type === "warning" && <XCircle className="w-5 h-5 text-red-500" />}
+                        {n.type === "info" && <Info className="w-5 h-5 text-blue-500" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm ${n.read ? 'text-gray-600 font-medium' : 'text-gray-900 font-bold'}`}>
+                          {n.message}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1.5 font-medium">{n.time}</p>
+                      </div>
+                      {!n.read && (
+                        <div className="shrink-0 flex items-center">
+                          <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         )}
