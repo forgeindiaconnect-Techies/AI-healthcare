@@ -3,6 +3,10 @@ const logger = require('../utils/logger');
 
 const connectDB = async () => {
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI is not defined in environment variables. Please add your MongoDB connection string in the Render Dashboard -> Environment variables.');
+    }
+    
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
