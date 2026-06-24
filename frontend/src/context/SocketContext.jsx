@@ -13,7 +13,7 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (user && user._id) {
       // Connect to the backend socket server
-      const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+      const newSocket = io(import.meta.env.VITE_API_URL, {
         withCredentials: true,
       });
 
