@@ -917,3 +917,434 @@
 2026-06-23 17:58:55 [info]: User 6a353eeb2d45912906363a24 joined their room
 2026-06-23 18:10:53 [info]: Socket connected: Unl9uhStcjfNUDTPAAAK
 2026-06-23 18:10:53 [info]: User 6a353eeb2d45912906363a19 joined their room
+2026-06-24 10:02:00 [error]: MongoDB connection failed: querySrv ECONNREFUSED _mongodb._tcp.cluster0.t17ks7f.mongodb.net
+2026-06-24 10:04:24 [error]: MongoDB connection failed: querySrv ECONNREFUSED _mongodb._tcp.cluster0.t17ks7f.mongodb.net
+2026-06-24 10:06:00 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 10:06:00 [info]: ⏰ Starting scheduler service...
+2026-06-24 10:06:00 [info]: ✅ Scheduler service started
+2026-06-24 10:06:00 [info]: 
+==================================================
+2026-06-24 10:06:00 [info]: 🏥 HealthCare AI Backend
+2026-06-24 10:06:00 [info]: 🚀 Server: http://localhost:5000
+2026-06-24 10:06:00 [info]: 📡 Environment: development
+2026-06-24 10:06:00 [info]: ==================================================
+
+2026-06-24 10:06:56 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 10:06:56 [info]: ⏰ Starting scheduler service...
+2026-06-24 10:06:56 [info]: ✅ Scheduler service started
+2026-06-24 10:06:56 [info]: 
+==================================================
+2026-06-24 10:06:56 [info]: 🏥 HealthCare AI Backend
+2026-06-24 10:06:56 [info]: 🚀 Server: http://localhost:5000
+2026-06-24 10:06:56 [info]: 📡 Environment: development
+2026-06-24 10:06:56 [info]: ==================================================
+
+2026-06-24 10:10:34 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 10:10:34 [info]: ⏰ Starting scheduler service...
+2026-06-24 10:10:34 [info]: ✅ Scheduler service started
+2026-06-24 10:10:34 [info]: 
+==================================================
+2026-06-24 10:10:34 [info]: 🏥 HealthCare AI Backend
+2026-06-24 10:10:34 [info]: 🚀 Server: http://localhost:5000
+2026-06-24 10:10:34 [info]: 📡 Environment: development
+2026-06-24 10:10:34 [info]: ==================================================
+
+2026-06-24 10:16:54 [error]: Invalid credentials | POST /api/auth/login | IP: ::1
+2026-06-24 10:16:54 [error]: Error: Invalid credentials
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\authController.js:92:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-06-24 10:17:12 [error]: Invalid credentials | POST /api/auth/login | IP: ::1
+2026-06-24 10:17:12 [error]: Error: Invalid credentials
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\authController.js:92:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-06-24 10:17:24 [error]: Invalid credentials | POST /api/auth/login | IP: ::1
+2026-06-24 10:17:24 [error]: Error: Invalid credentials
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\authController.js:92:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-06-24 10:24:00 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 10:24:00 [info]: ⏰ Starting scheduler service...
+2026-06-24 10:24:00 [info]: ✅ Scheduler service started
+2026-06-24 10:24:00 [info]: 
+==================================================
+2026-06-24 10:24:00 [info]: 🏥 HealthCare AI Backend
+2026-06-24 10:24:00 [info]: 🚀 Server: http://localhost:5000
+2026-06-24 10:24:00 [info]: 📡 Environment: development
+2026-06-24 10:24:00 [info]: ==================================================
+
+2026-06-24 10:24:13 [info]: User logged in: james@email.com
+2026-06-24 10:25:18 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 10:25:18 [info]: ⏰ Starting scheduler service...
+2026-06-24 10:25:19 [info]: ✅ Scheduler service started
+2026-06-24 10:25:19 [info]: 
+==================================================
+2026-06-24 10:25:19 [info]: 🏥 HealthCare AI Backend
+2026-06-24 10:25:19 [info]: 🚀 Server: http://localhost:5000
+2026-06-24 10:25:19 [info]: 📡 Environment: development
+2026-06-24 10:25:19 [info]: ==================================================
+
+2026-06-24 10:30:03 [info]: User logged in: james@email.com
+2026-06-24 10:30:03 [info]: Socket connected: 0UazxHVEnkUQHUO7AAAB
+2026-06-24 10:30:03 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 10:32:52 [info]: User logged in: sarah@healthsys.com
+2026-06-24 10:32:52 [info]: Socket connected: uwgiepmNmaVcyT38AAAD
+2026-06-24 10:32:52 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 10:34:52 [info]: Socket connected: ZGkk4or7nN32mNp_AAAF
+2026-06-24 10:34:52 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 10:36:56 [info]: Socket connected: 528FT3HPYmfCUQGNAAAH
+2026-06-24 10:36:56 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 10:37:03 [info]: User logged in: admin@healthsys.com
+2026-06-24 10:37:03 [info]: Socket connected: yolpwJhp2Z9qNMNKAAAJ
+2026-06-24 10:37:03 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 10:39:33 [error]: Email failed to james@email.com: connect ECONNREFUSED ::1:587
+2026-06-24 10:39:33 [error]: Appointment email error: connect ECONNREFUSED ::1:587
+2026-06-24 10:40:31 [error]: Gemini health chat error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [503 Service Unavailable] This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.
+2026-06-24 10:47:13 [info]: Socket connected: iLDLloVPgKJ0oh2vAAAL
+2026-06-24 10:47:13 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 10:47:33 [info]: User logged in: james@email.com
+2026-06-24 10:47:33 [info]: Socket connected: NfrCn9rCWoL_i9mWAAAN
+2026-06-24 10:47:33 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 10:51:45 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 10:51:45 [info]: ⏰ Starting scheduler service...
+2026-06-24 10:51:45 [info]: ✅ Scheduler service started
+2026-06-24 10:51:45 [info]: 
+==================================================
+2026-06-24 10:51:45 [info]: 🏥 HealthCare AI Backend
+2026-06-24 10:51:45 [info]: 🚀 Server: http://localhost:5000
+2026-06-24 10:51:45 [info]: 📡 Environment: development
+2026-06-24 10:51:45 [info]: ==================================================
+
+2026-06-24 10:51:45 [info]: Socket connected: ESoOZy23RESht5Y7AAAD
+2026-06-24 10:51:45 [info]: Socket connected: qnCLKOV5P8CwUDyvAAAE
+2026-06-24 10:51:45 [info]: Socket connected: RVP2yt4Dcao73kEFAAAF
+2026-06-24 10:51:45 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 10:51:45 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 10:51:45 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 10:51:54 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 10:51:54 [info]: ⏰ Starting scheduler service...
+2026-06-24 10:51:54 [info]: ✅ Scheduler service started
+2026-06-24 10:51:54 [info]: 
+==================================================
+2026-06-24 10:51:54 [info]: 🏥 HealthCare AI Backend
+2026-06-24 10:51:54 [info]: 🚀 Server: http://localhost:5000
+2026-06-24 10:51:54 [info]: 📡 Environment: development
+2026-06-24 10:51:54 [info]: ==================================================
+
+2026-06-24 10:51:54 [info]: Socket connected: SpxDD0kBNc9XsfnHAAAD
+2026-06-24 10:51:54 [info]: Socket connected: QSI_IRPjVITMMVavAAAE
+2026-06-24 10:51:54 [info]: Socket connected: t0OSmW0UqDXHBjDmAAAF
+2026-06-24 10:51:54 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 10:51:54 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 10:51:54 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 10:54:49 [info]: Socket connected: itmQ1o27ys9i_-u2AAAH
+2026-06-24 10:54:49 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 10:56:42 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 10:57:02 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 10:57:03 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 10:57:02 [info]: ⏰ Starting scheduler service...
+2026-06-24 10:57:03 [info]: ✅ Scheduler service started
+2026-06-24 10:57:03 [info]: 
+==================================================
+2026-06-24 10:57:03 [info]: 🏥 HealthCare AI Backend
+2026-06-24 10:57:03 [info]: 🚀 Server: http://localhost:5000
+2026-06-24 10:57:03 [info]: 📡 Environment: development
+2026-06-24 10:57:03 [info]: ==================================================
+
+2026-06-24 10:57:03 [info]: Socket connected: rZkpbq79PTlja6OSAAAD
+2026-06-24 10:57:03 [info]: Socket connected: bxIPk0WQdjX4JsxUAAAE
+2026-06-24 10:57:03 [info]: Socket connected: ncQGQcXoYL7SSnNWAAAF
+2026-06-24 10:57:03 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 10:57:03 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 10:57:03 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 10:57:26 [info]: User logged in: james@email.com
+2026-06-24 11:00:00 [info]: Marked 1 appointments as no-show
+2026-06-24 11:07:11 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 11:07:11 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 11:07:11 [info]: ⏰ Starting scheduler service...
+2026-06-24 11:07:11 [info]: ✅ Scheduler service started
+2026-06-24 11:07:11 [info]: 
+==================================================
+2026-06-24 11:07:11 [info]: 🏥 HealthCare AI Backend
+2026-06-24 11:07:11 [info]: 🚀 Server: http://localhost:5000
+2026-06-24 11:07:11 [info]: 📡 Environment: development
+2026-06-24 11:07:11 [info]: ==================================================
+
+2026-06-24 11:07:11 [info]: Socket connected: WiiiF3OyuHVQKjGMAAAD
+2026-06-24 11:07:11 [info]: Socket connected: -ezaK4svDeoydP5RAAAE
+2026-06-24 11:07:11 [info]: Socket connected: OyAHDPizf1V6AiW1AAAF
+2026-06-24 11:07:11 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 11:07:11 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 11:07:11 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 11:15:16 [info]: Socket connected: gtXDTpHOJAanU9tgAAAH
+2026-06-24 11:15:16 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 11:27:53 [info]: Connecting to MongoDB...
+2026-06-24 11:27:53 [info]: 
+==================================================
+2026-06-24 11:27:53 [info]: 🏥 HealthCare AI Backend
+2026-06-24 11:27:53 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 11:27:53 [info]: 📡 Environment: development
+2026-06-24 11:27:53 [info]: ==================================================
+
+2026-06-24 11:27:53 [info]: Connecting to MongoDB...
+2026-06-24 11:27:53 [info]: Socket connected: Q_tSuYMktmS97f3LAAAD
+2026-06-24 11:27:53 [info]: Socket connected: xlKoJtVh7xKqc2H1AAAE
+2026-06-24 11:27:53 [info]: Socket connected: vB_hL9sOhkSCn28XAAAF
+2026-06-24 11:27:53 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 11:27:53 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 11:27:53 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 11:27:53 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 11:27:53 [info]: ⏰ Starting scheduler service...
+2026-06-24 11:27:54 [info]: ✅ Scheduler service started
+2026-06-24 11:28:12 [info]: Connecting to MongoDB...
+2026-06-24 11:28:12 [info]: 
+==================================================
+2026-06-24 11:28:12 [info]: 🏥 HealthCare AI Backend
+2026-06-24 11:28:12 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 11:28:12 [info]: 📡 Environment: development
+2026-06-24 11:28:12 [info]: ==================================================
+
+2026-06-24 11:28:12 [info]: Connecting to MongoDB...
+2026-06-24 11:28:13 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 11:28:13 [info]: ⏰ Starting scheduler service...
+2026-06-24 11:28:13 [info]: ✅ Scheduler service started
+2026-06-24 11:28:13 [info]: Socket connected: QUVSuUvNQE_hp4j5AAAD
+2026-06-24 11:28:13 [info]: Socket connected: bgeTH1V1iyGApi7GAAAE
+2026-06-24 11:28:13 [info]: Socket connected: IHgPUyX3Gn2EygC8AAAF
+2026-06-24 11:28:13 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 11:28:13 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 11:28:13 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 11:39:47 [info]: Connecting to MongoDB...
+2026-06-24 11:39:47 [info]: 
+==================================================
+2026-06-24 11:39:47 [info]: 🏥 HealthCare AI Backend
+2026-06-24 11:39:47 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 11:39:47 [info]: 📡 Environment: development
+2026-06-24 11:39:47 [info]: ==================================================
+
+2026-06-24 11:39:47 [info]: Connecting to MongoDB...
+2026-06-24 11:39:47 [info]: Socket connected: Ao9MANWozWFyKTVMAAAB
+2026-06-24 11:39:47 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 11:39:47 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 11:39:47 [info]: ⏰ Starting scheduler service...
+2026-06-24 11:39:47 [info]: ✅ Scheduler service started
+2026-06-24 11:39:47 [info]: Socket connected: dFS2hC-9gV0ZFZIsAAAE
+2026-06-24 11:39:47 [info]: Socket connected: HvyOy1ANlVzOCT-MAAAF
+2026-06-24 11:39:47 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 11:39:47 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 11:40:54 [info]: Connecting to MongoDB...
+2026-06-24 11:40:54 [info]: 
+==================================================
+2026-06-24 11:40:54 [info]: 🏥 HealthCare AI Backend
+2026-06-24 11:40:54 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 11:40:54 [info]: 📡 Environment: development
+2026-06-24 11:40:54 [info]: ==================================================
+
+2026-06-24 11:40:54 [info]: Connecting to MongoDB...
+2026-06-24 11:40:54 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 11:40:54 [info]: ⏰ Starting scheduler service...
+2026-06-24 11:40:54 [info]: ✅ Scheduler service started
+2026-06-24 11:40:55 [info]: Socket connected: symMI7tYFCYc1Ru2AAAD
+2026-06-24 11:40:55 [info]: Socket connected: rhGq1JT2VPb6PaO0AAAE
+2026-06-24 11:40:55 [info]: Socket connected: OhDi_ojKfGKrFT5cAAAF
+2026-06-24 11:40:55 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 11:40:55 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 11:40:55 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 11:48:54 [info]: Connecting to MongoDB...
+2026-06-24 11:48:54 [info]: 
+==================================================
+2026-06-24 11:48:54 [info]: 🏥 HealthCare AI Backend
+2026-06-24 11:48:54 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 11:48:54 [info]: 📡 Environment: development
+2026-06-24 11:48:54 [info]: ==================================================
+
+2026-06-24 11:48:54 [info]: Connecting to MongoDB...
+2026-06-24 11:48:54 [info]: Socket connected: na8ax7aYwUf0oUyiAAAB
+2026-06-24 11:48:54 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 11:48:54 [info]: Socket connected: ucW59fZRMlJJb_3oAAAE
+2026-06-24 11:48:54 [info]: Socket connected: He_RcliD5bO-hUSQAAAF
+2026-06-24 11:48:54 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 11:48:54 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 11:48:54 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 11:48:54 [info]: ⏰ Starting scheduler service...
+2026-06-24 11:48:54 [info]: ✅ Scheduler service started
+2026-06-24 11:49:12 [info]: Connecting to MongoDB...
+2026-06-24 11:49:30 [info]: Connecting to MongoDB...
+2026-06-24 11:50:29 [info]: Connecting to MongoDB...
+2026-06-24 11:50:29 [info]: 
+==================================================
+2026-06-24 11:50:29 [info]: 🏥 HealthCare AI Backend
+2026-06-24 11:50:29 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 11:50:29 [info]: 📡 Environment: development
+2026-06-24 11:50:29 [info]: ==================================================
+
+2026-06-24 11:50:29 [info]: Connecting to MongoDB...
+2026-06-24 11:50:30 [info]: Socket connected: 9xyBb0oO7fTIfM0XAAAC
+2026-06-24 11:50:30 [info]: Socket connected: VoBWbgXhaVIxAjkvAAAD
+2026-06-24 11:50:30 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 11:50:30 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 11:50:30 [info]: ⏰ Starting scheduler service...
+2026-06-24 11:50:30 [info]: ✅ Scheduler service started
+2026-06-24 11:50:30 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 11:50:30 [info]: Socket connected: i-t8VqKH6tlV21Z7AAAF
+2026-06-24 11:50:30 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 11:52:24 [info]: Socket connected: 9JSCd4zNjMXT0__MAAAH
+2026-06-24 11:52:24 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 11:52:42 [info]: User 6a3b62bab2e30d762513f395 (patient) joined consultation room 68c31d19-7194-4a9c-9fb5-3a8db6e23ffa
+2026-06-24 11:53:29 [info]: User logged in: sarah@healthsys.com
+2026-06-24 11:53:29 [info]: Socket connected: TTffil9FrKVSOgeTAAAJ
+2026-06-24 11:53:29 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 11:55:19 [info]: Socket connected: 4RMGxRzWseG5A15SAAAL
+2026-06-24 11:55:19 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:04:00 [info]: Connecting to MongoDB...
+2026-06-24 12:04:00 [info]: 
+==================================================
+2026-06-24 12:04:00 [info]: 🏥 HealthCare AI Backend
+2026-06-24 12:04:00 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 12:04:00 [info]: 📡 Environment: development
+2026-06-24 12:04:00 [info]: ==================================================
+
+2026-06-24 12:04:00 [info]: Connecting to MongoDB...
+2026-06-24 12:04:00 [info]: Socket connected: Xf2jWyWnwr-bmZNYAAAC
+2026-06-24 12:04:00 [info]: Socket connected: D90grPyxYDONgfbHAAAD
+2026-06-24 12:04:00 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:04:01 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 12:04:01 [info]: Socket connected: qIMH7tDk1SdsV1BtAAAH
+2026-06-24 12:04:01 [info]: Socket connected: qY6LE9rvPP2JPKU9AAAI
+2026-06-24 12:04:01 [info]: Socket connected: cyaIx6avbga9itz0AAAJ
+2026-06-24 12:04:01 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:04:01 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 12:04:01 [info]: ⏰ Starting scheduler service...
+2026-06-24 12:04:01 [info]: ✅ Scheduler service started
+2026-06-24 12:04:01 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:04:01 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:04:15 [info]: Connecting to MongoDB...
+2026-06-24 12:04:15 [info]: 
+==================================================
+2026-06-24 12:04:15 [info]: 🏥 HealthCare AI Backend
+2026-06-24 12:04:15 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 12:04:15 [info]: 📡 Environment: development
+2026-06-24 12:04:15 [info]: ==================================================
+
+2026-06-24 12:04:15 [info]: Socket connected: cfVipYu3MEgHMLYjAAAB
+2026-06-24 12:04:15 [info]: Connecting to MongoDB...
+2026-06-24 12:04:16 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 12:04:16 [info]: Socket connected: pjLJ_Fjj2dNjHHVvAAAF
+2026-06-24 12:04:16 [info]: Socket connected: TPBnnVAVAKE3_IU8AAAG
+2026-06-24 12:04:16 [info]: Socket connected: iTA-XilWmDOP_curAAAH
+2026-06-24 12:04:16 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:04:16 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:04:16 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:04:16 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 12:04:16 [info]: ⏰ Starting scheduler service...
+2026-06-24 12:04:16 [info]: ✅ Scheduler service started
+2026-06-24 12:04:16 [info]: Socket connected: FrsYR6euZ97GU6XVAAAJ
+2026-06-24 12:04:16 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:04:28 [info]: Connecting to MongoDB...
+2026-06-24 12:04:28 [info]: 
+==================================================
+2026-06-24 12:04:28 [info]: 🏥 HealthCare AI Backend
+2026-06-24 12:04:28 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 12:04:28 [info]: 📡 Environment: development
+2026-06-24 12:04:28 [info]: ==================================================
+
+2026-06-24 12:04:28 [info]: Connecting to MongoDB...
+2026-06-24 12:04:28 [info]: Socket connected: fxpzuV9oy_HoAKhdAAAD
+2026-06-24 12:04:28 [info]: Socket connected: BfS5HjNm7PQBe1DqAAAE
+2026-06-24 12:04:28 [info]: Socket connected: 65dzCQAAvhwIdxAYAAAF
+2026-06-24 12:04:28 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:04:28 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 12:04:28 [info]: ⏰ Starting scheduler service...
+2026-06-24 12:04:28 [info]: ✅ Scheduler service started
+2026-06-24 12:04:28 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:04:28 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 12:04:28 [info]: Socket connected: 1dIErhoV-Sq4zTy5AAAI
+2026-06-24 12:04:28 [info]: Socket connected: SFSSSRNt3sF3zmAUAAAJ
+2026-06-24 12:04:28 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:04:28 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:04:40 [info]: Connecting to MongoDB...
+2026-06-24 12:04:40 [info]: 
+==================================================
+2026-06-24 12:04:40 [info]: 🏥 HealthCare AI Backend
+2026-06-24 12:04:40 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 12:04:40 [info]: 📡 Environment: development
+2026-06-24 12:04:40 [info]: ==================================================
+
+2026-06-24 12:04:40 [info]: Connecting to MongoDB...
+2026-06-24 12:04:40 [info]: Socket connected: 2_B1mSA7V_wzi7WoAAAC
+2026-06-24 12:04:40 [info]: Socket connected: 4GO-PxvsLSnNIKskAAAD
+2026-06-24 12:04:40 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:04:40 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 12:04:40 [info]: ⏰ Starting scheduler service...
+2026-06-24 12:04:41 [info]: ✅ Scheduler service started
+2026-06-24 12:04:41 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 12:04:41 [info]: Socket connected: MICN2AQjtscBE8XpAAAG
+2026-06-24 12:04:41 [info]: Socket connected: 2UEiHvbV3o_fb7l-AAAH
+2026-06-24 12:04:41 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:04:41 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:04:41 [info]: Socket connected: 07sU8WhcOATIxv4vAAAJ
+2026-06-24 12:04:41 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:04:51 [info]: Connecting to MongoDB...
+2026-06-24 12:04:51 [info]: 
+==================================================
+2026-06-24 12:04:51 [info]: 🏥 HealthCare AI Backend
+2026-06-24 12:04:51 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 12:04:51 [info]: 📡 Environment: development
+2026-06-24 12:04:51 [info]: ==================================================
+
+2026-06-24 12:04:51 [info]: Connecting to MongoDB...
+2026-06-24 12:04:51 [info]: Socket connected: A-ZsF_NgGIJWV3bzAAAC
+2026-06-24 12:04:51 [info]: Socket connected: Z20NW0IKUKZatXwcAAAD
+2026-06-24 12:04:51 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:04:51 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 12:04:51 [info]: ⏰ Starting scheduler service...
+2026-06-24 12:04:51 [info]: ✅ Scheduler service started
+2026-06-24 12:04:51 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:04:51 [info]: Socket connected: 570vZmeetJiAEGafAAAH
+2026-06-24 12:04:51 [info]: Socket connected: zuTJevFM0Vi6jzrxAAAI
+2026-06-24 12:04:51 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 12:04:51 [info]: Socket connected: U7bzmJUE6T1h4wsRAAAJ
+2026-06-24 12:04:51 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:04:51 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:05:00 [info]: Connecting to MongoDB...
+2026-06-24 12:05:00 [info]: 
+==================================================
+2026-06-24 12:05:00 [info]: 🏥 HealthCare AI Backend
+2026-06-24 12:05:00 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 12:05:00 [info]: 📡 Environment: development
+2026-06-24 12:05:00 [info]: ==================================================
+
+2026-06-24 12:05:00 [info]: Connecting to MongoDB...
+2026-06-24 12:05:01 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 12:05:01 [info]: ⏰ Starting scheduler service...
+2026-06-24 12:05:01 [info]: ✅ Scheduler service started
+2026-06-24 12:05:01 [info]: Socket connected: 7WlOhQiy0N3FMd2qAAAD
+2026-06-24 12:05:01 [info]: Socket connected: Tzzp9Do2OsQb83lkAAAE
+2026-06-24 12:05:01 [info]: Socket connected: z5BPjRShsY2kaAZpAAAF
+2026-06-24 12:05:01 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:05:01 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:05:01 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 12:05:01 [info]: Socket connected: LJi8ZDS1aCvT8ZVsAAAI
+2026-06-24 12:05:01 [info]: Socket connected: 72k1BGsR2w3UB628AAAJ
+2026-06-24 12:05:01 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:05:01 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:05:40 [info]: Connecting to MongoDB...
+2026-06-24 12:05:40 [info]: 
+==================================================
+2026-06-24 12:05:40 [info]: 🏥 HealthCare AI Backend
+2026-06-24 12:05:40 [info]: 🚀 Server: http://0.0.0.0:5000
+2026-06-24 12:05:40 [info]: 📡 Environment: development
+2026-06-24 12:05:40 [info]: ==================================================
+
+2026-06-24 12:05:41 [info]: Connecting to MongoDB...
+2026-06-24 12:05:41 [info]: Socket connected: jowcjP2ntWybvadtAAAF
+2026-06-24 12:05:41 [info]: Socket connected: TL6oYEXShcXEmCdNAAAG
+2026-06-24 12:05:41 [info]: Socket connected: AQkYqdrA-qrjbdgFAAAH
+2026-06-24 12:05:41 [info]: Socket connected: -HzPxjTHHNa7I0VhAAAI
+2026-06-24 12:05:41 [info]: Socket connected: DbbsixmxbP55G2q6AAAJ
+2026-06-24 12:05:41 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 12:05:41 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 12:05:41 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:05:41 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 12:05:41 [info]: ⏰ Starting scheduler service...
+2026-06-24 12:05:41 [info]: ✅ Scheduler service started
+2026-06-24 12:05:41 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 12:05:41 [info]: User 6a3b62b8b2e30d762513f37f joined their room

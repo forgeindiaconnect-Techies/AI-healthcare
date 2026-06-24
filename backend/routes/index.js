@@ -80,6 +80,7 @@ aiRouter.get('/tips', protect, aiController.getHealthTips);
 aiRouter.get('/history', protect, aiController.getChatHistory);
 
 const consultationRouter = require('./consultations');
+const symptomRouter = require('./symptoms');
 
 module.exports = {
   doctorRouter,
@@ -89,5 +90,6 @@ module.exports = {
   prescriptionRouter,
   aiRouter,
   notificationRouter,
-  consultationRouter
+  consultationRouter,
+  symptomRouter
 };

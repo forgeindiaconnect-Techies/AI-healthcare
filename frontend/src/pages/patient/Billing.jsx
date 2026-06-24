@@ -14,6 +14,7 @@ const Billing = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
+  const [isCoverageModalOpen, setIsCoverageModalOpen] = useState(false);
   const [isSavingCard, setIsSavingCard] = useState(false);
   const invoiceRef = useRef(null);
 
@@ -142,7 +143,7 @@ const Billing = () => {
                 </div>
               </div>
 
-              <button onClick={() => toast.success('Loading coverage details...')} className="w-full mt-8 bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 rounded-xl font-medium backdrop-blur-md transition-colors flex items-center justify-center gap-2">
+              <button onClick={() => setIsCoverageModalOpen(true)} className="w-full mt-8 bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 rounded-xl font-medium backdrop-blur-md transition-colors flex items-center justify-center gap-2">
                 View Coverage Details <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -519,6 +520,108 @@ const Billing = () => {
                 )}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Coverage Details Modal */}
+      {isCoverageModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <Shield className="w-6 h-6 text-indigo-600" />
+                <h2 className="text-xl font-bold text-gray-900">Coverage Details</h2>
+              </div>
+              <button 
+                onClick={() => setIsCoverageModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-8 overflow-y-auto flex-1 bg-white">
+              <div className="space-y-8">
+                
+                {/* Plan Overview */}
+                <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 flex flex-col md:flex-row justify-between gap-6">
+                  <div>
+                    <h3 className="text-sm uppercase tracking-wider font-bold text-indigo-500 mb-1">Current Plan</h3>
+                    <p className="text-xl font-extrabold text-indigo-900">BlueShield Premium EPO</p>
+                    <p className="text-sm text-indigo-700 mt-1">Status: Active through Dec 31, 2026</p>
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <span className="bg-white text-indigo-700 font-bold px-4 py-2 rounded-xl text-center shadow-sm border border-indigo-100">
+                      Member ID: ABC 1234 567 89
+                    </span>
+                  </div>
+                </div>
+
+                {/* Deductibles & Out of Pocket */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">Deductibles & Out of Pocket</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                      <div className="flex justify-between items-end mb-2">
+                        <p className="text-sm font-semibold text-gray-600">In-Network Deductible</p>
+                        <p className="text-sm font-bold text-gray-900">$450 / $1,500</p>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                        <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '30%' }}></div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">$1,050 remaining</p>
+                    </div>
+                    
+                    <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                      <div className="flex justify-between items-end mb-2">
+                        <p className="text-sm font-semibold text-gray-600">Out-of-Pocket Max</p>
+                        <p className="text-sm font-bold text-gray-900">$1,200 / $5,000</p>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                        <div className="bg-emerald-500 h-2.5 rounded-full" style={{ width: '24%' }}></div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">$3,800 remaining</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Copays & Coinsurance */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">Copays & Coinsurance</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                      { service: 'Primary Care Visit', cost: '$20 Copay' },
+                      { service: 'Specialist Visit', cost: '$45 Copay' },
+                      { service: 'Urgent Care', cost: '$50 Copay' },
+                      { service: 'Emergency Room', cost: '$250 Copay' },
+                      { service: 'Generic Rx', cost: '$10 Copay' },
+                      { service: 'Lab Services', cost: '20% Coinsurance' }
+                    ].map((item, idx) => (
+                      <div key={idx} className="bg-white border border-gray-200 rounded-xl p-4 flex justify-between items-center shadow-sm">
+                        <span className="text-sm font-medium text-gray-700">{item.service}</span>
+                        <span className="text-sm font-bold text-gray-900">{item.cost}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex gap-3 text-sm text-amber-800">
+                  <Info className="w-5 h-5 text-amber-600 shrink-0" />
+                  <p>This is a summary of benefits. For full details on coverage limitations and exclusions, please refer to your official policy document.</p>
+                </div>
+
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+              <button 
+                onClick={() => setIsCoverageModalOpen(false)}
+                className="px-6 py-2.5 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors shadow-sm"
+              >
+                Close Details
+              </button>
+            </div>
           </div>
         </div>
       )}

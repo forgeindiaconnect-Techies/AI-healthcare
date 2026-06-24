@@ -1,148 +1,52 @@
-import React, { useState } from 'react';
-import { Search, Thermometer, Droplets, Utensils, AlertTriangle, Coffee, Sun, Moon, Info, HeartPulse, Stethoscope } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Thermometer, Droplets, Utensils, AlertTriangle, Coffee, Sun, Moon, Info, HeartPulse, Stethoscope, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const mockData = {
-  Fever: {
-    recommended: ["Rice porridge / Kanji", "Idli", "Vegetable soup", "Dal soup", "Curd rice", "Coconut water", "Banana", "Apple", "Orange", "Boiled vegetables", "Herbal tea", "Warm water"],
-    avoid: ["Fried foods", "Spicy foods", "Cold drinks", "Ice cream", "Junk food", "Heavy oily meals", "Processed food"],
-    hydration: ["Drink warm water", "ORS if dehydration symptoms", "Coconut water", "Fresh fruit juices without sugar", "Soup 2-3 times per day"],
-    mealPlan: { Morning: ["Idli / Kanji", "Warm water"], Afternoon: ["Curd rice / Dal rice", "Vegetable soup"], Evening: ["Herbal tea", "Banana / Apple"], Night: ["Rice kanji", "Boiled vegetables"] },
-    warning: "If fever is above 102°F, continues more than 3 days, or patient has breathing difficulty, consult doctor immediately.",
-    homeCare: ["Rest heavily in a cool room", "Use a cold compress on forehead", "Wear light clothing"]
-  },
-  Cold: {
-    recommended: ["Chicken/Vegetable soup", "Ginger tea", "Garlic", "Citrus fruits", "Honey", "Turmeric milk", "Oatmeal", "Sweet potatoes"],
-    avoid: ["Dairy (if it thickens mucus)", "Cold beverages", "Sugary treats", "Alcohol", "Caffeinated drinks"],
-    hydration: ["Hot water with lemon", "Warm ginger tea", "Broth", "Decaf herbal tea"],
-    mealPlan: { Morning: ["Oatmeal with honey", "Ginger tea"], Afternoon: ["Chicken or Vegetable soup", "Steamed veggies"], Evening: ["Turmeric milk"], Night: ["Light soup", "Toasted bread"] },
-    warning: "If cold persists for over 10 days, or accompanied by severe chest pain, seek medical attention.",
-    homeCare: ["Steam inhalation", "Gargle with warm salt water", "Use a humidifier"]
-  },
-  Cough: {
-    recommended: ["Honey", "Ginger", "Pineapple", "Peppermint tea", "Broth", "Warm water", "Turmeric milk"],
-    avoid: ["Dairy products", "Fried foods", "Cold desserts", "Citrus fruits (if acidic causes irritation)", "Spicy foods"],
-    hydration: ["Warm water", "Honey and lemon water", "Throat-soothing herbal teas"],
-    mealPlan: { Morning: ["Warm water with honey", "Porridge"], Afternoon: ["Warm soup", "Soft cooked rice"], Evening: ["Ginger tea", "Soft fruit"], Night: ["Turmeric milk", "Light vegetable stew"] },
-    warning: "Coughing up blood or green phlegm, or severe shortness of breath requires immediate medical care.",
-    homeCare: ["Elevate head while sleeping", "Avoid smoke and dust", "Take warm showers"]
-  },
-  Headache: {
-    recommended: ["Watermelon", "Spinach", "Almonds", "Flaxseeds", "Ginger tea", "Bananas", "Baked potato"],
-    avoid: ["Aged cheese", "Alcohol", "Processed meats", "Artificial sweeteners", "Excessive caffeine"],
-    hydration: ["Drink at least 8-10 glasses of water", "Electrolyte solutions if triggered by dehydration"],
-    mealPlan: { Morning: ["Oatmeal with almonds", "Hydrating fruits"], Afternoon: ["Spinach salad", "Baked potato"], Evening: ["Herbal tea", "Banana"], Night: ["Light soup", "Whole grain toast"] },
-    warning: "If headache is sudden and severe ('thunderclap'), accompanied by vision loss or numbness, call emergency.",
-    homeCare: ["Rest in a dark, quiet room", "Apply cold or warm compress to head/neck", "Massage temples"]
-  },
-  "Stomach Pain": {
-    recommended: ["Bananas", "Rice", "Applesauce", "Toast (BRAT diet)", "Ginger", "Peppermint tea", "Plain yogurt"],
-    avoid: ["Spicy foods", "Dairy (if lactose intolerant)", "High-fat foods", "Caffeine", "Alcohol", "Artificial sweeteners"],
-    hydration: ["Sip water slowly", "Clear broths", "Chamomile tea", "Diluted apple juice"],
-    mealPlan: { Morning: ["Plain toast", "Banana"], Afternoon: ["White rice", "Clear broth"], Evening: ["Applesauce", "Peppermint tea"], Night: ["Plain rice kanji"] },
-    warning: "Severe, unrelenting pain, or pain accompanied by bloody stools or vomiting blood requires emergency care.",
-    homeCare: ["Use a heating pad on your abdomen", "Eat smaller, more frequent meals", "Don't lie down flat immediately after eating"]
-  },
-  Diabetes: {
-    recommended: ["Leafy greens", "Fatty fish", "Avocados", "Chia seeds", "Greek yogurt", "Nuts", "Broccoli", "Olive oil"],
-    avoid: ["Sugar-sweetened beverages", "Trans fats", "White bread/Rice/Pasta", "Fruit-flavored yogurt", "Sweetened breakfast cereals", "Honey/Maple syrup"],
-    hydration: ["Water", "Unsweetened tea", "Sparkling water with a squeeze of lemon"],
-    mealPlan: { Morning: ["Eggs with spinach", "Unsweetened tea"], Afternoon: ["Grilled fish/chicken", "Quinoa and broccoli"], Evening: ["Handful of almonds"], Night: ["Lentil soup", "Mixed green salad"] },
-    warning: "If blood sugar drops below 70 mg/dL or rises above 240 mg/dL with ketones present, contact doctor.",
-    homeCare: ["Check blood sugar regularly", "Inspect feet daily", "Stay active with daily walks"]
-  },
-  BP: {
-    recommended: ["Leafy greens", "Berries", "Beets", "Oats", "Bananas", "Salmon", "Garlic", "Pistachios", "Pomegranate"],
-    avoid: ["Salt/Sodium", "Deli meats", "Frozen pizza", "Pickles", "Canned soups", "Tomato products with added salt", "Alcohol"],
-    hydration: ["Hibiscus tea", "Water", "Pomegranate juice (in moderation)"],
-    mealPlan: { Morning: ["Oatmeal with berries", "Banana"], Afternoon: ["Salmon", "Leafy green salad"], Evening: ["Unsalted pistachios"], Night: ["Grilled chicken", "Roasted beets"] },
-    warning: "Blood pressure reading higher than 180/120 mm Hg is a hypertensive crisis. Seek emergency care immediately.",
-    homeCare: ["Reduce stress through deep breathing", "Limit alcohol and quit smoking", "Monitor BP daily at home"]
-  },
-  Nausea: {
-    recommended: ["Crackers", "Ginger", "Dry toast", "Cold foods (less odor)", "Clear broths", "Popsicles", "Bananas"],
-    avoid: ["Greasy/Fried foods", "Very sweet foods", "Spicy foods", "Strong-smelling foods", "Dairy"],
-    hydration: ["Sip clear liquids slowly", "Ginger ale (flat)", "Ice chips", "Peppermint tea"],
-    mealPlan: { Morning: ["Dry crackers", "Sip water"], Afternoon: ["Cold applesauce", "Clear broth"], Evening: ["Ginger tea", "Dry toast"], Night: ["Small portion of plain rice"] },
-    warning: "Inability to keep liquids down for 24 hours, or signs of dehydration (dark urine, dizziness) require a doctor.",
-    homeCare: ["Sit upright after eating", "Get plenty of fresh air", "Rinse mouth after vomiting"]
-  },
-  Fatigue: {
-    recommended: ["Complex carbohydrates (Oats, Sweet potato)", "Lean proteins", "Nuts and seeds", "Watermelon", "Spinach", "Eggs", "Green tea"],
-    avoid: ["Refined carbs (White bread, Pastries)", "Excessive caffeine (causes crash)", "Alcohol", "High-sugar snacks"],
-    hydration: ["Consistent water intake throughout the day", "Green tea", "Electrolyte infused water if sweating heavily"],
-    mealPlan: { Morning: ["Oatmeal with nuts", "Green tea"], Afternoon: ["Lean chicken salad", "Sweet potato"], Evening: ["Handful of mixed seeds"], Night: ["Grilled fish", "Steamed spinach"] },
-    warning: "If fatigue is chronic, unexplainable, or accompanied by chest pain or depression, consult a physician.",
-    homeCare: ["Maintain a strict sleep schedule", "Exercise lightly (yoga/stretching)", "Reduce screen time before bed"]
-  },
-  Vomiting: {
-    recommended: ["Clear fluids", "Ice chips", "Ginger tea", "Dry toast", "Crackers", "Bananas", "Applesauce", "Rice"],
-    avoid: ["Greasy or fried foods", "Very sweet foods", "Spicy foods", "Dairy products", "Strong-smelling foods"],
-    hydration: ["Sip water slowly", "Electrolyte solutions", "Flat ginger ale", "Chamomile tea"],
-    mealPlan: { Morning: ["Dry crackers", "Sip water"], Afternoon: ["Clear broth", "Dry toast"], Evening: ["Ginger tea"], Night: ["Small portion of rice or applesauce"] },
-    warning: "If vomiting is severe, lasts more than 2 days, or contains blood, seek immediate medical attention.",
-    homeCare: ["Rest lying down with head elevated", "Rinse mouth frequently", "Avoid eating large meals"]
-  },
-  Diarrhea: {
-    recommended: ["Bananas", "Rice", "Applesauce", "Toast (BRAT diet)", "Oatmeal", "Boiled potatoes", "Clear broths"],
-    avoid: ["Dairy products", "Fatty and fried foods", "High-fiber foods", "Spicy foods", "Caffeine", "Artificial sweeteners"],
-    hydration: ["Oral rehydration solutions (ORS)", "Coconut water", "Clear broths", "Water"],
-    mealPlan: { Morning: ["Oatmeal or plain toast", "Banana"], Afternoon: ["White rice with clear broth"], Evening: ["Applesauce", "Chamomile tea"], Night: ["Boiled potatoes", "Rice kanji"] },
-    warning: "If diarrhea persists for more than 2 days, or you notice signs of severe dehydration or black/bloody stools, see a doctor.",
-    homeCare: ["Rest adequately", "Drink fluids constantly to replace lost water", "Avoid strenuous activities"]
-  },
-  "Sore Throat": {
-    recommended: ["Warm herbal teas", "Honey", "Warm broth", "Popsicles", "Soft foods like yogurt and mashed potatoes", "Oatmeal"],
-    avoid: ["Crunchy or hard foods", "Acidic fruits and juices", "Spicy foods", "Alcohol", "Caffeine"],
-    hydration: ["Warm water with honey and lemon", "Decaffeinated tea", "Clear broths"],
-    mealPlan: { Morning: ["Oatmeal with honey", "Warm water"], Afternoon: ["Chicken or vegetable broth", "Mashed potatoes"], Evening: ["Warm herbal tea"], Night: ["Yogurt or soft pudding", "Warm milk"] },
-    warning: "If sore throat is severe, lasts longer than a week, or is accompanied by difficulty breathing or swallowing, seek medical care.",
-    homeCare: ["Gargle with warm salt water", "Use throat lozenges", "Use a humidifier"]
-  },
-  "Chest Pain": {
-    recommended: ["Leafy greens", "Whole grains", "Berries", "Fatty fish", "Walnuts", "Almonds", "Avocados"],
-    avoid: ["Trans fats", "High-sodium foods", "Processed meats", "Sugary drinks", "Refined carbohydrates", "Fried foods"],
-    hydration: ["Water", "Green tea", "Pomegranate juice"],
-    mealPlan: { Morning: ["Oatmeal with berries and walnuts", "Green tea"], Afternoon: ["Grilled salmon", "Leafy green salad"], Evening: ["Handful of almonds"], Night: ["Quinoa with steamed vegetables", "Avocado"] },
-    warning: "Chest pain can be a sign of a heart attack. If it's sudden, severe, or radiates to your arm, back, neck, or jaw, call emergency services immediately.",
-    homeCare: ["Rest immediately", "Take prescribed medication if you have a known condition", "Stay calm and avoid exertion"]
-  },
-  "Back Pain": {
-    recommended: ["Cherries", "Berries", "Fatty fish", "Olive oil", "Turmeric", "Ginger", "Green leafy vegetables"],
-    avoid: ["Sugary foods", "Refined carbohydrates", "Processed meats", "Trans fats", "Excessive alcohol"],
-    hydration: ["Water", "Anti-inflammatory teas (turmeric, ginger)", "Tart cherry juice"],
-    mealPlan: { Morning: ["Smoothie with berries and spinach", "Ginger tea"], Afternoon: ["Grilled fish with olive oil", "Turmeric rice"], Evening: ["Tart cherry juice"], Night: ["Mixed salad with olive oil dressing", "Steamed vegetables"] },
-    warning: "If back pain is accompanied by loss of bowel/bladder control, numbness in legs, or is the result of a severe fall, seek emergency care.",
-    homeCare: ["Use a cold or warm compress", "Do gentle stretching exercises", "Maintain good posture"]
-  },
-  Migraine: {
-    recommended: ["Spinach", "Swiss chard", "Almonds", "Avocados", "Fatty fish", "Flaxseeds", "Watermelon"],
-    avoid: ["Aged cheeses", "Alcohol (especially red wine)", "Chocolate", "Cured meats", "Foods containing MSG", "Artificial sweeteners"],
-    hydration: ["Water", "Peppermint tea", "Ginger tea", "Electrolyte-rich fluids"],
-    mealPlan: { Morning: ["Oatmeal with flaxseeds", "Peppermint tea"], Afternoon: ["Spinach salad with avocado", "Baked salmon"], Evening: ["Ginger tea", "Handful of almonds"], Night: ["Quinoa", "Steamed Swiss chard"] },
-    warning: "If migraine is accompanied by a stiff neck, fever, confusion, or weakness, seek immediate medical attention.",
-    homeCare: ["Rest in a dark, quiet room", "Apply a cold compress to the forehead", "Stay hydrated"]
-  }
-};
-
-const allSymptoms = Object.keys(mockData);
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 const SymptomChecker = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSymptom, setSelectedSymptom] = useState(null);
   const [severity, setSeverity] = useState('Moderate');
   const [ageGroup, setAgeGroup] = useState('Adult');
   const [activeTab, setActiveTab] = useState('Recommended');
+  
+  const [symptomsData, setSymptomsData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredSymptoms = allSymptoms.filter(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
+  useEffect(() => {
+    const fetchSymptoms = async () => {
+      try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const { data } = await axios.get('/api/symptoms', config);
+        setSymptomsData(data.data || []);
+      } catch (error) {
+        console.error('Error fetching symptoms', error);
+        toast.error('Failed to load symptoms data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user?.token) {
+      fetchSymptoms();
+    }
+  }, [user?.token]);
 
-  const handleSelectSymptom = (symptom) => {
-    setSelectedSymptom(symptom);
-    setActiveTab('Recommended');
-    toast.success(`Food recommendations generated for ${symptom}`);
+  const filteredSymptoms = symptomsData
+    .map(s => s.name)
+    .filter(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const handleSelectSymptom = (symptomName) => {
+    const symptom = symptomsData.find(s => s.name === symptomName);
+    if (symptom) {
+      setSelectedSymptom(symptom);
+      setActiveTab('Recommended');
+      toast.success(`Food recommendations generated for ${symptom.name}`);
+    }
   };
 
-  const activeData = selectedSymptom && mockData[selectedSymptom] ? mockData[selectedSymptom] : null;
+  const activeData = selectedSymptom;
 
   // Compute a slight text variation for severity
   const severityPrefix = severity === 'Mild' 
@@ -150,6 +54,15 @@ const SymptomChecker = () => {
     : severity === 'High' 
     ? "Due to high severity, please adhere strictly to these recommendations and prioritize medical advice." 
     : "Follow these standard dietary guidelines for moderate relief.";
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96">
+        <Loader className="w-10 h-10 text-indigo-600 animate-spin mb-4" />
+        <p className="text-gray-500 font-medium">Loading symptoms data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -244,7 +157,7 @@ const SymptomChecker = () => {
                       handleSelectSymptom(symptom);
                       setSearchTerm('');
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${selectedSymptom === symptom ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'}`}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${selectedSymptom?.name === symptom ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'}`}
                   >
                     {symptom}
                   </button>
@@ -270,7 +183,7 @@ const SymptomChecker = () => {
               {/* Header Info */}
               <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-bold mb-1">Recommendations for {selectedSymptom}</h2>
+                  <h2 className="text-2xl font-bold mb-1">Recommendations for {selectedSymptom.name}</h2>
                   <p className="text-indigo-100 text-sm mb-2">{ageGroup} • {severity} Severity</p>
                   <p className="text-sm bg-white/10 inline-block px-3 py-1 rounded-full backdrop-blur-sm border border-white/20">{severityPrefix}</p>
                 </div>
