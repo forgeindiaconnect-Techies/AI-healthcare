@@ -365,7 +365,6 @@ const PatientManagement = () => {
               )}
             </div>
           </div>
-        </div>
       )}
     </div>
   );
