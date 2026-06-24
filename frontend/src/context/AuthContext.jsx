@@ -28,8 +28,8 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return { 
         success: false, 
-        message: error.response && error.response.data.message 
-          ? error.response.data.message 
+        message: error.response && (error.response.data.error || error.response.data.message)
+          ? (error.response.data.error || error.response.data.message)
           : error.message 
       };
     }
@@ -47,8 +47,8 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return { 
         success: false, 
-        message: error.response && error.response.data.message 
-          ? error.response.data.message 
+        message: error.response && (error.response.data.error || error.response.data.message)
+          ? (error.response.data.error || error.response.data.message)
           : error.message 
       };
     }
