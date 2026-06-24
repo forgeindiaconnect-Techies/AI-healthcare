@@ -74,6 +74,54 @@ const mockData = {
     mealPlan: { Morning: ["Oatmeal with nuts", "Green tea"], Afternoon: ["Lean chicken salad", "Sweet potato"], Evening: ["Handful of mixed seeds"], Night: ["Grilled fish", "Steamed spinach"] },
     warning: "If fatigue is chronic, unexplainable, or accompanied by chest pain or depression, consult a physician.",
     homeCare: ["Maintain a strict sleep schedule", "Exercise lightly (yoga/stretching)", "Reduce screen time before bed"]
+  },
+  Vomiting: {
+    recommended: ["Clear fluids", "Ice chips", "Ginger tea", "Dry toast", "Crackers", "Bananas", "Applesauce", "Rice"],
+    avoid: ["Greasy or fried foods", "Very sweet foods", "Spicy foods", "Dairy products", "Strong-smelling foods"],
+    hydration: ["Sip water slowly", "Electrolyte solutions", "Flat ginger ale", "Chamomile tea"],
+    mealPlan: { Morning: ["Dry crackers", "Sip water"], Afternoon: ["Clear broth", "Dry toast"], Evening: ["Ginger tea"], Night: ["Small portion of rice or applesauce"] },
+    warning: "If vomiting is severe, lasts more than 2 days, or contains blood, seek immediate medical attention.",
+    homeCare: ["Rest lying down with head elevated", "Rinse mouth frequently", "Avoid eating large meals"]
+  },
+  Diarrhea: {
+    recommended: ["Bananas", "Rice", "Applesauce", "Toast (BRAT diet)", "Oatmeal", "Boiled potatoes", "Clear broths"],
+    avoid: ["Dairy products", "Fatty and fried foods", "High-fiber foods", "Spicy foods", "Caffeine", "Artificial sweeteners"],
+    hydration: ["Oral rehydration solutions (ORS)", "Coconut water", "Clear broths", "Water"],
+    mealPlan: { Morning: ["Oatmeal or plain toast", "Banana"], Afternoon: ["White rice with clear broth"], Evening: ["Applesauce", "Chamomile tea"], Night: ["Boiled potatoes", "Rice kanji"] },
+    warning: "If diarrhea persists for more than 2 days, or you notice signs of severe dehydration or black/bloody stools, see a doctor.",
+    homeCare: ["Rest adequately", "Drink fluids constantly to replace lost water", "Avoid strenuous activities"]
+  },
+  "Sore Throat": {
+    recommended: ["Warm herbal teas", "Honey", "Warm broth", "Popsicles", "Soft foods like yogurt and mashed potatoes", "Oatmeal"],
+    avoid: ["Crunchy or hard foods", "Acidic fruits and juices", "Spicy foods", "Alcohol", "Caffeine"],
+    hydration: ["Warm water with honey and lemon", "Decaffeinated tea", "Clear broths"],
+    mealPlan: { Morning: ["Oatmeal with honey", "Warm water"], Afternoon: ["Chicken or vegetable broth", "Mashed potatoes"], Evening: ["Warm herbal tea"], Night: ["Yogurt or soft pudding", "Warm milk"] },
+    warning: "If sore throat is severe, lasts longer than a week, or is accompanied by difficulty breathing or swallowing, seek medical care.",
+    homeCare: ["Gargle with warm salt water", "Use throat lozenges", "Use a humidifier"]
+  },
+  "Chest Pain": {
+    recommended: ["Leafy greens", "Whole grains", "Berries", "Fatty fish", "Walnuts", "Almonds", "Avocados"],
+    avoid: ["Trans fats", "High-sodium foods", "Processed meats", "Sugary drinks", "Refined carbohydrates", "Fried foods"],
+    hydration: ["Water", "Green tea", "Pomegranate juice"],
+    mealPlan: { Morning: ["Oatmeal with berries and walnuts", "Green tea"], Afternoon: ["Grilled salmon", "Leafy green salad"], Evening: ["Handful of almonds"], Night: ["Quinoa with steamed vegetables", "Avocado"] },
+    warning: "Chest pain can be a sign of a heart attack. If it's sudden, severe, or radiates to your arm, back, neck, or jaw, call emergency services immediately.",
+    homeCare: ["Rest immediately", "Take prescribed medication if you have a known condition", "Stay calm and avoid exertion"]
+  },
+  "Back Pain": {
+    recommended: ["Cherries", "Berries", "Fatty fish", "Olive oil", "Turmeric", "Ginger", "Green leafy vegetables"],
+    avoid: ["Sugary foods", "Refined carbohydrates", "Processed meats", "Trans fats", "Excessive alcohol"],
+    hydration: ["Water", "Anti-inflammatory teas (turmeric, ginger)", "Tart cherry juice"],
+    mealPlan: { Morning: ["Smoothie with berries and spinach", "Ginger tea"], Afternoon: ["Grilled fish with olive oil", "Turmeric rice"], Evening: ["Tart cherry juice"], Night: ["Mixed salad with olive oil dressing", "Steamed vegetables"] },
+    warning: "If back pain is accompanied by loss of bowel/bladder control, numbness in legs, or is the result of a severe fall, seek emergency care.",
+    homeCare: ["Use a cold or warm compress", "Do gentle stretching exercises", "Maintain good posture"]
+  },
+  Migraine: {
+    recommended: ["Spinach", "Swiss chard", "Almonds", "Avocados", "Fatty fish", "Flaxseeds", "Watermelon"],
+    avoid: ["Aged cheeses", "Alcohol (especially red wine)", "Chocolate", "Cured meats", "Foods containing MSG", "Artificial sweeteners"],
+    hydration: ["Water", "Peppermint tea", "Ginger tea", "Electrolyte-rich fluids"],
+    mealPlan: { Morning: ["Oatmeal with flaxseeds", "Peppermint tea"], Afternoon: ["Spinach salad with avocado", "Baked salmon"], Evening: ["Ginger tea", "Handful of almonds"], Night: ["Quinoa", "Steamed Swiss chard"] },
+    warning: "If migraine is accompanied by a stiff neck, fever, confusion, or weakness, seek immediate medical attention.",
+    homeCare: ["Rest in a dark, quiet room", "Apply a cold compress to the forehead", "Stay hydrated"]
   }
 };
 
@@ -150,7 +198,7 @@ const SymptomChecker = () => {
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Select Symptom</h2>
-            <div className="relative mb-4">
+            <div className="relative mb-6">
               <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
               <input 
                 type="text" 
@@ -159,18 +207,49 @@ const SymptomChecker = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
               />
+              
+              {/* Autocomplete Dropdown */}
+              {searchTerm && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                  {filteredSymptoms.length > 0 ? (
+                    filteredSymptoms.map(symptom => (
+                      <button
+                        key={symptom}
+                        onClick={() => {
+                          handleSelectSymptom(symptom);
+                          setSearchTerm('');
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors border-b border-gray-50 last:border-0"
+                      >
+                        {symptom}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      No matching symptoms found.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto pr-2">
-              {filteredSymptoms.map(symptom => (
-                <button
-                  key={symptom}
-                  onClick={() => handleSelectSymptom(symptom)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${selectedSymptom === symptom ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'}`}
-                >
-                  {symptom}
-                </button>
-              ))}
-              {filteredSymptoms.length === 0 && <p className="text-sm text-gray-500">No symptoms found.</p>}
+
+            {/* Quick Buttons */}
+            <div>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-3">Quick Select</p>
+              <div className="flex flex-wrap gap-2">
+                {['Fever', 'Cold', 'Cough', 'Headache', 'Stomach Pain'].map(symptom => (
+                  <button
+                    key={symptom}
+                    onClick={() => {
+                      handleSelectSymptom(symptom);
+                      setSearchTerm('');
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${selectedSymptom === symptom ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'}`}
+                  >
+                    {symptom}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
