@@ -33,7 +33,7 @@ const DiabetesDiet = () => {
   const fetchDiseases = async (query = '') => {
     try {
       const res = await axios.get(`/api/diet/diseases${query ? `?q=${query}` : ''}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${user?.token}` }
       });
       if (res.data.success) {
         setDiseases(res.data.data);
@@ -47,7 +47,7 @@ const DiabetesDiet = () => {
     setIsLoading(true);
     try {
       const res = await axios.get(`/api/diet/plans/${diseaseId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${user?.token}` }
       });
       if (res.data.success) {
         setDietPlans(res.data.data);
@@ -140,7 +140,7 @@ const DiabetesDiet = () => {
           warnings: activePlan.warnings,
         }
       }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${user?.token}` }
       });
       
       toast.success('Report generated and saved!', { id: 'pdf' });

@@ -1967,3 +1967,204 @@
 2026-06-24 15:50:25 [info]: Socket connected: n2KAj5w-RirD_ESLAAAJ
 2026-06-24 15:50:25 [info]: User 6a3b62b8b2e30d762513f373 joined their room
 2026-06-24 15:50:34 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 15:59:01 [info]: User logged in: james@email.com
+2026-06-24 15:59:01 [info]: Socket connected: xp8wTkLuDjL9YQbWAAAL
+2026-06-24 15:59:01 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 16:00:20 [info]: Socket connected: RYAVM1-Qc9yE-UMKAAAN
+2026-06-24 16:00:20 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 16:00:20 [info]: Socket connected: XnTrtkWzUBvgspkhAAAP
+2026-06-24 16:00:20 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 16:00:21 [info]: Socket connected: xqhBTNgExBj6gy3pAAAR
+2026-06-24 16:00:21 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 16:17:28 [info]: Socket connected: 9m4qggle_SPVYjygAAAT
+2026-06-24 16:17:28 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 16:17:32 [error]: Invalid token | GET /api/diet/diseases | IP: 127.0.0.1
+2026-06-24 16:17:32 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:44 [error]: Invalid token | GET /api/diet/diseases?q=k | IP: 127.0.0.1
+2026-06-24 16:17:44 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:44 [error]: Invalid token | GET /api/diet/diseases?q=kn | IP: 127.0.0.1
+2026-06-24 16:17:44 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:44 [error]: Invalid token | GET /api/diet/diseases?q=knn | IP: 127.0.0.1
+2026-06-24 16:17:44 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:44 [error]: Invalid token | GET /api/diet/diseases?q=knnk | IP: 127.0.0.1
+2026-06-24 16:17:44 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:44 [error]: Invalid token | GET /api/diet/diseases?q=knnkj | IP: 127.0.0.1
+2026-06-24 16:17:44 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:44 [error]: Invalid token | GET /api/diet/diseases?q=knnkjn | IP: 127.0.0.1
+2026-06-24 16:17:44 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:45 [error]: Invalid token | GET /api/diet/diseases?q=knnkj | IP: 127.0.0.1
+2026-06-24 16:17:45 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:45 [error]: Invalid token | GET /api/diet/diseases?q=knnk | IP: 127.0.0.1
+2026-06-24 16:17:45 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:45 [error]: Invalid token | GET /api/diet/diseases?q=knn | IP: 127.0.0.1
+2026-06-24 16:17:45 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:45 [error]: Invalid token | GET /api/diet/diseases?q=kn | IP: 127.0.0.1
+2026-06-24 16:17:45 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:45 [error]: Invalid token | GET /api/diet/diseases?q=k | IP: 127.0.0.1
+2026-06-24 16:17:45 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:17:45 [error]: Invalid token | GET /api/diet/diseases | IP: 127.0.0.1
+2026-06-24 16:17:45 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:23:49 [error]: Invalid token | GET /api/diet/diseases | IP: 127.0.0.1
+2026-06-24 16:23:49 [error]: Error: Invalid token
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\auth.js:43:17
+    at C:\Users\Admin\Desktop\AI healthcare\backend\middleware\asyncHandler.js:2:19
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+    at trim_prefix (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:328:13)
+    at C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:286:9
+    at router.process_params (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:346:12)
+    at next (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:280:10)
+    at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
+    at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
+    at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-24 16:23:49 [info]: Socket connected: V_nC9YtJY31M0zhrAAAV
+2026-06-24 16:23:49 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 16:31:34 [info]: Socket connected: 5pOZYo8ulKfcMklHAAAb
+2026-06-24 16:31:34 [info]: Socket connected: iouXsvXeAgjjDA8eAAAc
+2026-06-24 16:31:34 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 16:31:34 [info]: Socket connected: NgjUqJB8X7WxcW4gAAAd
+2026-06-24 16:31:34 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 16:31:34 [info]: Socket connected: 3yTj0uTU1BEH1eP2AAAe
+2026-06-24 16:31:34 [info]: Socket connected: 2SZ4Px2k0P6r-OA9AAAf
+2026-06-24 16:31:34 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 16:31:34 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 16:31:34 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-24 16:44:49 [info]: User logged in: james@email.com
+2026-06-24 16:44:49 [info]: Socket connected: DV31IYhU9l5LPsyYAAAh
+2026-06-24 16:44:49 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 17:24:45 [info]: MongoDB reconnected
+2026-06-24 17:24:48 [info]: Socket connected: YRq1LkJjQOeAJ7DJAAAk
+2026-06-24 17:24:48 [info]: Socket connected: GRLgN17Ipdv_y2MrAAAl
+2026-06-24 17:24:48 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-24 17:24:48 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-24 17:24:55 [warn]: MongoDB disconnected. Attempting to reconnect...
+2026-06-24 17:24:55 [info]: MongoDB reconnected
