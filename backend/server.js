@@ -1,3 +1,10 @@
+console.log('--- SERVER.JS IS STARTING ---');
+process.on('uncaughtException', (err) => {
+  console.error('\n!!! CRITICAL UNCAUGHT EXCEPTION !!!\n', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('\n!!! CRITICAL UNHANDLED REJECTION !!!\n', reason);
+});
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
@@ -234,11 +241,12 @@ const startServer = async () => {
   try {
     // Bind to port first so Render's port scanner passes immediately
     server.listen(PORT, '0.0.0.0', () => {
-      logger.info(`\n${'='.repeat(50)}`);
-      logger.info(`🏥 HealthCare AI Backend`);
-      logger.info(`🚀 Server: http://0.0.0.0:${PORT}`);
-      logger.info(`📡 Environment: ${process.env.NODE_ENV}`);
-      logger.info(`${'='.repeat(50)}\n`);
+      console.log(`\n==================================================`);
+      console.log(`🏥 HealthCare AI Backend`);
+      console.log(`🚀 Server listening on: http://0.0.0.0:${PORT}`);
+      console.log(`📡 Environment: ${process.env.NODE_ENV}`);
+      console.log(`==================================================\n`);
+      logger.info(`Server bound to port ${PORT}`);
     });
 
     logger.info('Connecting to MongoDB...');
@@ -270,6 +278,7 @@ const startServer = async () => {
     });
 
   } catch (error) {
+    console.error(`\n!!! SERVER STARTUP FAILED !!!\n`, error);
     logger.error(`Server startup failed: ${error.message}`);
     process.exit(1);
   }
