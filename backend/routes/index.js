@@ -83,6 +83,7 @@ const consultationRouter = require('./consultations');
 const symptomRouter = require('./symptoms');
 const paymentRouter = require('./payments');
 const insuranceRouter = require('./insurance');
+const dietRouter = require('./diet');
 
 module.exports = {
   doctorRouter,
@@ -95,5 +96,6 @@ module.exports = {
   consultationRouter,
   symptomRouter,
   paymentRouter,
-  insuranceRouter
+  insuranceRouter,
+  dietRouter
 };

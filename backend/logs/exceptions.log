@@ -416,3 +416,63 @@ Require stack:
     at listenInCluster (node:net:2065:12)
     at node:net:2274:7
     at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:13:18 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:13:26 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:13:38 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:48:13 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:48:21 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:48:33 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:48:46 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:49:18 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:49:27 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:49:57 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:50:08 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+2026-06-24 15:50:25 [error]: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)

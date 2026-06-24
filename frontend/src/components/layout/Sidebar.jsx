@@ -10,6 +10,7 @@ const navItems = {
     { id: "dashboard/appointments", label: "Appointments", icon: "📅" },
     { id: "dashboard/ai-chat", label: "AI Health Chat", icon: "🤖" },
     { id: "dashboard/symptoms", label: "Symptom Checker", icon: "🔍" },
+    { id: "dashboard/diabetes-diet", label: "Diabetes Diet Plan", icon: "🍽️" },
     { id: "dashboard/bmi", label: "BMI Analysis", icon: "🧬" },
     { id: "dashboard/reports", label: "Medical Reports", icon: "📋" },
     { id: "dashboard/prescriptions", label: "Prescriptions", icon: "💊" },

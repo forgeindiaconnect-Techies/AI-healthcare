@@ -18,6 +18,7 @@ import PatientCommunication from './pages/doctor/PatientCommunication';
 import DoctorCommunication from './pages/patient/DoctorCommunication';
 import SymptomChecker from './pages/patient/SymptomChecker';
 import HealthChat from './pages/patient/HealthChat';
+import DiabetesDiet from './pages/patient/DiabetesDiet';
 import BMIAnalysis from './pages/patient/BMIAnalysis';
 import Emergency from './pages/patient/Emergency';
 import Billing from './pages/patient/Billing';
@@ -94,6 +95,7 @@ function App() {
               <Route path="patients" element={<PatientDashboard />} />
               <Route path="symptoms" element={<SymptomChecker />} />
               <Route path="ai-chat" element={<HealthChat />} />
+              <Route path="diabetes-diet" element={<DiabetesDiet />} />
               <Route path="bmi" element={<BMIAnalysis />} />
               <Route path="reports" element={<MedicalReports />} />
               <Route path="history" element={<MedicalHistory />} />
