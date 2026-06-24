@@ -7,6 +7,8 @@ const DoctorPrescriptions = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBuilderModal, setShowBuilderModal] = useState(false);
   const [viewPrescription, setViewPrescription] = useState(null);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('All');
 
   const mockPrescriptions = [
     { id: 1, patient: 'Jane Doe', date: '2026-06-18', medicines: 2, status: 'Active', details: 'Amoxicillin 500mg (1x daily)\nIbuprofen 400mg (as needed)' },
@@ -29,9 +31,11 @@ const DoctorPrescriptions = () => {
     toast.success(`Downloaded digital prescription for ${rx.patient}`);
   };
 
-  const filteredPrescriptions = mockPrescriptions.filter(rx => 
-    rx.patient.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPrescriptions = mockPrescriptions.filter(rx => {
+    const matchesSearch = rx.patient.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || rx.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
@@ -75,9 +79,32 @@ const DoctorPrescriptions = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-2xl font-bold shadow-sm hover:bg-gray-50 hover:border-gray-300 flex items-center gap-2 transition-all active:scale-95">
-          <Filter className="w-5 h-5" /> Filter list
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+            className={`border px-6 py-3 rounded-2xl font-bold shadow-sm flex items-center gap-2 transition-all active:scale-95 ${showFilterDropdown ? 'bg-teal-50 border-teal-200 text-teal-700' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'}`}
+          >
+            <Filter className="w-5 h-5" /> 
+            {statusFilter === 'All' ? 'Filter list' : statusFilter}
+          </button>
+
+          {showFilterDropdown && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20 animate-in fade-in slide-in-from-top-2 duration-200">
+              {['All', 'Active', 'Completed'].map(status => (
+                <button
+                  key={status}
+                  onClick={() => {
+                    setStatusFilter(status);
+                    setShowFilterDropdown(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${statusFilter === status ? 'bg-teal-50 text-teal-700' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Modern Card List */}
