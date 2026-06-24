@@ -27,8 +27,6 @@ const DiabetesDiet = () => {
   const reportRef = useRef();
 
   const quickDiseases = ['Diabetes', 'BP', 'Fever', 'Stomach Pain', 'Headache'];
-  const diabetesTypes = ['Type 1', 'Type 2', 'Gestational Diabetes'];
-  const severities = ['Mild', 'Moderate', 'High'];
 
   const fetchDiseases = async (query = '') => {
     try {
@@ -71,6 +69,23 @@ const DiabetesDiet = () => {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDisease]);
+
+  const availableTypes = [...new Set(dietPlans.map(p => p.diseaseType))];
+  const availableSeverities = selectedType 
+    ? [...new Set(dietPlans.filter(p => p.diseaseType === selectedType).map(p => p.severity))]
+    : [];
+
+  useEffect(() => {
+    if (availableTypes.length === 1 && !selectedType) {
+      setSelectedType(availableTypes[0]);
+    }
+  }, [availableTypes, selectedType]);
+
+  useEffect(() => {
+    if (availableSeverities.length === 1 && !selectedSeverity) {
+      setSelectedSeverity(availableSeverities[0]);
+    }
+  }, [availableSeverities, selectedSeverity]);
 
   useEffect(() => {
     if (dietPlans.length > 0 && selectedType && selectedSeverity) {
@@ -164,26 +179,28 @@ const DiabetesDiet = () => {
         <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-blue-300 mb-2"></div>
         
         {/* Step 2: Select Type */}
-        <div className="flex gap-4 mb-2">
-          {diabetesTypes.map(type => (
-            <button
-              key={type}
-              onClick={() => { setSelectedType(type); setSelectedSeverity(null); }}
-              className={`px-4 py-2 rounded-lg border-2 transition-all ${selectedType === type ? 'border-blue-500 bg-blue-50 font-bold text-blue-700' : 'border-gray-200 hover:border-blue-300 text-gray-600'}`}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
+        {availableTypes.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-4 mb-2">
+            {availableTypes.map(type => (
+              <button
+                key={type}
+                onClick={() => { setSelectedType(type); setSelectedSeverity(null); }}
+                className={`px-4 py-2 rounded-lg border-2 transition-all ${selectedType === type ? 'border-blue-500 bg-blue-50 font-bold text-blue-700' : 'border-gray-200 hover:border-blue-300 text-gray-600'}`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        )}
         
-        {selectedType && (
+        {selectedType && availableSeverities.length > 0 && (
           <>
             <div className="h-8 w-1 bg-blue-300 my-1"></div>
             <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-blue-300 mb-2"></div>
             
             {/* Step 3: Select Severity */}
-            <div className="flex gap-4 mb-2">
-              {severities.map(severity => (
+            <div className="flex flex-wrap justify-center gap-4 mb-2">
+              {availableSeverities.map(severity => (
                 <button
                   key={severity}
                   onClick={() => setSelectedSeverity(severity)}
@@ -191,7 +208,8 @@ const DiabetesDiet = () => {
                     selectedSeverity === severity 
                       ? severity === 'High' ? 'border-red-500 bg-red-50 text-red-700 font-bold' 
                         : severity === 'Moderate' ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
-                        : 'border-green-500 bg-green-50 text-green-700 font-bold'
+                        : severity === 'Low' || severity === 'Mild' ? 'border-green-500 bg-green-50 text-green-700 font-bold'
+                        : 'border-blue-500 bg-blue-50 text-blue-700 font-bold'
                       : 'border-gray-200 hover:border-gray-300 text-gray-600'
                   }`}
                 >
