@@ -42,15 +42,32 @@ export const Button = ({ children, onClick, variant = "primary", size = "md", di
   );
 };
 
-export const Input = ({ label, type = "text", value, onChange, placeholder, icon, style = {} }) => (
-  <div style={{ marginBottom: 16, ...style }}>
-    {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 6 }}>{label}</label>}
-    <div style={{ position: "relative" }}>
-      {icon && <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 18 }}>{icon}</span>}
-      <input type={type} value={value} onChange={onChange} placeholder={placeholder} style={{ width: "100%", boxSizing: "border-box", padding: icon ? "10px 12px 10px 40px" : "10px 12px", borderRadius: 8, border: `1px solid ${colors.border}`, fontSize: 14, color: colors.text, background: colors.surface, outline: "none" }} />
+import { Eye, EyeOff } from 'lucide-react';
+
+export const Input = ({ label, type = "text", value, onChange, placeholder, icon, style = {} }) => {
+  const [showPassword, setShowPassword] = React.useState(false);
+  const isPassword = type === "password";
+  const currentType = isPassword && showPassword ? "text" : type;
+
+  return (
+    <div style={{ marginBottom: 16, ...style }}>
+      {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 6 }}>{label}</label>}
+      <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+        {icon && <span style={{ position: "absolute", left: 12, fontSize: 18 }}>{icon}</span>}
+        <input type={currentType} value={value} onChange={onChange} placeholder={placeholder} style={{ width: "100%", boxSizing: "border-box", padding: icon ? "10px 12px 10px 40px" : "10px 12px", paddingRight: isPassword ? "40px" : "12px", borderRadius: 8, border: `1px solid ${colors.border}`, fontSize: 14, color: colors.text, background: colors.surface, outline: "none" }} />
+        {isPassword && (
+          <button 
+            type="button" 
+            onClick={() => setShowPassword(!showPassword)} 
+            style={{ position: "absolute", right: 12, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: colors.textMuted, padding: 0 }}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const Select = ({ label, value, onChange, options }) => (
   <div style={{ marginBottom: 16 }}>
