@@ -17,7 +17,7 @@ const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
 const appointmentRoutes = require('./routes/appointments');
-const { doctorRouter, patientRouter, adminRouter, reportRouter, prescriptionRouter, aiRouter, notificationRouter, consultationRouter, symptomRouter } = require('./routes/index');
+const { doctorRouter, patientRouter, adminRouter, reportRouter, prescriptionRouter, aiRouter, notificationRouter, consultationRouter, symptomRouter, paymentRouter, insuranceRouter } = require('./routes/index');
 const schedulerService = require('./services/schedulerService');
 
 // Ensure log directory exists
@@ -189,6 +189,8 @@ app.use('/api/ai', aiRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/consultations', consultationRouter);
 app.use('/api/symptoms', symptomRouter);
+app.use('/api/payments', paymentRouter);
+app.use('/api/insurance', insuranceRouter);
 
 // Serve uploads directory (fallback for local uploads in dev)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

@@ -81,6 +81,8 @@ aiRouter.get('/history', protect, aiController.getChatHistory);
 
 const consultationRouter = require('./consultations');
 const symptomRouter = require('./symptoms');
+const paymentRouter = require('./payments');
+const insuranceRouter = require('./insurance');
 
 module.exports = {
   doctorRouter,
@@ -91,5 +93,7 @@ module.exports = {
   aiRouter,
   notificationRouter,
   consultationRouter,
-  symptomRouter
+  symptomRouter,
+  paymentRouter,
+  insuranceRouter
 };
