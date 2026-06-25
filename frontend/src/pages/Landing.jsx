@@ -51,7 +51,7 @@ const LandingPage = () => {
         </p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
           <Button variant="primary" onClick={() => navigate('/register')} size="lg">🚀 Start Free Today</Button>
-          <Button variant="ghost" onClick={() => navigate('/login')} size="lg">👨‍⚕️ Doctor Login</Button>
+          <Button variant="ghost" onClick={() => navigate('/doctor-login')} size="lg">👨‍⚕️ Doctor Login</Button>
         </div>
         <div style={{ display: "flex", gap: 32, justifyContent: "center", marginTop: 48, flexWrap: "wrap" }}>
           {stats.map(s => (

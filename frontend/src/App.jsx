@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 import AuthPage from './pages/AuthPage';
 import LandingPage from './pages/Landing';
+import DoctorLogin from './pages/auth/DoctorLogin';
+import DoctorProtectedRoute from './auth/DoctorProtectedRoute';
 
 import DashboardLayout from './components/layout/DashboardLayout';
 import PatientDashboard from './pages/patient/PatientDashboard';
@@ -79,6 +81,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/register" element={<AuthPage />} />
+            <Route path="/doctor-login" element={<DoctorLogin />} />
             
             <Route 
               path="/dashboard" 
@@ -102,11 +105,7 @@ function App() {
               <Route path="emergency" element={<Emergency />} />
               <Route path="billing" element={<Billing />} />
 
-              {/* Doctor Routes */}
-              <Route path="doctor" element={<ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.ADMIN]}><DoctorDashboard /></ProtectedRoute>} />
-              <Route path="doctor-patients" element={<PatientManagement />} />
-              <Route path="ai-analysis" element={<DoctorAIAnalysis />} />
-              <Route path="chat" element={<PatientCommunication />} />
+              {/* Doctor routes have been moved to /doctor-dashboard */}
 
               {/* Admin Routes */}
               <Route path="admin" element={<AdminDashboard />} />
@@ -115,6 +114,27 @@ function App() {
               <Route path="analytics" element={<AnalyticsReports />} />
               <Route path="settings" element={<AdminSettings />} />
 
+              {/* Shared Routes based on role */}
+              <Route path="notifications" element={<NotificationsRouter />} />
+              <Route path="appointments" element={<AppointmentsRouter />} />
+              <Route path="prescriptions" element={<PrescriptionsRouter />} />
+              <Route path="profile" element={<ProfileRouter />} />
+            </Route>
+
+            {/* Doctor Dedicated Dashboard */}
+            <Route 
+              path="/doctor-dashboard" 
+              element={
+                <DoctorProtectedRoute>
+                  <DashboardLayout />
+                </DoctorProtectedRoute>
+              } 
+            >
+              <Route index element={<DoctorDashboard />} />
+              <Route path="doctor-patients" element={<PatientManagement />} />
+              <Route path="ai-analysis" element={<DoctorAIAnalysis />} />
+              <Route path="chat" element={<PatientCommunication />} />
+              
               {/* Shared Routes based on role */}
               <Route path="notifications" element={<NotificationsRouter />} />
               <Route path="appointments" element={<AppointmentsRouter />} />

@@ -21,7 +21,7 @@ const AuthPage = () => {
   useEffect(() => {
     if (user) {
       if (user.role === 'admin') navigate('/dashboard/admin');
-      else if (user.role === 'doctor') navigate('/dashboard/doctor');
+      else if (user.role === 'doctor') navigate('/doctor-dashboard');
       else navigate('/dashboard/patients');
     }
   }, [user, navigate]);
