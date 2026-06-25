@@ -285,6 +285,11 @@ const startServer = async () => {
   }
 };
 
-startServer();
-
-module.exports = { app, server, io };
+if (process.env.VERCEL) {
+  // Global DB connection for Serverless
+  connectDB();
+  module.exports = app;
+} else {
+  startServer();
+  module.exports = { app, server, io };
+}
