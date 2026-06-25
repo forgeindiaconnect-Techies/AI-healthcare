@@ -2177,3 +2177,54 @@
 2026-06-24 18:20:31 [info]: ⏰ Starting scheduler service...
 2026-06-24 18:20:31 [info]: ✅ Scheduler service started
 2026-06-24 18:20:41 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-24 18:32:21 [info]: MongoDB reconnected
+2026-06-24 18:32:23 [info]: Socket connected: u304r9hrhT4fxYWCAAAD
+2026-06-24 18:32:24 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-25 10:32:44 [info]: Connecting to MongoDB...
+2026-06-25 10:32:44 [info]: Server bound to port 5000
+2026-06-25 10:32:44 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-25 10:32:44 [info]: ⏰ Starting scheduler service...
+2026-06-25 10:32:44 [info]: ✅ Scheduler service started
+2026-06-25 10:35:30 [info]: User logged in: james@email.com
+2026-06-25 10:35:30 [info]: Socket connected: CY1g4Up40CQeuZPwAAAB
+2026-06-25 10:35:30 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-25 10:36:40 [info]: Socket connected: Vl07wuIKUJdmwDdpAAAE
+2026-06-25 10:36:40 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-25 10:36:41 [info]: Socket connected: zJR0edPXf8JlVyNQAAAH
+2026-06-25 10:36:41 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-25 10:36:48 [info]: User logged in: sarah@healthsys.com
+2026-06-25 10:36:48 [info]: Socket connected: 21sBzmoAMN29EAFPAAAJ
+2026-06-25 10:36:48 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 10:37:01 [info]: User logged in: admin@healthsys.com
+2026-06-25 10:37:02 [info]: Socket connected: i-hB5lmGUobYoP3OAAAL
+2026-06-25 10:37:02 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-25 10:38:41 [error]: Gemini health chat error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [503 Service Unavailable] This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.
+2026-06-25 10:42:12 [info]: Socket connected: CqrZQs48g2WAta29AAAO
+2026-06-25 10:42:12 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-25 10:46:50 [error]: Email failed to james@email.com: connect ECONNREFUSED ::1:587
+2026-06-25 10:46:50 [error]: Appointment email error: connect ECONNREFUSED ::1:587
+2026-06-25 10:53:22 [info]: User logged in: sarah@healthsys.com
+2026-06-25 10:53:23 [info]: Socket connected: cPmPIymdudcKRqmeAAAQ
+2026-06-25 10:53:23 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 10:54:24 [error]: Invalid credentials | POST /api/auth/login | IP: 127.0.0.1
+2026-06-25 10:54:24 [error]: Error: Invalid credentials
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\authController.js:92:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-06-25 10:54:33 [info]: User logged in: admin@healthsys.com
+2026-06-25 10:54:33 [info]: Socket connected: sUzLu3Luwgb-56ttAAAS
+2026-06-25 10:54:33 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-25 10:59:02 [info]: User logged in: james@email.com
+2026-06-25 10:59:03 [info]: Socket connected: _TAHbt-1ygVV7CwLAAAU
+2026-06-25 10:59:03 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-25 11:00:00 [info]: Marked 1 appointments as no-show
+2026-06-25 11:03:18 [info]: User logged in: sarah@healthsys.com
+2026-06-25 11:03:18 [info]: Socket connected: OhQNwQgzew7F5AWrAAAW
+2026-06-25 11:03:18 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 11:15:09 [info]: Socket connected: a2S47H9oDyUHmC8kAAAY
+2026-06-25 11:15:09 [info]: User 6a3b62bab2e30d762513f395 joined their room
+2026-06-25 11:15:09 [info]: Socket connected: RmoUWTf3xBD9lGRnAAAa
+2026-06-25 11:15:09 [info]: User 6a3b62b8b2e30d762513f373 joined their room
+2026-06-25 11:16:02 [error]: Invalid credentials | POST /api/auth/login | IP: 127.0.0.1
+2026-06-25 11:16:02 [error]: Error: Invalid credentials
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\authController.js:92:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)

@@ -403,3 +403,14 @@
     at router.handle (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:175:3)
     at router (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\index.js:47:12)
     at Layer.handle [as handle_request] (C:\Users\Admin\Desktop\AI healthcare\backend\node_modules\express\lib\router\layer.js:95:5)
+2026-06-25 10:38:41 [error]: Gemini health chat error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [503 Service Unavailable] This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.
+2026-06-25 10:46:50 [error]: Email failed to james@email.com: connect ECONNREFUSED ::1:587
+2026-06-25 10:46:50 [error]: Appointment email error: connect ECONNREFUSED ::1:587
+2026-06-25 10:54:24 [error]: Invalid credentials | POST /api/auth/login | IP: 127.0.0.1
+2026-06-25 10:54:24 [error]: Error: Invalid credentials
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\authController.js:92:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-06-25 11:16:02 [error]: Invalid credentials | POST /api/auth/login | IP: 127.0.0.1
+2026-06-25 11:16:02 [error]: Error: Invalid credentials
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\authController.js:92:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
