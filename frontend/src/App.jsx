@@ -26,6 +26,7 @@ import Billing from './pages/patient/Billing';
 import PatientProfile from './pages/patient/PatientProfile';
 import DoctorAIAnalysis from './pages/doctor/DoctorAIAnalysis';
 import DoctorProfile from './pages/doctor/DoctorProfile';
+import DoctorPatientProfile from './pages/doctor/DoctorPatientProfile';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import DoctorManagement from './pages/admin/DoctorManagement';
 import AnalyticsReports from './pages/admin/AnalyticsReports';
@@ -117,6 +118,7 @@ function App() {
 
               {/* Doctor Routes */}
               <Route path="doctor-patients" element={<PatientManagement />} />
+              <Route path="doctor-patients/:id" element={<DoctorPatientProfile />} />
               <Route path="ai-analysis" element={<DoctorAIAnalysis />} />
               <Route path="chat" element={<PatientCommunication />} />
 

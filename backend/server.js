@@ -25,6 +25,7 @@ const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
 const appointmentRoutes = require('./routes/appointments');
 const { doctorRouter, patientRouter, adminRouter, reportRouter, prescriptionRouter, aiRouter, notificationRouter, consultationRouter, symptomRouter, paymentRouter, insuranceRouter, dietRouter } = require('./routes/index');
+const medicalRoutes = require('./routes/medical');
 const schedulerService = require('./services/schedulerService');
 
 // Ensure log directory exists
@@ -221,6 +222,7 @@ app.use('/api/symptoms', symptomRouter);
 app.use('/api/payments', paymentRouter);
 app.use('/api/insurance', insuranceRouter);
 app.use('/api/diet', dietRouter);
+app.use('/api/medical', medicalRoutes);
 
 // Serve uploads directory (fallback for local uploads in dev)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

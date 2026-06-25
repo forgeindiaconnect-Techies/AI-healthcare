@@ -153,7 +153,7 @@ const PatientManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button 
-                      onClick={() => { setSelectedPatient(patient); setModalType('profile'); }}
+                      onClick={() => navigate(`/dashboard/doctor-patients/${patient._id || patient.user?._id}`)}
                       className="text-teal-600 hover:text-teal-900 flex items-center"
                     >
                       <Eye className="w-4 h-4 mr-1" /> View Profile
