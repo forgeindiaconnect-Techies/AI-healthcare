@@ -3,8 +3,11 @@ const { protect, authorize } = require('../middleware/auth');
 const {
   getPatientMedicalProfile,
   addDiagnosis,
+  getAllDiagnoses,
   addLabRecommendation,
+  getAllLabRecommendations,
   addFollowUp,
+  getAllFollowUps,
   addDoctorNote,
   getPatientReport
 } = require('../controllers/medicalController');
@@ -16,9 +19,19 @@ router.use(protect);
 router.use(authorize('doctor', 'admin'));
 
 router.get('/patients/:id', getPatientMedicalProfile);
-router.post('/diagnosis', addDiagnosis);
-router.post('/lab-recommendations', addLabRecommendation);
-router.post('/followup', addFollowUp);
+
+router.route('/diagnosis')
+  .post(addDiagnosis)
+  .get(getAllDiagnoses);
+
+router.route('/lab-recommendations')
+  .post(addLabRecommendation)
+  .get(getAllLabRecommendations);
+
+router.route('/followup')
+  .post(addFollowUp)
+  .get(getAllFollowUps);
+
 router.post('/notes', addDoctorNote);
 router.get('/report/:patientId', getPatientReport);
 

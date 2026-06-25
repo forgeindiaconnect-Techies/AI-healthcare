@@ -2307,3 +2307,40 @@
 2026-06-25 15:38:21 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
 2026-06-25 15:38:21 [info]: ⏰ Starting scheduler service...
 2026-06-25 15:38:21 [info]: ✅ Scheduler service started
+2026-06-25 15:42:11 [info]: Socket connected: X4geYJi6a6GJmnwdAAAB
+2026-06-25 15:42:11 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 15:42:12 [info]: Socket connected: EnmlZLYy1hjG3aIxAAAE
+2026-06-25 15:42:12 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 15:42:37 [info]: Socket connected: TCN4quvXZ36RU_JqAAAH
+2026-06-25 15:42:37 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 15:50:40 [info]: Socket connected: 8aDaUD77OTV-f4AaAAAJ
+2026-06-25 15:50:41 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 15:50:42 [info]: Socket connected: OJvZ5Y3XVwdJEQDrAAAM
+2026-06-25 15:50:42 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 15:50:42 [info]: Socket connected: q2v9lu_qCwQ3uXQBAAAP
+2026-06-25 15:50:42 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 15:50:43 [info]: Socket connected: pu4zkAg0Evhs87kWAAAS
+2026-06-25 15:50:43 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 15:50:44 [info]: Socket connected: 8WkkOuGpEF6lNGnqAAAV
+2026-06-25 15:50:44 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 15:50:44 [info]: Socket connected: ekPyGdWRL03bS1o5AAAY
+2026-06-25 15:50:44 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 15:51:04 [error]: Patient not found | GET /api/medical/patients/6a3b62bab2e30d762513f395 | IP: 127.0.0.1
+2026-06-25 15:51:04 [error]: Error: Patient not found
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\medicalController.js:17:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-06-25 15:51:04 [error]: Patient not found | GET /api/medical/patients/6a3b62bab2e30d762513f395 | IP: 127.0.0.1
+2026-06-25 15:51:04 [error]: Error: Patient not found
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\medicalController.js:17:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-06-25 15:56:48 [info]: Socket connected: _44C63rovl7sJ1gxAAAb
+2026-06-25 15:56:48 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:04:48 [info]: Socket connected: HvJp2veO3HHYI8YOAAAd
+2026-06-25 16:04:48 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:06:54 [info]: Connecting to MongoDB...
+2026-06-25 16:06:54 [info]: Server bound to port 5000
+2026-06-25 16:06:54 [info]: Socket connected: seZBd1f6XAEqoaWUAAAB
+2026-06-25 16:06:54 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:06:54 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-25 16:06:54 [info]: ⏰ Starting scheduler service...
+2026-06-25 16:06:55 [info]: ✅ Scheduler service started

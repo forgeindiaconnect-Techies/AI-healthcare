@@ -101,3 +101,48 @@ exports.getPatientReport = asyncHandler(async (req, res, next) => {
     data: { patient, diagnoses, labs, meds, latestNote: note }
   });
 });
+
+// @desc    Get all diagnoses for a doctor
+// @route   GET /api/medical/diagnosis
+// @access  Private/Doctor
+exports.getAllDiagnoses = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findOne({ user: req.user._id });
+  const diagnoses = await Diagnosis.find({ doctor: doctor._id })
+    .populate({
+      path: 'patient',
+      populate: { path: 'user', select: 'name email' }
+    })
+    .sort('-createdAt');
+  
+  res.status(200).json({ success: true, count: diagnoses.length, data: diagnoses });
+});
+
+// @desc    Get all lab recommendations for a doctor
+// @route   GET /api/medical/lab-recommendations
+// @access  Private/Doctor
+exports.getAllLabRecommendations = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findOne({ user: req.user._id });
+  const labs = await LabRecommendation.find({ doctor: doctor._id })
+    .populate({
+      path: 'patient',
+      populate: { path: 'user', select: 'name email' }
+    })
+    .sort('-createdAt');
+  
+  res.status(200).json({ success: true, count: labs.length, data: labs });
+});
+
+// @desc    Get all follow ups for a doctor
+// @route   GET /api/medical/followup
+// @access  Private/Doctor
+exports.getAllFollowUps = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findOne({ user: req.user._id });
+  const followups = await FollowUp.find({ doctor: doctor._id })
+    .populate({
+      path: 'patient',
+      populate: { path: 'user', select: 'name email phone' }
+    })
+    .sort('timeline');
+  
+  res.status(200).json({ success: true, count: followups.length, data: followups });
+});

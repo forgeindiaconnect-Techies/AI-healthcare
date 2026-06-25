@@ -422,3 +422,11 @@
 2026-06-25 12:25:02 [error]: Error: Invalid credentials
     at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\authController.js:92:17
     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-06-25 15:51:04 [error]: Patient not found | GET /api/medical/patients/6a3b62bab2e30d762513f395 | IP: 127.0.0.1
+2026-06-25 15:51:04 [error]: Error: Patient not found
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\medicalController.js:17:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-06-25 15:51:04 [error]: Patient not found | GET /api/medical/patients/6a3b62bab2e30d762513f395 | IP: 127.0.0.1
+2026-06-25 15:51:04 [error]: Error: Patient not found
+    at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\medicalController.js:17:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
