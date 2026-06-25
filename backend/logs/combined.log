@@ -2241,3 +2241,11 @@
 2026-06-25 12:25:02 [error]: Error: Invalid credentials
     at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\authController.js:92:17
     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-06-25 12:32:36 [info]: Connecting to MongoDB...
+2026-06-25 12:32:36 [info]: Server bound to port 5000
+2026-06-25 12:32:36 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-25 12:32:36 [info]: ⏰ Starting scheduler service...
+2026-06-25 12:32:36 [info]: ✅ Scheduler service started
+2026-06-25 12:37:32 [info]: User logged in: admin@healthsys.com
+2026-06-25 12:37:32 [info]: Socket connected: i-8Vz-COfy6vVVr2AAAB
+2026-06-25 12:37:32 [info]: User 6a3b62b8b2e30d762513f373 joined their room
