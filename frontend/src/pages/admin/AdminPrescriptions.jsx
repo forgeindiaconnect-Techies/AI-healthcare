@@ -3,7 +3,7 @@ import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Pill, Search, Eye, Filter, ChevronLeft, ChevronRight, 
-  User, Calendar, Stethoscope, FileText
+  User, Calendar, Stethoscope, FileText, ShieldCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
