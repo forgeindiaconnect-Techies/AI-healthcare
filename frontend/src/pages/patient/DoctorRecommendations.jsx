@@ -1,22 +1,311 @@
-import React from 'react';
-import { Card } from '../../components/ui/SharedUI';
-import { colors } from '../../theme/colors';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import API from '../../api/api';
+import { useAuth } from '../../context/AuthContext';
+import { Search, Star, MapPin, Clock, Building2, Video as VideoIcon, UserCircle, Calendar, XCircle, ChevronRight, Activity, Heart, Shield } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const DoctorRecommendations = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [specialtyFilter, setSpecialtyFilter] = useState('All');
+
+  // Booking Modal State
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [bookingData, setBookingData] = useState({ date: '', time: '', type: 'general', mode: 'video', reason: '' });
+
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  const fetchDoctors = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      // Fetching up to 50 top-rated doctors
+      const { data } = await API.get('/api/doctors?limit=50', config);
+      setDoctors(data.data || []);
+    } catch (error) {
+      console.error('Error fetching doctors', error);
+      toast.error('Failed to load doctor recommendations');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const specialties = ['All', ...new Set(doctors.map(d => d.specialization).filter(Boolean))];
+
+  const filteredDoctors = doctors.filter(doc => {
+    const matchesSearch = doc.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          doc.specialization?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSpecialty = specialtyFilter === 'All' || doc.specialization === specialtyFilter;
+    return matchesSearch && matchesSpecialty;
+  });
+
+  const handleOpenBooking = (doc) => {
+    setSelectedDoctor(doc);
+    setBookingData({ date: '', time: '', type: 'general', mode: 'video', reason: '' });
+    setBookingModalOpen(true);
+  };
+
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
+    if (!bookingData.date || !bookingData.time || !bookingData.reason) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const payload = {
+        doctor: selectedDoctor.user?._id || selectedDoctor._id, // Ensure we send the User ID
+        patient: user.id, // Authenticated patient
+        appointmentDate: bookingData.date,
+        appointmentTime: bookingData.time,
+        reason: bookingData.reason,
+        mode: bookingData.mode,
+        type: bookingData.type
+      };
+
+      await API.post('/api/appointments', payload, config);
+      toast.success('Appointment Booked Successfully!');
+      setBookingModalOpen(false);
+      
+      // Optionally redirect to appointments page
+      setTimeout(() => {
+        navigate('/dashboard/appointments');
+      }, 1500);
+
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to book appointment');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500 font-medium flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          Analyzing your health profile to find the best doctors...
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ padding: 24, fontFamily: "'Inter', sans-serif", maxWidth: 1200, margin: '0 auto' }}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: colors.text }}>Doctor Recommendations</h1>
-        <p style={{ margin: 0, fontSize: 14, color: colors.textMuted }}>This feature is currently under development.</p>
+    <div className="space-y-6 animate-in fade-in duration-500 pb-12">
+      
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-indigo-900 to-indigo-700 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-10">
+          <Heart className="w-48 h-48" />
+        </div>
+        <div className="relative z-10 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-4 backdrop-blur-md">
+            <Shield className="w-3 h-3" /> Personalized for you
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black mb-3 text-white">Top Rated Specialists</h1>
+          <p className="text-indigo-100 text-lg opacity-90 leading-relaxed">
+            Based on your health history and preferences, we've curated a list of top-tier healthcare professionals ready to assist you.
+          </p>
+        </div>
       </div>
 
-      <Card style={{ padding: 60, textAlign: 'center' }}>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: colors.surfaceAlt, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: colors.textMuted }}>
-          <span style={{ fontSize: 32 }}>🚧</span>
+      {/* Search & Filters */}
+      <div className="bg-white p-4 md:p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full md:w-96">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input 
+            type="text" 
+            placeholder="Search by doctor name or specialty..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-gray-700"
+          />
         </div>
-        <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>Coming Soon</h3>
-        <p style={{ margin: 0, color: colors.textMuted, fontSize: 14 }}>We are actively building the Doctor Recommendations module. Check back soon!</p>
-      </Card>
+        
+        <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
+          {specialties.map(spec => (
+            <button
+              key={spec}
+              onClick={() => setSpecialtyFilter(spec)}
+              className={`whitespace-nowrap px-5 py-2.5 rounded-2xl font-bold text-sm transition-all border ${
+                specialtyFilter === spec 
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200/50' 
+                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+              }`}
+            >
+              {spec}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Doctor Grid */}
+      {filteredDoctors.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+            <Search className="w-8 h-8" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900">No doctors found</h3>
+          <p className="text-gray-500 mt-2">Try adjusting your search or filters.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredDoctors.map(doc => (
+            <div key={doc._id} className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
+              <div className="p-6 pb-0 flex gap-4">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden bg-indigo-50 border border-indigo-100 flex-shrink-0 relative z-10 group-hover:scale-105 transition-transform duration-300">
+                    {doc.user?.avatar ? (
+                      <img src={doc.user.avatar} alt={doc.user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-indigo-300">
+                        <UserCircle className="w-12 h-12" />
+                      </div>
+                    )}
+                  </div>
+                  {doc.isAcceptingPatients && (
+                    <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full z-20" title="Accepting New Patients"></div>
+                  )}
+                </div>
+                
+                <div className="flex-1 pt-1">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-lg text-gray-900 group-hover:text-indigo-700 transition-colors line-clamp-1">{doc.user?.name || 'Unknown Doctor'}</h3>
+                    <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-1 rounded-lg">
+                      <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                      <span className="text-xs font-bold">{doc.rating?.toFixed(1) || 'N/A'}</span>
+                    </div>
+                  </div>
+                  <p className="text-indigo-600 font-semibold text-sm mt-0.5">{doc.specialization}</p>
+                  <p className="text-gray-500 text-xs font-medium mt-1">{doc.experience} Years Experience</p>
+                </div>
+              </div>
+
+              <div className="px-6 py-4 mt-4 bg-gray-50/50 border-t border-gray-50 grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <MapPin className="w-4 h-4 text-gray-400" />
+                  <span className="truncate">{doc.clinicAddress || 'Virtual Only'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Activity className="w-4 h-4 text-gray-400" />
+                  <span>Fee: ${doc.consultationFee || 0}</span>
+                </div>
+              </div>
+
+              <div className="p-6 pt-4 mt-auto">
+                <button 
+                  onClick={() => handleOpenBooking(doc)}
+                  className="w-full py-3.5 bg-gray-900 hover:bg-indigo-600 text-white rounded-2xl font-bold transition-colors shadow-md shadow-gray-200 hover:shadow-indigo-200 flex items-center justify-center gap-2"
+                >
+                  <Calendar className="w-4 h-4" /> Book Appointment
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Booking Modal */}
+      {bookingModalOpen && selectedDoctor && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                <Calendar className="w-6 h-6 mr-2 text-indigo-600" /> Book Appointment
+              </h2>
+              <button onClick={() => setBookingModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-white border border-transparent hover:border-gray-200 transition-all">
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="bg-indigo-50/50 p-4 mx-6 mt-6 rounded-2xl border border-indigo-100 flex items-center gap-4">
+              <img src={selectedDoctor.user?.avatar} alt="doctor" className="w-12 h-12 rounded-full border border-white shadow-sm" />
+              <div>
+                <p className="text-sm font-semibold text-gray-500">Booking with</p>
+                <p className="text-lg font-bold text-indigo-900">{selectedDoctor.user?.name}</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleBookingSubmit} className="p-6 space-y-6">
+              {/* Mode Selection */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Appointment Type *</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div 
+                    onClick={() => setBookingData({...bookingData, mode: 'video'})}
+                    className={`cursor-pointer p-4 rounded-2xl border-2 transition-all flex items-center gap-3 ${bookingData.mode === 'video' ? 'border-indigo-500 bg-indigo-50/50' : 'border-gray-200 hover:border-indigo-300'}`}
+                  >
+                    <div className={`p-2 rounded-xl ${bookingData.mode === 'video' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'}`}><VideoIcon className="w-5 h-5"/></div>
+                    <div>
+                      <p className={`font-bold ${bookingData.mode === 'video' ? 'text-indigo-900' : 'text-gray-700'}`}>Online</p>
+                      <p className="text-xs text-gray-500">Video Consultation</p>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    onClick={() => setBookingData({...bookingData, mode: 'in-person'})}
+                    className={`cursor-pointer p-4 rounded-2xl border-2 transition-all flex items-center gap-3 ${bookingData.mode === 'in-person' ? 'border-emerald-500 bg-emerald-50/50' : 'border-gray-200 hover:border-emerald-300'}`}
+                  >
+                    <div className={`p-2 rounded-xl ${bookingData.mode === 'in-person' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}><Building2 className="w-5 h-5"/></div>
+                    <div>
+                      <p className={`font-bold ${bookingData.mode === 'in-person' ? 'text-emerald-900' : 'text-gray-700'}`}>Offline</p>
+                      <p className="text-xs text-gray-500">Hospital Visit</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Date & Time */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Date *</label>
+                  <input 
+                    type="date" required
+                    value={bookingData.date}
+                    onChange={(e) => setBookingData({...bookingData, date: e.target.value})}
+                    className="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm font-medium bg-gray-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Time *</label>
+                  <input 
+                    type="time" required
+                    value={bookingData.time}
+                    onChange={(e) => setBookingData({...bookingData, time: e.target.value})}
+                    className="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm font-medium bg-gray-50"
+                  />
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Reason for Visit *</label>
+                <input 
+                  type="text" required placeholder="e.g. Annual Checkup, Back Pain..."
+                  value={bookingData.reason}
+                  onChange={(e) => setBookingData({...bookingData, reason: e.target.value})}
+                  className="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm font-medium bg-gray-50"
+                />
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
+                <button type="button" onClick={() => setBookingModalOpen(false)} className="px-6 py-3.5 font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all">
+                  Cancel
+                </button>
+                <button type="submit" className="px-8 py-3.5 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5">
+                  Confirm Booking
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
