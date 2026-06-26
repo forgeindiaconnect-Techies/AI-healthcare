@@ -114,8 +114,8 @@ exports.seedDatabase = async (req, res) => {
 
     // Create follow-ups
     await FollowUp.create([
-      { patient: patientUsers[0]._id, doctor: doctorUsers[0]._id, type: 'In-person', reason: 'Blood pressure check', dueDate: nextWeek, status: 'Pending' },
-      { patient: patientUsers[2]._id, doctor: doctorUsers[2]._id, type: 'Video', reason: 'Review HbA1c results', dueDate: nextWeek, status: 'Pending' }
+      { patient: patientUsers[0]._id, doctor: doctorUsers[0]._id, type: 'Blood Pressure Review', timeline: '7 Days', status: 'Scheduled', notes: 'Check blood pressure' },
+      { patient: patientUsers[2]._id, doctor: doctorUsers[2]._id, type: 'Diabetes Monitoring', timeline: '30 Days', status: 'Scheduled', notes: 'Review HbA1c results' }
     ]);
 
     // Create notifications
