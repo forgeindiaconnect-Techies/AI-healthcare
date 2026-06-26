@@ -13,6 +13,8 @@ const PatientManagement = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [modalType, setModalType] = useState(null); // 'profile' or 'reports'
   const [selectedReport, setSelectedReport] = useState(null);
+  const [patientReports, setPatientReports] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,6 +66,26 @@ const PatientManagement = () => {
 
     fetchPatients();
   }, [user.token]);
+
+  useEffect(() => {
+    if (modalType === 'reports' && selectedPatient) {
+      const fetchReports = async () => {
+        try {
+          setReportsLoading(true);
+          const config = { headers: { Authorization: `Bearer ${user.token}` } };
+          const patientId = selectedPatient._id || selectedPatient.user?._id;
+          const { data } = await API.get(`/api/reports?patientId=${patientId}`, config);
+          setPatientReports(data.data || []);
+        } catch (error) {
+          console.error('Error fetching patient reports:', error);
+          toast.error('Failed to load patient reports');
+        } finally {
+          setReportsLoading(false);
+        }
+      };
+      fetchReports();
+    }
+  }, [modalType, selectedPatient, user.token]);
 
   const filteredPatients = patients.filter(p => {
     const patientName = p.name || p.user?.name || '';
@@ -262,39 +284,65 @@ const PatientManagement = () => {
                       </div>
                     </div>
                   </div>
-
                 </div>
               </div>
             ) : selectedReport ? (
-                <div className="space-y-4 animate-in fade-in duration-200">
-                  <div className="flex items-center justify-between mb-4 border-b pb-2">
+                <div className="space-y-4 animate-in fade-in duration-200 flex flex-col h-full">
+                  <div className="flex items-center justify-between mb-4 border-b pb-2 shrink-0">
                      <div className="flex items-center">
-                       <h4 className="font-semibold text-gray-800">{selectedReport.name}</h4>
-                       <span className="ml-3 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">{selectedReport.size}</span>
+                       <h4 className="font-semibold text-gray-800">{selectedReport.title || selectedReport.name}</h4>
+                       <span className="ml-3 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                         {selectedReport.reportDate ? new Date(selectedReport.reportDate).toLocaleDateString() : selectedReport.date}
+                       </span>
                      </div>
-                     <button 
-                       onClick={() => setSelectedReport(null)} 
-                       className="text-sm text-blue-600 hover:text-blue-800 flex items-center font-medium"
-                     >
-                       Back to Reports
-                     </button>
+                     <div className="flex gap-2">
+                       {selectedReport.fileUrl && (
+                         <a 
+                           href={selectedReport.fileUrl}
+                           download
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center font-medium bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                         >
+                           <FileText className="w-4 h-4 mr-1.5" /> Download
+                         </a>
+                       )}
+                       <button 
+                         onClick={() => setSelectedReport(null)} 
+                         className="text-sm text-blue-600 hover:text-blue-800 flex items-center font-medium bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                       >
+                         Back to Reports
+                       </button>
+                     </div>
                   </div>
-                  <div className="bg-gray-100/80 p-6 rounded-xl flex justify-center items-center min-h-[300px] border border-gray-200 shadow-inner">
-                     <div className="text-center w-full max-w-sm">
-                       <FileText className="w-16 h-16 text-teal-300 mx-auto mb-4" />
-                       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-left">
-                         <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
-                         <div className="h-4 bg-gray-200 rounded w-full mb-3"></div>
-                         <div className="h-4 bg-gray-200 rounded w-5/6 mb-6"></div>
-                         <p className="text-sm text-gray-500 text-center italic">Mock Document Preview Content for {selectedReport.name}</p>
+                  <div className="bg-gray-100/80 rounded-xl flex justify-center items-center flex-1 border border-gray-200 shadow-inner overflow-hidden min-h-[400px]">
+                     {selectedReport.fileUrl ? (
+                        selectedReport.fileUrl.match(/\.(jpeg|jpg|gif|png)$/i) || selectedReport.fileType?.includes('image') ? (
+                          <img src={selectedReport.fileUrl} alt={selectedReport.title} className="max-w-full max-h-full object-contain" />
+                        ) : (
+                          <iframe 
+                            src={`${selectedReport.fileUrl}#view=FitH`} 
+                            title={selectedReport.title}
+                            className="w-full h-full min-h-[500px] border-0"
+                          />
+                        )
+                     ) : (
+                       <div className="text-center w-full max-w-sm p-8">
+                         <FileText className="w-16 h-16 text-teal-300 mx-auto mb-4" />
+                         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-left">
+                           <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
+                           <div className="h-4 bg-gray-200 rounded w-full mb-3"></div>
+                           <div className="h-4 bg-gray-200 rounded w-5/6 mb-6"></div>
+                           <p className="text-sm text-gray-500 text-center italic">No document file available for {selectedReport.title || selectedReport.name}</p>
+                         </div>
                        </div>
-                     </div>
+                     )}
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4 animate-in fade-in duration-200">
-                  <div className="flex justify-between items-center mb-4">
-                     <h4 className="font-semibold text-gray-700">Recent Reports</h4>
+                <div className="space-y-4 animate-in fade-in duration-200 flex flex-col h-full">
+                  <div className="flex justify-between items-center mb-4 shrink-0">
+                     <h4 className="font-semibold text-gray-700">Patient Reports</h4>
                      <button 
                        onClick={() => toast.success('New report request sent to patient successfully!')}
                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
@@ -303,63 +351,41 @@ const PatientManagement = () => {
                      </button>
                   </div>
                   
-                  <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
-                    <div className="p-3 border border-gray-100 rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors">
-                       <div className="flex items-center">
-                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg mr-3">
-                           <FileText className="w-5 h-5" />
-                         </div>
-                         <div>
-                           <p className="font-semibold text-sm text-gray-900">Complete Blood Count</p>
-                           <p className="text-xs text-gray-500">Jan 15, 2026 • PDF • 1.2 MB</p>
-                         </div>
-                       </div>
-                       <button 
-                         onClick={() => setSelectedReport({ name: 'Complete Blood Count', date: 'Jan 15, 2026', size: '1.2 MB' })}
-                         className="text-teal-600 hover:text-teal-800 p-2 bg-teal-50 hover:bg-teal-100 transition-colors rounded"
-                         title="View Report"
-                       >
-                         <Eye className="w-4 h-4" />
-                       </button>
-                    </div>
-
-                    <div className="p-3 border border-gray-100 rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors">
-                       <div className="flex items-center">
-                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg mr-3">
-                           <FileText className="w-5 h-5" />
-                         </div>
-                         <div>
-                           <p className="font-semibold text-sm text-gray-900">MRI Scan Results</p>
-                           <p className="text-xs text-gray-500">Dec 02, 2025 • PDF • 4.5 MB</p>
-                         </div>
-                       </div>
-                       <button 
-                         onClick={() => setSelectedReport({ name: 'MRI Scan Results', date: 'Dec 02, 2025', size: '4.5 MB' })}
-                         className="text-teal-600 hover:text-teal-800 p-2 bg-teal-50 hover:bg-teal-100 transition-colors rounded"
-                         title="View Report"
-                       >
-                         <Eye className="w-4 h-4" />
-                       </button>
-                    </div>
-
-                    <div className="p-3 border border-gray-100 rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors">
-                       <div className="flex items-center">
-                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg mr-3">
-                           <FileText className="w-5 h-5" />
-                         </div>
-                         <div>
-                           <p className="font-semibold text-sm text-gray-900">Metabolic Panel</p>
-                           <p className="text-xs text-gray-500">Nov 18, 2025 • PDF • 0.8 MB</p>
-                         </div>
-                       </div>
-                       <button 
-                         onClick={() => setSelectedReport({ name: 'Metabolic Panel', date: 'Nov 18, 2025', size: '0.8 MB' })}
-                         className="text-teal-600 hover:text-teal-800 p-2 bg-teal-50 hover:bg-teal-100 transition-colors rounded"
-                         title="View Report"
-                       >
-                         <Eye className="w-4 h-4" />
-                       </button>
-                    </div>
+                  <div className="space-y-3 overflow-y-auto pr-2 flex-1">
+                    {reportsLoading ? (
+                      <div className="text-center p-8 text-gray-500 flex flex-col items-center">
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"></div>
+                        Loading reports...
+                      </div>
+                    ) : patientReports.length === 0 ? (
+                      <div className="text-center p-8 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-500">
+                        <FileText className="w-10 h-10 mx-auto text-gray-300 mb-3" />
+                        <p>No reports found for this patient.</p>
+                      </div>
+                    ) : (
+                      patientReports.map(report => (
+                        <div key={report._id} className="p-3 border border-gray-100 rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors bg-white shadow-sm">
+                           <div className="flex items-center">
+                             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg mr-3">
+                               <FileText className="w-5 h-5" />
+                             </div>
+                             <div>
+                               <p className="font-semibold text-sm text-gray-900">{report.title}</p>
+                               <p className="text-xs text-gray-500">
+                                 {new Date(report.reportDate || report.createdAt).toLocaleDateString()} • {report.reportType || 'General'}
+                               </p>
+                             </div>
+                           </div>
+                           <button 
+                             onClick={() => setSelectedReport(report)}
+                             className="text-teal-600 hover:text-teal-800 p-2 bg-teal-50 hover:bg-teal-100 transition-colors rounded"
+                             title="View Report"
+                           >
+                             <Eye className="w-4 h-4" />
+                           </button>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
