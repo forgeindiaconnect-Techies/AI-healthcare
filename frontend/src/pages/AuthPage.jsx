@@ -41,10 +41,15 @@ const AuthPage = () => {
     setError("");
     
     try {
+      let result;
       if (mode === 'login') {
-        await login(form.email, form.password);
+        result = await login(form.email, form.password);
       } else {
-        await register(form.name, form.email, form.password, form.role);
+        result = await register(form.name, form.email, form.password, form.role);
+      }
+      
+      if (!result.success) {
+        throw new Error(result.message);
       }
     } catch (err) {
       setError(err.message || "Authentication failed");
