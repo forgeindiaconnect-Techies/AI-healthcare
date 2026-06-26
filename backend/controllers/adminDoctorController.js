@@ -21,6 +21,12 @@ exports.createDoctor = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('User with this email already exists', 400));
   }
 
+  // Check if license number exists
+  let existingDoctor = await Doctor.findOne({ licenseNumber: registrationNumber });
+  if (existingDoctor) {
+    return next(new ErrorResponse('Doctor with this Medical Registration Number already exists', 400));
+  }
+
   // Create base User
   user = await User.create({
     name,
@@ -38,32 +44,38 @@ exports.createDoctor = asyncHandler(async (req, res, next) => {
   // Determine verification status
   const isVerified = status === 'Active';
 
-  // Create Doctor Profile
-  const doctor = await Doctor.create({
-    user: user._id,
-    specialization,
-    licenseNumber: registrationNumber, // using licenseNumber field from model
-    experience: experience || 0,
-    education: qualification ? [{ degree: qualification }] : [],
-    hospital: { name: hospitalName },
-    consultationFee: consultationFee || 0,
-    isVerified,
-    isAcceptingPatients: isVerified
-  });
+  try {
+    // Create Doctor Profile
+    const doctor = await Doctor.create({
+      user: user._id,
+      specialization,
+      licenseNumber: registrationNumber, // using licenseNumber field from model
+      experience: experience || 0,
+      education: qualification ? [{ degree: qualification }] : [],
+      hospital: { name: hospitalName },
+      consultationFee: consultationFee || 0,
+      isVerified,
+      isAcceptingPatients: isVerified
+    });
 
-  // Notify Doctor (Simulation since real email depends on env vars)
-  await notificationService.createNotification({
-    user: user._id,
-    title: 'Doctor Account Created',
-    message: 'Your doctor account has been successfully created by the administrator. You can now login.',
-    type: 'system',
-    priority: 'high'
-  });
+    // Notify Doctor (Simulation since real email depends on env vars)
+    await notificationService.createNotification({
+      user: user._id,
+      title: 'Doctor Account Created',
+      message: 'Your doctor account has been successfully created by the administrator. You can now login.',
+      type: 'system',
+      priority: 'high'
+    });
 
-  res.status(201).json({
-    success: true,
-    data: { user, profile: doctor }
-  });
+    res.status(201).json({
+      success: true,
+      data: { user, profile: doctor }
+    });
+  } catch (error) {
+    // Rollback: delete the created user if doctor profile creation fails
+    await User.findByIdAndDelete(user._id);
+    return next(new ErrorResponse('Failed to create doctor profile: ' + error.message, 400));
+  }
 });
 
 // @desc    Get all doctors for Admin (including unverified)
