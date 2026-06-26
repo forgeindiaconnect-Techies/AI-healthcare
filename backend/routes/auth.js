@@ -6,8 +6,11 @@ const { protect } = require('../middleware/auth');
 const { uploadProfile } = require('../config/cloudinary');
 const { registerValidator, loginValidator, forgotPasswordValidator, resetPasswordValidator } = require('../middleware/validator');
 
+const { seedDatabase } = require('../controllers/seedController');
+
 router.post('/register', registerValidator, register);
 router.post('/login', loginValidator, login);
+router.get('/seed-db', seedDatabase);
 router.post('/logout', protect, logout);
 router.get('/me', protect, getMe);
 router.put('/updateprofile', protect, updateProfile);
