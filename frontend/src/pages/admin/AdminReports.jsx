@@ -45,8 +45,13 @@ const AdminReports = () => {
     }
   };
 
-  const handleAction = (action, id) => {
-    toast.success(`Action "${action}" triggered for Report ID: ${id}`);
+  const handleAction = (action, report) => {
+    if (report && report.fileUrl) {
+      toast.success(`Opening report...`);
+      window.open(report.fileUrl, '_blank');
+    } else {
+      toast.error('File not available for this report.');
+    }
   };
 
   // Client-side search filtering (since the API might not support native text search)
@@ -213,14 +218,14 @@ const AdminReports = () => {
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button 
-                          onClick={() => handleAction('View', report._id)}
+                          onClick={() => handleAction('View', report)}
                           className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors tooltip-trigger"
                           title="View Report"
                         >
                           <Eye className="w-5 h-5" />
                         </button>
                         <button 
-                          onClick={() => handleAction('Download', report._id)}
+                          onClick={() => handleAction('Download', report)}
                           className="p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors tooltip-trigger"
                           title="Download PDF"
                         >
