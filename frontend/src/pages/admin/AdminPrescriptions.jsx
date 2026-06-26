@@ -6,7 +6,7 @@ import {
   User, Calendar, Stethoscope, FileText, ShieldCheck, Download
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Modal from '../../components/shared/Modal';
+import { Modal } from '../../components/ui/SharedUI';
 
 const AdminPrescriptions = () => {
   const { user } = useAuth();
