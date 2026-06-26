@@ -8,6 +8,8 @@ const { Notification } = require('../models/index');
 const LabRecommendation = require('../models/LabRecommendation');
 const Diagnosis = require('../models/Diagnosis');
 const FollowUp = require('../models/FollowUp');
+const TreatmentPlan = require('../models/TreatmentPlan');
+const Report = require('../models/Report');
 
 exports.seedDatabase = async (req, res) => {
   try {
@@ -21,6 +23,7 @@ exports.seedDatabase = async (req, res) => {
       Appointment.deleteMany({}), MedicalReport.deleteMany({}),
       Prescription.deleteMany({}), Notification.deleteMany({}),
       LabRecommendation.deleteMany({}), Diagnosis.deleteMany({}), FollowUp.deleteMany({}),
+      TreatmentPlan.deleteMany({}), Report.deleteMany({})
     ]);
 
     // Create admin
@@ -116,6 +119,36 @@ exports.seedDatabase = async (req, res) => {
     await FollowUp.create([
       { patient: patientProfiles[0]._id, doctor: doctorProfiles[0]._id, type: 'Blood Pressure Review', timeline: '7 Days', status: 'Scheduled', notes: 'Check blood pressure' },
       { patient: patientProfiles[2]._id, doctor: doctorProfiles[2]._id, type: 'Diabetes Monitoring', timeline: '30 Days', status: 'Scheduled', notes: 'Review HbA1c results' }
+    ]);
+
+    // Create Treatment Plans
+    await TreatmentPlan.create([
+      { 
+        patient: patientProfiles[0]._id, doctor: doctorProfiles[0]._id, title: 'Hypertension Management Protocol', 
+        description: 'Comprehensive plan to lower blood pressure naturally and medically.',
+        goals: ['Maintain BP under 130/80', 'Reduce sodium intake', 'Daily light exercise'],
+        instructions: 'Take prescribed Amlodipine daily. Avoid salty foods. Walk 30 minutes every evening.',
+        startDate: new Date(), endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)), status: 'Active'
+      },
+      { 
+        patient: patientProfiles[2]._id, doctor: doctorProfiles[2]._id, title: 'Diabetes Control Plan', 
+        description: 'Strict monitoring and medication routine for Type 2 Diabetes.',
+        goals: ['Lower HbA1c below 6.5%', 'Weight loss of 5kg'],
+        instructions: 'Take Metformin twice daily. Follow the low-carb diet plan. Test blood sugar every morning.',
+        startDate: new Date(), endDate: new Date(new Date().setMonth(new Date().getMonth() + 6)), status: 'Active'
+      }
+    ]);
+
+    // Create Reports
+    await Report.create([
+      {
+        patient: patientProfiles[0]._id, doctor: doctorProfiles[0]._id, title: 'Annual Blood Work', type: 'Blood Test',
+        fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', fileName: 'blood_work_2023.pdf', status: 'Pending Review'
+      },
+      {
+        patient: patientProfiles[2]._id, doctor: doctorProfiles[2]._id, title: 'Chest X-Ray', type: 'X-Ray',
+        fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', fileName: 'chest_xray_2023.pdf', status: 'Reviewed', doctorNotes: 'Clear lungs, no abnormalities detected.'
+      }
     ]);
 
     // Create notifications

@@ -2381,3 +2381,64 @@
 2026-06-25 16:20:25 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
 2026-06-25 16:20:25 [info]: ⏰ Starting scheduler service...
 2026-06-25 16:20:25 [info]: ✅ Scheduler service started
+2026-06-25 16:20:32 [info]: Connecting to MongoDB...
+2026-06-25 16:20:32 [info]: Server bound to port 5000
+2026-06-25 16:20:33 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-25 16:20:33 [info]: ⏰ Starting scheduler service...
+2026-06-25 16:20:33 [info]: ✅ Scheduler service started
+2026-06-25 16:25:34 [info]: Socket connected: NZpgiERy2HgeXWrvAAAB
+2026-06-25 16:25:35 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:25:37 [info]: Socket connected: G7m1CXtB29N9A72uAAAE
+2026-06-25 16:25:37 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:25:38 [info]: Socket connected: 6IEdgoDKIao0BgsRAAAH
+2026-06-25 16:25:38 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:25:39 [info]: Socket connected: DiDpEYKFif5NoGm9AAAK
+2026-06-25 16:25:39 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:25:39 [info]: Socket connected: joaZS_N5isAgS0L_AAAN
+2026-06-25 16:25:39 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:26:01 [info]: Socket connected: 9qBtqvj-jUsmuCNdAAAP
+2026-06-25 16:26:01 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:26:47 [info]: Connecting to MongoDB...
+2026-06-25 16:26:47 [info]: Server bound to port 5000
+2026-06-25 16:26:47 [info]: Socket connected: -DgibBhEC9umv8yCAAAC
+2026-06-25 16:26:47 [info]: Socket connected: MOvEofeQj5acXVP6AAAD
+2026-06-25 16:26:48 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:26:48 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:26:48 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-25 16:26:48 [info]: ⏰ Starting scheduler service...
+2026-06-25 16:26:48 [info]: ✅ Scheduler service started
+2026-06-25 16:27:59 [info]: Connecting to MongoDB...
+2026-06-25 16:27:59 [info]: Server bound to port 5000
+2026-06-25 16:28:00 [info]: Socket connected: bc5-fi2sYL4wKkylAAAC
+2026-06-25 16:28:00 [info]: Socket connected: SFSzwGQ7gR0SWzzmAAAD
+2026-06-25 16:28:00 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:28:00 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:28:00 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-25 16:28:00 [info]: ⏰ Starting scheduler service...
+2026-06-25 16:28:00 [info]: ✅ Scheduler service started
+2026-06-25 16:36:31 [info]: Socket connected: Y00-Jkc_3LuLz2foAAAG
+2026-06-25 16:36:31 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 16:49:47 [info]: Socket connected: 4gAPDwZhKISIEX-dAAAI
+2026-06-25 16:49:47 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 17:01:36 [info]: MongoDB reconnected
+2026-06-25 17:01:37 [info]: Socket connected: _rrh5j9M-clOd3C_AAAK
+2026-06-25 17:01:37 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 17:01:38 [info]: Socket connected: YkdHtCq2_fqq6JitAAAN
+2026-06-25 17:01:38 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-25 17:01:39 [warn]: MongoDB disconnected. Attempting to reconnect...
+2026-06-25 17:01:39 [info]: MongoDB reconnected
+2026-06-25 17:12:40 [info]: Connecting to MongoDB...
+2026-06-25 17:12:40 [info]: Server bound to port 5000
+2026-06-25 17:12:41 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-25 17:12:41 [info]: ⏰ Starting scheduler service...
+2026-06-25 17:12:41 [info]: ✅ Scheduler service started
+2026-06-25 17:13:02 [info]: Connecting to MongoDB...
+2026-06-25 17:13:02 [info]: Server bound to port 5000
+2026-06-25 17:13:02 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-25 17:13:02 [info]: ⏰ Starting scheduler service...
+2026-06-25 17:13:02 [info]: ✅ Scheduler service started
+2026-06-25 17:19:45 [info]: MongoDB reconnected
+2026-06-25 17:27:53 [warn]: MongoDB disconnected. Attempting to reconnect...
+2026-06-25 17:27:53 [info]: MongoDB reconnected
+2026-06-25 17:27:58 [info]: Socket connected: cvYHfv2Q5wQlreOjAAAB
+2026-06-25 17:27:58 [info]: User 6a3b62b8b2e30d762513f37f joined their room

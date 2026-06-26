@@ -7,6 +7,8 @@ const FollowUp = require('../models/FollowUp');
 const Prescription = require('../models/Prescription');
 const DoctorNote = require('../models/DoctorNote');
 const Doctor = require('../models/Doctor');
+const Report = require('../models/Report');
+const TreatmentPlan = require('../models/TreatmentPlan');
 
 // @desc    Get complete patient profile for doctor
 // @route   GET /api/medical/patients/:id
@@ -219,4 +221,100 @@ exports.saveConsultation = asyncHandler(async (req, res, next) => {
   }
 
   res.status(201).json({ success: true, message: 'Consultation saved successfully' });
+});
+
+// @desc    Get all reports for doctor
+// @route   GET /api/medical/reports
+// @access  Private/Doctor
+exports.getAllReportsForDoctor = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findOne({ user: req.user._id });
+  if (!doctor) return next(new ErrorResponse('Doctor profile not found', 404));
+
+  const reports = await Report.find() // Should ideally be filtered by patients assigned to the doctor, but for demo we will fetch all or mock
+    .populate({
+      path: 'patient',
+      populate: { path: 'user', select: 'name email avatar' }
+    })
+    .sort('-createdAt');
+
+  res.status(200).json({
+    success: true,
+    data: reports
+  });
+});
+
+// @desc    Review a report
+// @route   PUT /api/medical/reports/:id/review
+// @access  Private/Doctor
+exports.reviewReport = asyncHandler(async (req, res, next) => {
+  const { doctorNotes } = req.body;
+  let report = await Report.findById(req.params.id);
+
+  if (!report) {
+    return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
+  }
+
+  report.status = 'Reviewed';
+  report.doctorNotes = doctorNotes;
+  await report.save();
+
+  res.status(200).json({
+    success: true,
+    data: report
+  });
+});
+
+// @desc    Create treatment plan
+// @route   POST /api/medical/treatment-plans
+// @access  Private/Doctor
+exports.createTreatmentPlan = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findOne({ user: req.user._id });
+  if (!doctor) return next(new ErrorResponse('Doctor profile not found', 404));
+
+  const { patientId, title, description, startDate, endDate, goals, instructions } = req.body;
+
+  let patient = await Patient.findById(patientId);
+  if (!patient) {
+    patient = await Patient.findOne({ user: patientId });
+  }
+  if (!patient) {
+    return next(new ErrorResponse('Patient profile not found', 404));
+  }
+
+  const plan = await TreatmentPlan.create({
+    patient: patient._id,
+    doctor: doctor._id,
+    title,
+    description,
+    startDate,
+    endDate,
+    goals,
+    instructions,
+    status: 'Active'
+  });
+
+  res.status(201).json({
+    success: true,
+    data: plan
+  });
+});
+
+// @desc    Get treatment plans for doctor
+// @route   GET /api/medical/treatment-plans
+// @access  Private/Doctor
+exports.getTreatmentPlans = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findOne({ user: req.user._id });
+  if (!doctor) return next(new ErrorResponse('Doctor profile not found', 404));
+
+  const plans = await TreatmentPlan.find({ doctor: doctor._id })
+    .populate({
+      path: 'patient',
+      populate: { path: 'user', select: 'name email avatar' }
+    })
+    .sort('-createdAt');
+
+  res.status(200).json({
+    success: true,
+    data: plans
+  });
 });

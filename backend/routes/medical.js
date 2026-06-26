@@ -10,7 +10,11 @@ const {
   getAllFollowUps,
   addDoctorNote,
   getPatientReport,
-  saveConsultation
+  saveConsultation,
+  getAllReportsForDoctor,
+  reviewReport,
+  createTreatmentPlan,
+  getTreatmentPlans
 } = require('../controllers/medicalController');
 
 const router = express.Router();
@@ -36,5 +40,16 @@ router.route('/followup')
 
 router.post('/notes', addDoctorNote);
 router.get('/report/:patientId', getPatientReport);
+
+// Reports Review
+router.route('/reports')
+  .get(getAllReportsForDoctor);
+router.route('/reports/:id/review')
+  .put(reviewReport);
+
+// Treatment Plans
+router.route('/treatment-plans')
+  .post(createTreatmentPlan)
+  .get(getTreatmentPlans);
 
 module.exports = router;
