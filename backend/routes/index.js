@@ -33,6 +33,7 @@ patientRouter.put('/profile', protect, authorize('patient'), patientController.u
 patientRouter.post('/vitals', protect, authorize('patient', 'doctor'), patientController.addVitals);
 patientRouter.get('/vitals/:id', protect, authorize('patient', 'doctor'), patientController.getVitals);
 patientRouter.get('/dashboard', protect, authorize('patient'), patientController.getPatientDashboard);
+patientRouter.get('/treatment-plans', protect, authorize('patient'), patientController.getPatientTreatmentPlans);
 patientRouter.get('/', protect, authorize('admin', 'doctor'), patientController.getAllPatients);
 
 // ---------------- ADMIN ROUTES ----------------

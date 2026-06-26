@@ -104,6 +104,28 @@ exports.getPatientDashboard = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: { stats, recentAppointments: appointments, recentReports: reports, activePrescriptions: prescriptions } });
 });
 
+// @desc    Get patient treatment plans
+// @route   GET /api/patients/treatment-plans
+// @access  Private (patient)
+exports.getPatientTreatmentPlans = asyncHandler(async (req, res, next) => {
+  const patient = await Patient.findOne({ user: req.user.id });
+  if (!patient) return next(new ErrorResponse('Patient not found', 404));
+
+  const TreatmentPlan = require('../models/TreatmentPlan');
+  const plans = await TreatmentPlan.find({ patient: patient._id })
+    .populate({
+      path: 'doctor',
+      populate: { path: 'user', select: 'name avatar' }
+    })
+    .sort({ startDate: -1 });
+
+  res.status(200).json({
+    success: true,
+    count: plans.length,
+    data: plans
+  });
+});
+
 // @desc    Get all patients (doctor/admin)
 // @route   GET /api/patients
 // @access  Private (doctor, admin)
