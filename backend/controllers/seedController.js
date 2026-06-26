@@ -108,8 +108,8 @@ exports.seedDatabase = async (req, res) => {
 
     // Create diagnoses
     await Diagnosis.create([
-      { patient: patientUsers[0]._id, doctor: doctorUsers[0]._id, condition: 'Hypertension', status: 'Active', notes: 'Stage 1 hypertension, manageable with diet and light medication.' },
-      { patient: patientUsers[2]._id, doctor: doctorUsers[2]._id, condition: 'Type 2 Diabetes', status: 'Chronic', notes: 'Requires regular monitoring.' }
+      { patient: patientUsers[0]._id, doctor: doctorUsers[0]._id, primaryDiagnosis: 'Hypertension Stage 1', possibleConditions: ['Essential Hypertension', 'Secondary Hypertension'], confidence: 95, riskLevel: 'Medium', symptoms: ['Headache', 'Dizziness'] },
+      { patient: patientUsers[2]._id, doctor: doctorUsers[2]._id, primaryDiagnosis: 'Type 2 Diabetes Mellitus', possibleConditions: ['Type 2 Diabetes', 'Prediabetes'], confidence: 98, riskLevel: 'High', symptoms: ['Increased thirst', 'Frequent urination'] }
     ]);
 
     // Create follow-ups
