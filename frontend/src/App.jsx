@@ -39,6 +39,28 @@ import AdminNotifications from './pages/admin/AdminNotifications';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminPatientManagement from './pages/admin/AdminPatientManagement';
 import AdminAppointments from './pages/admin/AdminAppointments';
+
+// NEW PATIENT IMPORTS
+import UploadReports from './pages/patient/UploadReports';
+import LabResults from './pages/patient/LabResults';
+import TreatmentPlan from './pages/patient/TreatmentPlan';
+import HealthSummary from './pages/patient/HealthSummary';
+import DoctorRecommendations from './pages/patient/DoctorRecommendations';
+import PaymentHistory from './pages/patient/PaymentHistory';
+import PatientFollowUps from './pages/patient/PatientFollowUps';
+
+// NEW DOCTOR IMPORTS
+import ReviewReports from './pages/doctor/ReviewReports';
+import DoctorTreatmentPlans from './pages/doctor/DoctorTreatmentPlans';
+import GenerateReport from './pages/doctor/GenerateReport';
+
+// NEW ADMIN IMPORTS
+import AdminReports from './pages/admin/AdminReports';
+import AdminPrescriptions from './pages/admin/AdminPrescriptions';
+import AdminPayments from './pages/admin/AdminPayments';
+import AdminVideoConsults from './pages/admin/AdminVideoConsults';
+
+// Shared
 import VideoConsultation from './pages/consultation/VideoConsultation';
 
 const AppointmentsRouter = () => {
@@ -88,17 +110,6 @@ function App() {
             <Route path="/doctor-login" element={<DoctorLogin />} />
             
             <Route 
-              path="/doctor-dashboard" 
-              element={
-                <ProtectedRoute allowedRoles={[ROLES.DOCTOR, ROLES.ADMIN]} redirectTo="/doctor-login">
-                  <DashboardLayout />
-                </ProtectedRoute>
-              } 
-            >
-              <Route index element={<DoctorDashboard />} />
-            </Route>
-
-            <Route 
               path="/dashboard" 
               element={
                 <ProtectedRoute>
@@ -119,6 +130,13 @@ function App() {
               <Route path="history" element={<MedicalHistory />} />
               <Route path="emergency" element={<Emergency />} />
               <Route path="billing" element={<Billing />} />
+              <Route path="upload-reports" element={<UploadReports />} />
+              <Route path="lab-results" element={<LabResults />} />
+              <Route path="treatment-plan" element={<TreatmentPlan />} />
+              <Route path="health-summary" element={<HealthSummary />} />
+              <Route path="doctor-recommendations" element={<DoctorRecommendations />} />
+              <Route path="payment-history" element={<PaymentHistory />} />
+              <Route path="patient-follow-ups" element={<PatientFollowUps />} />
 
               {/* Doctor Routes */}
               <Route path="doctor-patients" element={<PatientManagement />} />
@@ -129,6 +147,9 @@ function App() {
               <Route path="follow-up" element={<FollowUpSchedule />} />
               <Route path="ai-analysis" element={<DoctorAIAnalysis />} />
               <Route path="chat" element={<PatientCommunication />} />
+              <Route path="review-reports" element={<ReviewReports />} />
+              <Route path="doctor-treatment-plans" element={<DoctorTreatmentPlans />} />
+              <Route path="generate-report" element={<GenerateReport />} />
 
               {/* Admin Routes */}
               <Route path="admin" element={<AdminDashboard />} />
@@ -136,6 +157,10 @@ function App() {
               <Route path="doctors" element={<DoctorManagement />} />
               <Route path="analytics" element={<AnalyticsReports />} />
               <Route path="settings" element={<AdminSettings />} />
+              <Route path="admin-reports" element={<AdminReports />} />
+              <Route path="admin-prescriptions" element={<AdminPrescriptions />} />
+              <Route path="admin-payments" element={<AdminPayments />} />
+              <Route path="admin-video-consults" element={<AdminVideoConsults />} />
 
               {/* Shared Routes based on role */}
               <Route path="notifications" element={<NotificationsRouter />} />
