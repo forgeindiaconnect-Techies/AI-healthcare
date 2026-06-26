@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
-import { StatCard, Card } from '../../components/ui/SharedUI';
+import { StatCard, Card, Spinner } from '../../components/ui/SharedUI';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const { data } = await API.get('/api/admin/dashboard', config);
+        setStats(data.data.stats);
+      } catch (error) {
+        console.error("Error fetching admin stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) fetchDashboardData();
+  }, [user]);
+
+  if (loading) {
+    return <div className="flex justify-center p-10"><Spinner size={40} /></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -17,12 +39,12 @@ const AdminDashboard = () => {
 
       {/* Enterprise Stats Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
-        <StatCard onClick={() => navigate('/dashboard/users')} icon="👥" label="Total Patients" value="1,245" sub="+12% this month" color={colors.primary} trend="up" />
-        <StatCard onClick={() => navigate('/dashboard/doctors')} icon="🧑‍⚕️" label="Total Doctors" value="48" sub="+2 new" color={colors.indigo || colors.primary} />
-        <StatCard onClick={() => navigate('/dashboard/appointments')} icon="🗓️" label="Total Appointments" value="3,890" sub="+156 this week" color={colors.teal} />
-        <StatCard onClick={() => navigate('/dashboard/appointments')} icon="⌛" label="Today's Appointments" value="124" sub="42 pending" color={colors.warning} />
-        <StatCard onClick={() => navigate('/dashboard/users')} icon="📈" label="Active Users" value="892" sub="Currently online" color={colors.purple} />
-        <StatCard onClick={() => navigate('/dashboard/appointments')} icon="⚠️" label="Emergency Cases" value="3" sub="Requires attention!" color={colors.danger} trend="down" />
+        <StatCard onClick={() => navigate('/dashboard/users')} icon="👥" label="Total Patients" value={stats?.totalPatients || 0} sub="Registered" color={colors.primary} trend="up" />
+        <StatCard onClick={() => navigate('/dashboard/doctors')} icon="🧑‍⚕️" label="Total Doctors" value={stats?.totalDoctors || 0} sub="Registered" color={colors.indigo || colors.primary} />
+        <StatCard onClick={() => navigate('/dashboard/appointments')} icon="🗓️" label="Total Appointments" value={stats?.totalAppointments || 0} sub="All time" color={colors.teal} />
+        <StatCard onClick={() => navigate('/dashboard/appointments')} icon="⌛" label="Pending Appointments" value={stats?.pendingAppointments || 0} sub="Needs action" color={colors.warning} />
+        <StatCard onClick={() => navigate('/dashboard/users')} icon="📈" label="Total Users" value={stats?.totalUsers || 0} sub="System wide" color={colors.purple} />
+        <StatCard onClick={() => navigate('/dashboard/admin-reports')} icon="📋" label="Medical Reports" value={stats?.totalReports || 0} sub="Uploaded" color={colors.primary} trend="up" />
         <StatCard onClick={() => navigate('/dashboard/analytics')} icon="⚡" label="AI Usage Stats" value="12.5K" sub="API calls this month" color={colors.warning} />
         <StatCard onClick={() => navigate('/dashboard/settings')} icon="🛡️" label="System Health" value="99.9%" sub="All systems operational" color={colors.success} />
       </div>

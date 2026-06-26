@@ -41,10 +41,35 @@ exports.seedDatabase = async (req, res) => {
     ]);
 
     const doctorProfiles = await Doctor.create([
-      { user: doctorUsers[0]._id, specialization: 'Cardiology', licenseNumber: 'LIC001', experience: 12, consultationFee: 150, rating: 4.8, totalRatings: 124, bio: 'Experienced cardiologist specializing in heart disease prevention and treatment.', languages: ['English', 'Spanish'], isVerified: true, isAcceptingPatients: true, availability: [{ dayOfWeek: 1, startTime: '09:00', endTime: '17:00', isAvailable: true }, { dayOfWeek: 2, startTime: '09:00', endTime: '17:00', isAvailable: true }, { dayOfWeek: 3, startTime: '09:00', endTime: '17:00', isAvailable: true }] },
-      { user: doctorUsers[1]._id, specialization: 'Neurology', licenseNumber: 'LIC002', experience: 8, consultationFee: 200, rating: 4.6, totalRatings: 98, bio: 'Neurologist with expertise in stroke management and neurological disorders.', languages: ['English', 'Mandarin'], isVerified: true, isAcceptingPatients: true },
-      { user: doctorUsers[2]._id, specialization: 'General Medicine', licenseNumber: 'LIC003', experience: 6, consultationFee: 100, rating: 4.9, totalRatings: 215, bio: 'Family physician focused on preventive care and holistic health.', languages: ['English', 'Spanish', 'Portuguese'], isVerified: true, isAcceptingPatients: true },
-      { user: doctorUsers[3]._id, specialization: 'Orthopedics', licenseNumber: 'LIC004', experience: 15, consultationFee: 175, rating: 4.7, totalRatings: 167, bio: 'Orthopedic surgeon specializing in joint replacement and sports injuries.', languages: ['English'], isVerified: true, isAcceptingPatients: true },
+      { 
+        user: doctorUsers[0]._id, specialization: 'Cardiology', licenseNumber: 'LIC001', experience: 12, consultationFee: 150, rating: 4.8, totalRatings: 124, 
+        bio: 'Experienced cardiologist specializing in heart disease prevention and treatment.', languages: ['English', 'Spanish'], isVerified: true, isAcceptingPatients: true,
+        education: [{ degree: 'MD, Cardiology', institution: 'Harvard Medical School', year: 2010 }],
+        hospital: { name: 'City General Hospital', address: '123 Health Ave', department: 'Cardiology' },
+        totalPatients: 1450, totalAppointments: 2150,
+        availability: [{ dayOfWeek: 1, startTime: '09:00', endTime: '17:00', isAvailable: true }, { dayOfWeek: 2, startTime: '09:00', endTime: '17:00', isAvailable: true }, { dayOfWeek: 3, startTime: '09:00', endTime: '17:00', isAvailable: true }] 
+      },
+      { 
+        user: doctorUsers[1]._id, specialization: 'Neurology', licenseNumber: 'LIC002', experience: 8, consultationFee: 200, rating: 4.6, totalRatings: 98, 
+        bio: 'Neurologist with expertise in stroke management and neurological disorders.', languages: ['English', 'Mandarin'], isVerified: true, isAcceptingPatients: true,
+        education: [{ degree: 'MBBS, MD Neurology', institution: 'Johns Hopkins University', year: 2014 }],
+        hospital: { name: 'NeuroCare Institute', address: '456 Brain Blvd', department: 'Neurology' },
+        totalPatients: 850, totalAppointments: 1200
+      },
+      { 
+        user: doctorUsers[2]._id, specialization: 'General Medicine', licenseNumber: 'LIC003', experience: 6, consultationFee: 100, rating: 4.9, totalRatings: 215, 
+        bio: 'Family physician focused on preventive care and holistic health.', languages: ['English', 'Spanish', 'Portuguese'], isVerified: true, isAcceptingPatients: true,
+        education: [{ degree: 'MD, General Practice', institution: 'Stanford University', year: 2018 }],
+        hospital: { name: 'Community Health Center', address: '789 Wellness Way', department: 'General Medicine' },
+        totalPatients: 3200, totalAppointments: 4500
+      },
+      { 
+        user: doctorUsers[3]._id, specialization: 'Orthopedics', licenseNumber: 'LIC004', experience: 15, consultationFee: 175, rating: 4.7, totalRatings: 167, 
+        bio: 'Orthopedic surgeon specializing in joint replacement and sports injuries.', languages: ['English'], isVerified: true, isAcceptingPatients: true,
+        education: [{ degree: 'MS, Orthopedics', institution: 'Mayo Clinic Alix School of Medicine', year: 2007 }],
+        hospital: { name: 'Sports Medicine Clinic', address: '101 Athletic Dr', department: 'Orthopedics' },
+        totalPatients: 2100, totalAppointments: 2800
+      },
     ]);
 
     // Create patients
