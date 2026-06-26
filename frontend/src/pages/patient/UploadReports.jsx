@@ -15,7 +15,7 @@ const UploadReports = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    reportType: 'lab_result',
+    reportType: 'lab',
     reportDate: new Date().toISOString().split('T')[0],
     labName: '',
     description: ''
@@ -234,10 +234,14 @@ const UploadReports = () => {
                     onChange={(e) => setFormData({...formData, reportType: e.target.value})}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all text-sm font-medium bg-gray-50"
                   >
-                    <option value="lab_result">Laboratory Result</option>
+                    <option value="lab">Laboratory Result</option>
                     <option value="prescription">Prescription</option>
-                    <option value="scan">Imaging / Scan</option>
-                    <option value="discharge_summary">Discharge Summary</option>
+                    <option value="mri">MRI Scan</option>
+                    <option value="xray">X-Ray</option>
+                    <option value="ct-scan">CT Scan</option>
+                    <option value="ultrasound">Ultrasound</option>
+                    <option value="ecg">ECG</option>
+                    <option value="discharge">Discharge Summary</option>
                     <option value="other">Other Document</option>
                   </select>
                 </div>
