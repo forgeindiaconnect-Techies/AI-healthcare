@@ -3,15 +3,20 @@ import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Pill, Search, Eye, Filter, ChevronLeft, ChevronRight, 
-  User, Calendar, Stethoscope, FileText, ShieldCheck
+  User, Calendar, Stethoscope, FileText, ShieldCheck, Download
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Modal from '../../components/shared/Modal';
 
 const AdminPrescriptions = () => {
   const { user } = useAuth();
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  // Modal State
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState(null);
+
   // Pagination & Filtering
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -45,8 +50,9 @@ const AdminPrescriptions = () => {
     }
   };
 
-  const handleView = (id) => {
-    toast.success(`Opening details for Prescription ID: ${id}`);
+  const handleView = (prescription) => {
+    setSelectedPrescription(prescription);
+    setIsViewModalOpen(true);
   };
 
   // Client-side search filtering
@@ -191,7 +197,7 @@ const AdminPrescriptions = () => {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
                         <Stethoscope className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium text-gray-900">Dr. {prescription.doctor?.name || 'Unknown'}</span>
+                        <span className="font-medium text-gray-900">Dr. {prescription.doctor?.name?.replace(/^Dr\.\s*/i, '') || 'Unknown'}</span>
                       </div>
                     </td>
 
@@ -216,7 +222,7 @@ const AdminPrescriptions = () => {
                     {/* Actions Column */}
                     <td className="py-4 px-6 text-right">
                       <button 
-                        onClick={() => handleView(prescription._id)}
+                        onClick={() => handleView(prescription)}
                         className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors tooltip-trigger inline-flex items-center gap-2 font-bold text-sm"
                       >
                         <Eye className="w-4 h-4" /> View
@@ -254,6 +260,79 @@ const AdminPrescriptions = () => {
           </div>
         )}
       </div>
+
+      {/* View Prescription Modal */}
+      <Modal open={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} title="Prescription Details" width={600}>
+        {selectedPrescription && (
+          <div className="space-y-6">
+            {/* Header / Info */}
+            <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4">
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Patient</p>
+                <p className="font-bold text-gray-900">{selectedPrescription.patient?.name || 'Unknown'}</p>
+                <p className="text-sm text-gray-500">{selectedPrescription.patient?.email}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Doctor</p>
+                <p className="font-bold text-gray-900">Dr. {selectedPrescription.doctor?.name?.replace(/^Dr\.\s*/i, '') || 'Unknown'}</p>
+                <p className="text-sm text-gray-500">{new Date(selectedPrescription.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+
+            {/* Diagnosis & Status */}
+            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl">
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Diagnosis</p>
+                <p className="font-bold text-gray-900">{selectedPrescription.diagnosis || 'N/A'}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Status</p>
+                {getStatusBadge(selectedPrescription.status)}
+              </div>
+            </div>
+
+            {/* Medicines List */}
+            <div>
+              <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Pill className="w-5 h-5 text-rose-500" /> Prescribed Medicines
+              </h4>
+              <div className="space-y-3">
+                {selectedPrescription.medicines?.length > 0 ? (
+                  selectedPrescription.medicines.map((med, index) => (
+                    <div key={index} className="bg-white border border-gray-100 p-3 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-2">
+                        <h5 className="font-bold text-gray-900">{med.name}</h5>
+                        <span className="px-2 py-0.5 bg-rose-50 text-rose-600 rounded text-xs font-bold">{med.duration}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600">
+                        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> {med.dosage}</span>
+                        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> {med.frequency}</span>
+                        {med.instructions && (
+                          <span className="flex items-center gap-1.5 w-full mt-1 text-gray-500 italic">
+                            <FileText className="w-3.5 h-3.5" /> {med.instructions}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No medicines listed.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Notes */}
+            {selectedPrescription.notes && (
+              <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
+                <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <FileText className="w-3.5 h-3.5" /> Doctor's Notes
+                </p>
+                <p className="text-sm text-amber-900">{selectedPrescription.notes}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
 
     </div>
   );
