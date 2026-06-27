@@ -2442,3 +2442,8 @@
 2026-06-25 17:27:53 [info]: MongoDB reconnected
 2026-06-25 17:27:58 [info]: Socket connected: cvYHfv2Q5wQlreOjAAAB
 2026-06-25 17:27:58 [info]: User 6a3b62b8b2e30d762513f37f joined their room
+2026-06-27 11:13:30 [info]: Connecting to MongoDB...
+2026-06-27 11:13:30 [info]: Server bound to port 5000
+2026-06-27 11:13:31 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-06-27 11:13:31 [info]: ⏰ Starting scheduler service...
+2026-06-27 11:13:31 [info]: ✅ Scheduler service started

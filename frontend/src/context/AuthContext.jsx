@@ -32,12 +32,15 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('userInfo', JSON.stringify(userPayload));
       return { success: true, user: userPayload };
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response && (error.response.data.error || error.response.data.message)
-          ? (error.response.data.error || error.response.data.message)
-          : error.message 
-      };
+      let message = error.message;
+      if (error.response && error.response.data) {
+        if (error.response.data.details && error.response.data.details.length > 0) {
+          message = error.response.data.details.map(d => d.message).join(', ');
+        } else {
+          message = error.response.data.error || error.response.data.message || message;
+        }
+      }
+      return { success: false, message };
     }
   };
 
@@ -51,12 +54,15 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('userInfo', JSON.stringify(userPayload));
       return { success: true, user: userPayload };
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response && (error.response.data.error || error.response.data.message)
-          ? (error.response.data.error || error.response.data.message)
-          : error.message 
-      };
+      let message = error.message;
+      if (error.response && error.response.data) {
+        if (error.response.data.details && error.response.data.details.length > 0) {
+          message = error.response.data.details.map(d => d.message).join(', ');
+        } else {
+          message = error.response.data.error || error.response.data.message || message;
+        }
+      }
+      return { success: false, message };
     }
   };
 
