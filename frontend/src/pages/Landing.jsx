@@ -27,7 +27,7 @@ const LandingPage = () => {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'); @keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
       {/* Nav */}
-      <nav style={{ position: "sticky", top: 0, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${colors.border}`, padding: "0 40px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 100 }}>
+      <nav className="px-6 md:px-10" style={{ position: "sticky", top: 0, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${colors.border}`, height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 28 }}>🏥</span>
           <span style={{ fontSize: 20, fontWeight: 800, color: colors.text }}>Health<span style={{ color: colors.primary }}>AI</span></span>
@@ -38,7 +38,7 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero */}
-      <section style={{ background: `linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 50%, #FFF7ED 100%)`, padding: "80px 40px", textAlign: "center" }}>
+      <section className="px-6 py-12 md:py-20 md:px-10" style={{ background: `linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 50%, #FFF7ED 100%)`, textAlign: "center" }}>
         <div style={{ display: "inline-block", background: `${colors.primary}15`, color: colors.primary, borderRadius: 20, padding: "6px 18px", fontSize: 13, fontWeight: 600, marginBottom: 24, border: `1px solid ${colors.primary}30` }}>
           🚀 Next-Generation Healthcare Platform
         </div>
@@ -64,7 +64,7 @@ const LandingPage = () => {
       </section>
 
       {/* Features */}
-      <section style={{ padding: "80px 40px", maxWidth: 1100, margin: "0 auto" }}>
+      <section className="px-6 py-12 md:py-20 md:px-10" style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <h2 style={{ fontSize: 36, fontWeight: 800, color: colors.text, margin: "0 0 12px" }}>Everything You Need for Better Health</h2>
           <p style={{ fontSize: 16, color: colors.textMuted }}>Comprehensive healthcare management in one intelligent platform</p>
@@ -81,7 +81,7 @@ const LandingPage = () => {
       </section>
 
       {/* CTA */}
-      <section style={{ background: colors.primary, padding: "60px 40px", textAlign: "center" }}>
+      <section className="px-6 py-12 md:py-16 md:px-10" style={{ background: colors.primary, textAlign: "center" }}>
         <h2 style={{ fontSize: 32, fontWeight: 800, color: "#fff", margin: "0 0 16px" }}>Ready to Transform Your Healthcare?</h2>
         <p style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", margin: "0 0 32px" }}>Join thousands of patients and doctors already using HealthAI</p>
         <Button onClick={() => navigate('/register')} style={{ background: "#fff", color: colors.primary, padding: "14px 36px", fontSize: 16, fontWeight: 700, border: "none", borderRadius: 10, cursor: "pointer" }}>
@@ -89,7 +89,7 @@ const LandingPage = () => {
         </Button>
       </section>
 
-      <footer style={{ padding: "32px 40px", background: colors.sidebar, textAlign: "center", color: colors.sidebarText, fontSize: 13, display: "flex", flexDirection: "column", gap: 12 }}>
+      <footer className="px-6 py-8 md:py-8 md:px-10" style={{ background: colors.sidebar, textAlign: "center", color: colors.sidebarText, fontSize: 13, display: "flex", flexDirection: "column", gap: 12 }}>
         <div>© 2026 HealthAI • Secure • HIPAA Compliant • Powered by Google Gemini</div>
         <div>
           <button onClick={() => navigate('/admin-login')} style={{ background: "none", border: "none", color: colors.textMuted, cursor: "pointer", fontSize: 12, textDecoration: "underline" }}>

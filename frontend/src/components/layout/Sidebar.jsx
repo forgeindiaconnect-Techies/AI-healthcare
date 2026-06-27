@@ -72,13 +72,13 @@ const Sidebar = ({ sidebarOpen }) => {
   };
 
   return (
-    <div style={{ width: sidebarOpen ? 260 : 68, background: colors.sidebar, height: "100vh", display: "flex", flexDirection: "column", transition: "width 0.25s", flexShrink: 0, overflow: "hidden" }}>
-      <div style={{ padding: "20px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: 12 }}>
+    <div className="dashboard-sidebar" style={{ width: sidebarOpen ? 260 : 68, background: colors.sidebar, height: "100vh", display: "flex", flexDirection: "column", transition: "width 0.25s", flexShrink: 0, overflow: "hidden" }}>
+      <div className="hidden md:flex" style={{ padding: "20px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)", alignItems: "center", gap: 12 }}>
         <div style={{ fontSize: 28, flexShrink: 0 }}>🏥</div>
         {sidebarOpen && <div><div style={{ color: "#fff", fontWeight: 700, fontSize: 16, whiteSpace: "nowrap" }}>HealthAI</div><div style={{ color: colors.sidebarText, fontSize: 11 }}>Healthcare System</div></div>}
       </div>
       {sidebarOpen && (
-        <div style={{ padding: "16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="hidden md:block" style={{ padding: "16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Avatar name={user.name} size={38} bg={colors.primary} />
             <div>
@@ -88,18 +88,18 @@ const Sidebar = ({ sidebarOpen }) => {
           </div>
         </div>
       )}
-      <nav style={{ flex: 1, padding: "12px 8px", overflowY: "auto" }}>
+      <nav className="dashboard-sidebar-nav" style={{ flex: 1, padding: "12px 8px", overflowY: "auto" }}>
         {items.map(item => {
           const isActive = currentPath === item.id || (currentPath.startsWith(item.id) && item.id !== 'dashboard');
           return (
-            <button key={item.id} onClick={() => navigate(`/${item.id}`)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, border: "none", cursor: "pointer", background: isActive ? `${colors.primary}20` : "transparent", color: isActive ? colors.sidebarActive : colors.sidebarText, fontSize: 14, fontWeight: isActive ? 600 : 400, marginBottom: 2, transition: "all 0.15s", textAlign: "left" }}>
+            <button key={item.id} onClick={() => navigate(`/${item.id}`)} className="dashboard-sidebar-link" style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, border: "none", cursor: "pointer", background: isActive ? `${colors.primary}20` : "transparent", color: isActive ? colors.sidebarActive : colors.sidebarText, fontSize: 14, fontWeight: isActive ? 600 : 400, marginBottom: 2, transition: "all 0.15s", textAlign: "left" }}>
               <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
-              {sidebarOpen && <span style={{ whiteSpace: "nowrap" }}>{item.label}</span>}
+              <span className="md:inline hidden" style={{ whiteSpace: "nowrap", display: sidebarOpen ? "inline" : "none" }}>{item.label}</span>
             </button>
           );
         })}
       </nav>
-      <div style={{ padding: "12px 8px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="hidden md:block" style={{ padding: "12px 8px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
         <button onClick={handleLogout} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, border: "none", cursor: "pointer", background: "transparent", color: "#EF4444", fontSize: 14 }}>
           <span style={{ fontSize: 18 }}>🚪</span>
           {sidebarOpen && <span>Sign Out</span>}

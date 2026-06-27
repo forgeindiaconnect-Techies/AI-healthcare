@@ -74,3 +74,57 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+/* ========================================================== */
+/* GLOBAL RESPONSIVE ENGINE (Overrides fixed inline styles)   */
+/* ========================================================== */
+
+@media (max-width: 768px) {
+  /* Fluid Widths */
+  [style*="width: 400"], [style*="width:400"],
+  [style*="width: 420"], [style*="width:420"],
+  [style*="width: 300"], [style*="width:300"],
+  [style*="width: 250"], [style*="width:250"],
+  [style*="width: 350"], [style*="width:350"],
+  [style*="width: 450"], [style*="width:450"],
+  [style*="width: 500"], [style*="width:500"],
+  [style*="width: 600"], [style*="width:600"],
+  [style*="width: 700"], [style*="width:700"],
+  [style*="width: 800"], [style*="width:800"],
+  [style*="width: 900"], [style*="width:900"],
+  [style*="width: 1000"], [style*="width:1000"],
+  [style*="min-width"], [style*="minWidth"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Optimize Spacing */
+  [style*="padding: 32px"], [style*="padding:32px"],
+  [style*="padding: 40px"], [style*="padding:40px"],
+  [style*="padding: 60px"], [style*="padding:60px"],
+  [style*="padding: 80px"], [style*="padding:80px"] {
+    padding: 16px !important;
+  }
+
+  /* Ensure tables can scroll horizontally without breaking layout */
+  table, .table-container {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Form components responsiveness */
+  form {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  /* Ensure main layout wrappers fit tablet screens */
+  .dashboard-main-content {
+    padding: 24px 16px !important;
+  }
+}

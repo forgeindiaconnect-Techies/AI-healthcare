@@ -8,16 +8,16 @@ const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: colors.bg, fontFamily: "'Inter', sans-serif" }}>
+    <div className="flex flex-col md:flex-row h-screen w-full font-sans" style={{ background: colors.bg }}>
       <style>{`
         ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
       `}</style>
       
       <Sidebar sidebarOpen={sidebarOpen} />
       
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <div className="flex-1 flex flex-col overflow-hidden relative">
         <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        <main style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
+        <main className="dashboard-main-content flex-1 overflow-y-auto" style={{ padding: "24px 28px" }}>
           <Outlet />
         </main>
       </div>
