@@ -53,7 +53,7 @@ const DoctorLogin = () => {
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 10, textAlign: "center" }}>Quick Demo Login</div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => { set("email", "sarah@healthsys.com"); set("password", "Doctor@123"); }} style={{ flex: 1, padding: "8px 4px", borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.surfaceAlt, cursor: "pointer", fontSize: 12, color: colors.text, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            <button onClick={() => { /* Do nothing, auto-fill removed as requested */ }} style={{ flex: 1, padding: "8px 4px", borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.surfaceAlt, cursor: "pointer", fontSize: 12, color: colors.text, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 20 }}>🩺</span>
               <span style={{ fontWeight: 600 }}>Doctor</span>
             </button>
