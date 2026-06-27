@@ -5,10 +5,13 @@ const {
   getSymptom,
   createSymptom,
   updateSymptom,
-  deleteSymptom
+  deleteSymptom,
+  analyzeSymptom
 } = require('../controllers/symptomController');
 
 const { protect, authorize } = require('../middleware/auth');
+
+router.post('/analyze', protect, analyzeSymptom);
 
 router.route('/')
   .get(protect, getAllSymptoms)
