@@ -78,7 +78,6 @@ exports.deleteSymptom = asyncHandler(async (req, res, next) => {
   await symptom.deleteOne();
 
   res.status(200).json({
-  res.status(200).json({
     success: true,
     data: {}
   });
