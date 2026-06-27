@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Activity, ArrowLeft } from 'lucide-react';
+import { Activity, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const DoctorRegister = () => {
@@ -22,6 +22,7 @@ const DoctorRegister = () => {
     licenseNumber: ''
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   // We'll call API directly if context register doesn't support complex objects out of box, or just adapt it.
@@ -101,7 +102,16 @@ const DoctorRegister = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                <input name="password" type="password" required minLength={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.password} />
+                <div className="relative">
+                  <input name="password" type={showPassword ? "text" : "password"} required minLength={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg pr-10" onChange={handleChange} value={formData.password} />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
