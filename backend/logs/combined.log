@@ -2478,3 +2478,7 @@
 2026-06-27 12:06:42 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
 2026-06-27 12:06:42 [info]: ⏰ Starting scheduler service...
 2026-06-27 12:06:42 [info]: ✅ Scheduler service started
+2026-06-27 13:25:20 [info]: MongoDB reconnected
+2026-06-27 13:25:20 [info]: MongoDB reconnected
+2026-06-27 14:03:32 [warn]: MongoDB disconnected. Attempting to reconnect...
+2026-06-27 14:03:32 [info]: MongoDB reconnected

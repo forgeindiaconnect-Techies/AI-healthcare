@@ -79,7 +79,7 @@ exports.uploadReport = asyncHandler(async (req, res, next) => {
 
     const fileUrl = req.file.path && req.file.path.startsWith('http') 
       ? req.file.path 
-      : `http://localhost:5000/uploads/${req.file.filename}`;
+      : `/uploads/${req.file.filename}`;
 
   const report = await MedicalReport.create({
     patient: patientId,

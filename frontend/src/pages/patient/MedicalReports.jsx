@@ -156,14 +156,30 @@ const MedicalReports = () => {
     }
   };
 
+  const getCorrectUrl = (url) => {
+    if (!url) return null;
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    // If the URL was hardcoded to localhost by the backend, replace it with the actual backend URL
+    if (url.includes('http://localhost:5000')) {
+      return url.replace('http://localhost:5000', backendUrl);
+    }
+    // If it's a relative URL, prepend the backend URL
+    if (url.startsWith('/uploads/')) {
+      return `${backendUrl}${url}`;
+    }
+    return url;
+  };
+
   const handlePreview = (url) => {
-    if (!url) { toast.error("File preview not available for mock reports."); return; }
-    window.open(url, '_blank');
+    const fixedUrl = getCorrectUrl(url);
+    if (!fixedUrl) { toast.error("File preview not available for mock reports."); return; }
+    window.open(fixedUrl, '_blank');
   };
 
   const handleDownload = (url) => {
-    if (!url) { toast.error("Download not available for mock reports."); return; }
-    window.open(url, '_blank');
+    const fixedUrl = getCorrectUrl(url);
+    if (!fixedUrl) { toast.error("Download not available for mock reports."); return; }
+    window.open(fixedUrl, '_blank');
   };
 
   const getStatusColor = (status) => {
