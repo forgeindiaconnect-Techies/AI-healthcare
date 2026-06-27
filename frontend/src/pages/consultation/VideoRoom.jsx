@@ -24,6 +24,13 @@ const VideoRoom = ({ appointment, isDoctor, socket, roomId, localStream, onEndCa
     ]
   };
 
+  // Ensure remote stream is attached to video element when it updates
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
+
   useEffect(() => {
     // 1. Initialize Local Video
     if (localVideoRef.current && localStream) {
@@ -36,15 +43,17 @@ const VideoRoom = ({ appointment, isDoctor, socket, roomId, localStream, onEndCa
     // 3. Initialize WebRTC
     const pc = new RTCPeerConnection(rtcConfig);
     peerConnectionRef.current = pc;
+    
+    // Ice candidate queue for race conditions
+    let iceCandidateQueue = [];
 
     // Add local tracks to peer connection
     localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
     // Handle remote tracks
     pc.ontrack = (event) => {
-      setRemoteStream(event.streams[0]);
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
+      if (event.streams && event.streams[0]) {
+        setRemoteStream(event.streams[0]);
       }
     };
 
@@ -72,6 +81,13 @@ const VideoRoom = ({ appointment, isDoctor, socket, roomId, localStream, onEndCa
       if (senderId === socket.id) return; // ignore own offer
       try {
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        
+        // Process queued candidates
+        iceCandidateQueue.forEach(async (cand) => {
+          try { await pc.addIceCandidate(new RTCIceCandidate(cand)); } catch (e) { console.error(e); }
+        });
+        iceCandidateQueue = [];
+
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socket.emit('webrtc-answer', { roomId, answer, senderId: socket.id });
@@ -84,6 +100,12 @@ const VideoRoom = ({ appointment, isDoctor, socket, roomId, localStream, onEndCa
       if (senderId === socket.id) return;
       try {
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        
+        // Process queued candidates
+        iceCandidateQueue.forEach(async (cand) => {
+          try { await pc.addIceCandidate(new RTCIceCandidate(cand)); } catch (e) { console.error(e); }
+        });
+        iceCandidateQueue = [];
       } catch (error) {
         console.error("Error handling answer:", error);
       }
@@ -92,7 +114,11 @@ const VideoRoom = ({ appointment, isDoctor, socket, roomId, localStream, onEndCa
     const handleIceCandidate = async ({ candidate, senderId }) => {
       if (senderId === socket.id) return;
       try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        if (pc.remoteDescription) {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } else {
+          iceCandidateQueue.push(candidate);
+        }
       } catch (error) {
         console.error("Error adding ice candidate:", error);
       }
