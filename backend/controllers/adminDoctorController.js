@@ -133,8 +133,8 @@ exports.approveDoctor = asyncHandler(async (req, res, next) => {
     await doctor.save();
 
     if (doctor.user) {
-      await notificationService.createNotification({
-        user: doctor.user._id,
+      await notificationService.create({
+        userId: doctor.user._id,
         title: 'Account Approved',
         message: 'Your account has been approved by the administrator. You can now accept patients.',
         type: 'system',
@@ -150,8 +150,8 @@ exports.approveDoctor = asyncHandler(async (req, res, next) => {
     await doctor.save();
 
     if (doctor.user) {
-      await notificationService.createNotification({
-        user: doctor.user._id,
+      await notificationService.create({
+        userId: doctor.user._id,
         title: 'Account Rejected',
         message: 'Your account approval has been rejected by the administrator.',
         type: 'system',
