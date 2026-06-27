@@ -33,8 +33,7 @@ const LandingPage = () => {
           <span style={{ fontSize: 20, fontWeight: 800, color: colors.text }}>Health<span style={{ color: colors.primary }}>AI</span></span>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
-          <Button variant="secondary" onClick={() => navigate('/login')} size="sm">Patient Login</Button>
-          <Button variant="primary" onClick={() => navigate('/register')} size="sm">Patient Register</Button>
+          <Button variant="primary" onClick={() => navigate('/login')} size="sm">Sign In</Button>
         </div>
       </nav>
 
