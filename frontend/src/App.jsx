@@ -101,6 +101,14 @@ import { ROLES } from './auth/roles';
 import ProtectedRoute from './auth/ProtectedRoute';
 import { Toaster } from 'react-hot-toast';
 
+const RoleRoute = ({ role, children }) => {
+  const { user } = useAuth();
+  if (user?.role !== role) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -126,47 +134,47 @@ function App() {
               <Route index element={<Navigate to="patients" replace />} />
 
               {/* Patient Routes */}
-              <Route path="patients" element={<PatientDashboard />} />
-              <Route path="symptoms" element={<SymptomChecker />} />
-              <Route path="ai-chat" element={<HealthChat />} />
-              <Route path="diabetes-diet" element={<DiabetesDiet />} />
-              <Route path="bmi" element={<BMIAnalysis />} />
-              <Route path="reports" element={<MedicalReports />} />
-              <Route path="history" element={<MedicalHistory />} />
-              <Route path="emergency" element={<Emergency />} />
-              <Route path="billing" element={<Billing />} />
-              <Route path="upload-reports" element={<UploadReports />} />
-              <Route path="lab-results" element={<LabResults />} />
-              <Route path="treatment-plan" element={<TreatmentPlan />} />
-              <Route path="health-summary" element={<HealthSummary />} />
-              <Route path="doctor-recommendations" element={<DoctorRecommendations />} />
-              <Route path="payment-history" element={<PaymentHistory />} />
-              <Route path="patient-follow-ups" element={<PatientFollowUps />} />
+              <Route path="patients" element={<RoleRoute role="patient"><PatientDashboard /></RoleRoute>} />
+              <Route path="symptoms" element={<RoleRoute role="patient"><SymptomChecker /></RoleRoute>} />
+              <Route path="ai-chat" element={<RoleRoute role="patient"><HealthChat /></RoleRoute>} />
+              <Route path="diabetes-diet" element={<RoleRoute role="patient"><DiabetesDiet /></RoleRoute>} />
+              <Route path="bmi" element={<RoleRoute role="patient"><BMIAnalysis /></RoleRoute>} />
+              <Route path="reports" element={<RoleRoute role="patient"><MedicalReports /></RoleRoute>} />
+              <Route path="history" element={<RoleRoute role="patient"><MedicalHistory /></RoleRoute>} />
+              <Route path="emergency" element={<RoleRoute role="patient"><Emergency /></RoleRoute>} />
+              <Route path="billing" element={<RoleRoute role="patient"><Billing /></RoleRoute>} />
+              <Route path="upload-reports" element={<RoleRoute role="patient"><UploadReports /></RoleRoute>} />
+              <Route path="lab-results" element={<RoleRoute role="patient"><LabResults /></RoleRoute>} />
+              <Route path="treatment-plan" element={<RoleRoute role="patient"><TreatmentPlan /></RoleRoute>} />
+              <Route path="health-summary" element={<RoleRoute role="patient"><HealthSummary /></RoleRoute>} />
+              <Route path="doctor-recommendations" element={<RoleRoute role="patient"><DoctorRecommendations /></RoleRoute>} />
+              <Route path="payment-history" element={<RoleRoute role="patient"><PaymentHistory /></RoleRoute>} />
+              <Route path="patient-follow-ups" element={<RoleRoute role="patient"><PatientFollowUps /></RoleRoute>} />
 
               {/* Doctor Routes */}
-              <Route path="doctor-dashboard" element={<DoctorDashboard />} />
-              <Route path="doctor-patients" element={<PatientManagement />} />
-              <Route path="doctor-patients/:id" element={<DoctorPatientProfile />} />
-              <Route path="consultation/:appointmentId/:patientId" element={<ConsultationWizard />} />
-              <Route path="diagnosis" element={<Diagnosis />} />
-              <Route path="lab-recommendations" element={<LabRecommendations />} />
-              <Route path="follow-up" element={<FollowUpSchedule />} />
-              <Route path="ai-analysis" element={<DoctorAIAnalysis />} />
-              <Route path="chat" element={<PatientCommunication />} />
-              <Route path="review-reports" element={<ReviewReports />} />
-              <Route path="doctor-treatment-plans" element={<DoctorTreatmentPlans />} />
-              <Route path="generate-report" element={<GenerateReport />} />
+              <Route path="doctor-dashboard" element={<RoleRoute role="doctor"><DoctorDashboard /></RoleRoute>} />
+              <Route path="doctor-patients" element={<RoleRoute role="doctor"><PatientManagement /></RoleRoute>} />
+              <Route path="doctor-patients/:id" element={<RoleRoute role="doctor"><DoctorPatientProfile /></RoleRoute>} />
+              <Route path="consultation/:appointmentId/:patientId" element={<RoleRoute role="doctor"><ConsultationWizard /></RoleRoute>} />
+              <Route path="diagnosis" element={<RoleRoute role="doctor"><Diagnosis /></RoleRoute>} />
+              <Route path="lab-recommendations" element={<RoleRoute role="doctor"><LabRecommendations /></RoleRoute>} />
+              <Route path="follow-up" element={<RoleRoute role="doctor"><FollowUpSchedule /></RoleRoute>} />
+              <Route path="ai-analysis" element={<RoleRoute role="doctor"><DoctorAIAnalysis /></RoleRoute>} />
+              <Route path="chat" element={<RoleRoute role="doctor"><PatientCommunication /></RoleRoute>} />
+              <Route path="review-reports" element={<RoleRoute role="doctor"><ReviewReports /></RoleRoute>} />
+              <Route path="doctor-treatment-plans" element={<RoleRoute role="doctor"><DoctorTreatmentPlans /></RoleRoute>} />
+              <Route path="generate-report" element={<RoleRoute role="doctor"><GenerateReport /></RoleRoute>} />
 
               {/* Admin Routes */}
-              <Route path="admin" element={<AdminDashboard />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="doctors" element={<DoctorManagement />} />
-              <Route path="analytics" element={<AnalyticsReports />} />
-              <Route path="settings" element={<AdminSettings />} />
-              <Route path="admin-reports" element={<AdminReports />} />
-              <Route path="admin-prescriptions" element={<AdminPrescriptions />} />
-              <Route path="admin-payments" element={<AdminPayments />} />
-              <Route path="admin-video-consults" element={<AdminVideoConsults />} />
+              <Route path="admin" element={<RoleRoute role="admin"><AdminDashboard /></RoleRoute>} />
+              <Route path="users" element={<RoleRoute role="admin"><UserManagement /></RoleRoute>} />
+              <Route path="doctors" element={<RoleRoute role="admin"><DoctorManagement /></RoleRoute>} />
+              <Route path="analytics" element={<RoleRoute role="admin"><AnalyticsReports /></RoleRoute>} />
+              <Route path="settings" element={<RoleRoute role="admin"><AdminSettings /></RoleRoute>} />
+              <Route path="admin-reports" element={<RoleRoute role="admin"><AdminReports /></RoleRoute>} />
+              <Route path="admin-prescriptions" element={<RoleRoute role="admin"><AdminPrescriptions /></RoleRoute>} />
+              <Route path="admin-payments" element={<RoleRoute role="admin"><AdminPayments /></RoleRoute>} />
+              <Route path="admin-video-consults" element={<RoleRoute role="admin"><AdminVideoConsults /></RoleRoute>} />
 
               {/* Shared Routes based on role */}
               <Route path="notifications" element={<NotificationsRouter />} />

@@ -26,7 +26,13 @@ exports.getDoctors = asyncHandler(async (req, res) => {
       name: { $regex: search, $options: 'i' },
     }).select('_id');
     userIds = users.map((u) => u._id);
-    profileQuery.user = { $in: userIds };
+    
+    // Either name matches OR specialization matches
+    profileQuery.$or = [
+      { user: { $in: userIds } },
+      { specialization: { $regex: search, $options: 'i' } },
+      { bio: { $regex: search, $options: 'i' } }
+    ];
   }
 
   const total = await Doctor.countDocuments(profileQuery);

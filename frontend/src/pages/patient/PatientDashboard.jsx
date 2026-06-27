@@ -36,9 +36,25 @@ const PatientDashboard = () => {
   const searchDoctors = async (query) => {
     if (!query) return;
     setIsSearchingDoctors(true);
+    
+    // Simple AI/heuristic mapping for common symptoms to specialties
+    const symptomMap = {
+      'heart': 'Cardiology',
+      'skin': 'Dermatology',
+      'eye': 'Ophthalmology',
+      'bone': 'Orthopedics',
+      'dental': 'Dentistry',
+      'mental health': 'Psychiatry',
+      'fever': 'General',
+    };
+    
+    const mappedSpecialty = Object.keys(symptomMap).reduce((acc, key) => {
+      return query.toLowerCase().includes(key) ? symptomMap[key] : acc;
+    }, query);
+
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await API.get(`/api/doctors?specialization=${query}`, config);
+      const { data } = await API.get(`/api/doctors?search=${mappedSpecialty}`, config);
       setRecommendedDoctors(data.data || []);
     } catch (err) {
       console.error(err);

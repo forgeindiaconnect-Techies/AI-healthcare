@@ -48,12 +48,23 @@ const VideoRoom = ({ appointment, isDoctor, socket, roomId, localStream, onEndCa
     let iceCandidateQueue = [];
 
     // Add local tracks to peer connection
-    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+    if (localStream) {
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+    }
 
-    // Handle remote tracks
+    // Handle remote tracks robustly
     pc.ontrack = (event) => {
       if (event.streams && event.streams[0]) {
         setRemoteStream(event.streams[0]);
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+      } else {
+        const inboundStream = new MediaStream([event.track]);
+        setRemoteStream(inboundStream);
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = inboundStream;
+        }
       }
     };
 
@@ -65,9 +76,9 @@ const VideoRoom = ({ appointment, isDoctor, socket, roomId, localStream, onEndCa
     };
 
     // Socket listeners for signaling
-    const handleUserConnected = async ({ userId }) => {
-      toast.success(isDoctor ? 'Patient joined the room' : 'Doctor joined the room');
-      // The person already in the room (e.g. Doctor) initiates the offer
+    const handleUserConnected = async ({ userId, socketId }) => {
+      // Avoid collision: we only create an offer if we joined first (so we received user-connected)
+      // or if we decide to be the polite peer. A simple way is just create an offer.
       try {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -78,15 +89,23 @@ const VideoRoom = ({ appointment, isDoctor, socket, roomId, localStream, onEndCa
     };
 
     const handleOffer = async ({ offer, senderId }) => {
-      if (senderId === socket.id) return; // ignore own offer
+      if (senderId === socket.id) return; 
       try {
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        if (pc.signalingState !== "stable") {
+          // Collision: rollback if we are the impolite peer, or just ignore for simple apps
+          await Promise.all([
+            pc.setLocalDescription({ type: "rollback" }),
+            pc.setRemoteDescription(new RTCSessionDescription(offer))
+          ]);
+        } else {
+          await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        }
         
         // Process queued candidates
-        iceCandidateQueue.forEach(async (cand) => {
+        while (iceCandidateQueue.length) {
+          const cand = iceCandidateQueue.shift();
           try { await pc.addIceCandidate(new RTCIceCandidate(cand)); } catch (e) { console.error(e); }
-        });
-        iceCandidateQueue = [];
+        }
 
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
@@ -102,10 +121,10 @@ const VideoRoom = ({ appointment, isDoctor, socket, roomId, localStream, onEndCa
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
         
         // Process queued candidates
-        iceCandidateQueue.forEach(async (cand) => {
+        while (iceCandidateQueue.length) {
+          const cand = iceCandidateQueue.shift();
           try { await pc.addIceCandidate(new RTCIceCandidate(cand)); } catch (e) { console.error(e); }
-        });
-        iceCandidateQueue = [];
+        }
       } catch (error) {
         console.error("Error handling answer:", error);
       }
@@ -114,7 +133,7 @@ const VideoRoom = ({ appointment, isDoctor, socket, roomId, localStream, onEndCa
     const handleIceCandidate = async ({ candidate, senderId }) => {
       if (senderId === socket.id) return;
       try {
-        if (pc.remoteDescription) {
+        if (pc.remoteDescription && pc.remoteDescription.type) {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         } else {
           iceCandidateQueue.push(candidate);
