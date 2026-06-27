@@ -16,6 +16,7 @@ const MedicalReports = () => {
   const [category, setCategory] = useState('Blood Test');
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [previewReport, setPreviewReport] = useState(null);
   const fileInputRef = useRef(null);
 
   const categories = ['Blood Test', 'X-Ray', 'MRI', 'CT Scan', 'Prescription', 'Other'];
@@ -158,7 +159,10 @@ const MedicalReports = () => {
 
   const getCorrectUrl = (url) => {
     if (!url) return null;
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    let backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    if (backendUrl.endsWith('/')) {
+      backendUrl = backendUrl.slice(0, -1);
+    }
     // If the URL was hardcoded to localhost by the backend, replace it with the actual backend URL
     if (url.includes('http://localhost:5000')) {
       return url.replace('http://localhost:5000', backendUrl);
@@ -170,10 +174,10 @@ const MedicalReports = () => {
     return url;
   };
 
-  const handlePreview = (url) => {
-    const fixedUrl = getCorrectUrl(url);
-    if (!fixedUrl) { toast.error("File preview not available for mock reports."); return; }
-    window.open(fixedUrl, '_blank');
+  const handlePreview = (report) => {
+    const fixedUrl = getCorrectUrl(report.fileUrl);
+    if (!fixedUrl) { toast.error("File preview not available for this report."); return; }
+    setPreviewReport({ ...report, fixedUrl });
   };
 
   const handleDownload = (url) => {
@@ -296,7 +300,7 @@ const MedicalReports = () => {
                         <p className="text-xs text-gray-500 font-medium">{report.category} • Uploaded on {new Date(report.createdAt).toLocaleDateString()}</p>
                       </div>
                       <div className="flex space-x-2 shrink-0">
-                        <button onClick={() => handlePreview(report.fileUrl)} className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Preview">
+                        <button onClick={() => handlePreview(report)} className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Preview">
                           <Eye className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDownload(report.fileUrl)} className="p-2 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-lg transition-colors" title="Download">
@@ -323,6 +327,29 @@ const MedicalReports = () => {
           )}
         </div>
       </div>
+      {/* File Preview Modal */}
+      <Modal open={!!previewReport} onClose={() => setPreviewReport(null)} title={previewReport?.title || "Document Preview"} width={800}>
+        {previewReport && (
+          <div className="flex flex-col h-full min-h-[500px]">
+             <div className="bg-gray-100/80 rounded-xl flex justify-center items-center flex-1 border border-gray-200 shadow-inner overflow-hidden min-h-[500px]">
+                {previewReport.fixedUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) || previewReport.fileType?.includes('image') ? (
+                  <img src={previewReport.fixedUrl} alt={previewReport.title} className="max-w-full max-h-[70vh] object-contain" />
+                ) : (
+                  <iframe 
+                    src={`${previewReport.fixedUrl}#view=FitH`} 
+                    title={previewReport.title}
+                    className="w-full h-full min-h-[70vh] border-0"
+                  />
+                )}
+             </div>
+             <div className="mt-4 flex justify-end">
+                <Button variant="primary" onClick={() => handleDownload(previewReport.fileUrl)}>
+                   <Download className="w-4 h-4 inline mr-2" /> Download Document
+                </Button>
+             </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
