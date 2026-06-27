@@ -50,15 +50,6 @@ const DoctorLogin = () => {
           <p style={{ fontSize: 14, color: colors.textMuted, margin: 0 }}>Secure Portal Access</p>
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 10, textAlign: "center" }}>Quick Demo Login</div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => { set("email", "sarah@healthsys.com"); set("password", "Doctor@123"); }} style={{ flex: 1, padding: "8px 4px", borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.surfaceAlt, cursor: "pointer", fontSize: 12, color: colors.text, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <span style={{ fontSize: 20 }}>🩺</span>
-              <span style={{ fontWeight: 600 }}>Doctor</span>
-            </button>
-          </div>
-        </div>
 
         <Input label="Email Address" type="email" value={form.email} onChange={e => set("email", e.target.value)} placeholder="doctor@healthsys.com" icon="📧" />
         <Input label="Password" type="password" value={form.password} onChange={e => set("password", e.target.value)} placeholder="••••••••" icon="🔒" />
