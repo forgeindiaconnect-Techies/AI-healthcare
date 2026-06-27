@@ -51,32 +51,47 @@ exports.register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Email already registered', 409));
   }
 
+  // Handle location/address string to object mapping
+  const addressObj = location ? { city: location } : undefined;
+
   // Create user
-  const user = await User.create({ name, email, password, role, phone, address: location });
+  let user;
+  try {
+    user = await User.create({ name, email, password, role, phone, address: addressObj });
+  } catch (error) {
+    return next(error);
+  }
 
   // Create role-specific profile
-  if (role === 'patient') {
-    await Patient.create({ user: user._id });
-  } else if (role === 'doctor') {
-    if (!specialization || !licenseNumber) {
-      await User.findByIdAndDelete(user._id);
-      return next(new ErrorResponse('Doctors require specialization and license number', 400));
+  try {
+    if (role === 'patient') {
+      await Patient.create({ user: user._id });
+    } else if (role === 'doctor') {
+      if (!specialization || !licenseNumber) {
+        await User.findByIdAndDelete(user._id);
+        return next(new ErrorResponse('Doctors require specialization and license number', 400));
+      }
+      await Doctor.create({
+        user: user._id,
+        specialization,
+        licenseNumber,
+        experience: experience || 0,
+        education: qualification ? [{ degree: qualification }] : [],
+        hospital: { name: hospitalName || '' },
+        facilityType: facilityType || 'Clinic',
+        clinicAddress: addressObj || {},
+        consultationFee: consultationFee || 0,
+        availability: availability || [],
+        documents: documents || [],
+        status: 'Pending',
+        isVerified: false
+      });
     }
-    await Doctor.create({
-      user: user._id,
-      specialization,
-      licenseNumber,
-      experience: experience || 0,
-      education: qualification ? [{ degree: qualification }] : [],
-      hospital: { name: hospitalName || '' },
-      facilityType: facilityType || 'Clinic',
-      clinicAddress: location || {},
-      consultationFee: consultationFee || 0,
-      availability: availability || [],
-      documents: documents || [],
-      status: 'Pending',
-      isVerified: false
-    });
+  } catch (error) {
+    if (user && user._id) {
+      await User.findByIdAndDelete(user._id);
+    }
+    return next(error);
   }
 
   // Send welcome email (non-blocking)

@@ -27,6 +27,9 @@ exports.createDoctor = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Doctor with this Medical Registration Number already exists', 400));
   }
 
+  // Handle address casting (if it's a string, wrap it in an object)
+  const addressObj = typeof address === 'string' ? (address ? { city: address } : undefined) : address;
+
   // Create base User
   user = await User.create({
     name,
@@ -36,7 +39,7 @@ exports.createDoctor = asyncHandler(async (req, res, next) => {
     phone,
     gender,
     dateOfBirth,
-    address,
+    address: addressObj,
     isActive: true, // The user account is active, but doctor profile might not be verified
     isEmailVerified: true // Auto verify since admin created it
   });
