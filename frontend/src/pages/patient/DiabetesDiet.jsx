@@ -13,6 +13,7 @@ const DiabetesDiet = () => {
   const [diseases, setDiseases] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDisease, setSelectedDisease] = useState(null);
+  const [patientDiagnoses, setPatientDiagnoses] = useState([]);
   
   // Flow chart states
   const [selectedType, setSelectedType] = useState(null);
@@ -26,7 +27,8 @@ const DiabetesDiet = () => {
   
   const reportRef = useRef();
 
-  const quickDiseases = ['Diabetes', 'BP', 'Fever', 'Stomach Pain', 'Headache'];
+  const defaultQuickDiseases = ['Diabetes', 'BP', 'Fever', 'Stomach Pain', 'Headache'];
+  const quickDiseases = [...new Set([...patientDiagnoses, ...defaultQuickDiseases])].slice(0, 6); // Combine patient's actual diagnoses with defaults, max 6
 
   const fallbackDiseases = [
     { _id: 'fallback-diabetes-id', name: 'Diabetes', category: 'Metabolic' },
@@ -82,6 +84,20 @@ const DiabetesDiet = () => {
     }
   };
 
+  const fetchMyDiagnoses = async () => {
+    try {
+      const { data } = await API.get('/api/medical/my-diagnoses', {
+        headers: { Authorization: `Bearer ${user?.token}` }
+      });
+      if (data.success && data.data) {
+        const uniqueDiagnoses = [...new Set(data.data.map(d => d.primaryDiagnosis))];
+        setPatientDiagnoses(uniqueDiagnoses);
+      }
+    } catch (err) {
+      console.error("Failed to fetch medical history:", err);
+    }
+  };
+
   const fetchDietPlans = async (diseaseId) => {
     setIsLoading(true);
     try {
@@ -108,6 +124,7 @@ const DiabetesDiet = () => {
 
   useEffect(() => {
     fetchDiseases();
+    fetchMyDiagnoses();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
