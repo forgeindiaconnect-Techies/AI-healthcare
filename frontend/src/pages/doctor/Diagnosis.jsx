@@ -66,7 +66,12 @@ const Diagnosis = () => {
         ...formData,
         symptoms: formData.symptoms ? formData.symptoms.split(',').map(s => s.trim()) : [],
         labRecommendations: formData.labRecommendations ? formData.labRecommendations.split(',').map(s => s.trim()) : [],
+        confidence: 100, // Explicitly provide confidence to prevent validation errors
       };
+      
+      if (!payload.followUpDate) {
+        delete payload.followUpDate; // Prevent empty string from causing CastError to Date
+      }
 
       await API.post('/api/medical/diagnosis', payload, {
         headers: { Authorization: `Bearer ${user.token}` }
