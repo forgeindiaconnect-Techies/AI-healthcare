@@ -18,7 +18,7 @@ const LabResults = () => {
   const fetchLabReports = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await API.get('/api/reports?reportType=lab', config);
+      const { data } = await API.get('/api/reports', config);
       setReports(data.data || []);
     } catch (error) {
       console.error('Error fetching lab reports', error);
