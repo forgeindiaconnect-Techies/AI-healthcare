@@ -151,7 +151,7 @@ exports.getAppointment = asyncHandler(async (req, res, next) => {
 // @route   POST /api/appointments
 // @access  Private (patient, doctor)
 exports.bookAppointment = asyncHandler(async (req, res, next) => {
-  const { doctor: reqDoctorId, patient: reqPatientId, appointmentDate, appointmentTime, reason, type, mode, symptoms, notes, roomNumber } = req.body;
+  const { doctor: reqDoctorId, patient: reqPatientId, appointmentDate, appointmentTime, reason, type, mode, priority, symptoms, notes, roomNumber } = req.body;
 
   const doctorId = req.user.role === 'doctor' ? req.user.id : reqDoctorId;
   const patientId = req.user.role === 'doctor' ? reqPatientId : req.user.id;
@@ -190,6 +190,7 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
     reason,
     type: type || 'general',
     mode: mode || 'in-person',
+    priority: priority || 'Medium',
     symptoms: symptoms || [],
     notes: { [req.user.role]: notes || '' },
     consultationFee: doctorProfile?.consultationFee || 0,
@@ -316,6 +317,53 @@ exports.rescheduleAppointment = asyncHandler(async (req, res, next) => {
   ).populate('patient doctor', 'name email');
 
   res.status(200).json({ success: true, message: 'Appointment rescheduled', data: updated });
+});
+
+// @desc    Generic update for appointment details (Doctor/Admin)
+// @route   PUT /api/appointments/:id
+// @access  Private (Doctor, Admin)
+exports.updateAppointment = asyncHandler(async (req, res, next) => {
+  const { appointmentDate, appointmentTime, mode, priority, reason, notes } = req.body;
+  const appointment = await Appointment.findById(req.params.id)
+    .populate('patient', 'name email')
+    .populate('doctor', 'name email');
+  
+  if (!appointment) return next(new ErrorResponse('Appointment not found', 404));
+
+  // Authorization check (must be assigned doctor or admin)
+  if (req.user.role !== 'admin' && (req.user.role !== 'doctor' || appointment.doctor._id.toString() !== req.user.id)) {
+    return next(new ErrorResponse('Not authorized to update this appointment', 403));
+  }
+
+  const updates = {};
+  if (appointmentDate) updates.appointmentDate = new Date(appointmentDate);
+  if (appointmentTime) updates.appointmentTime = appointmentTime;
+  if (mode) updates.mode = mode;
+  if (priority) updates.priority = priority;
+  if (reason) updates.reason = reason;
+  if (notes) {
+    updates.notes = { ...appointment.notes, [req.user.role]: notes };
+  }
+
+  const updated = await Appointment.findByIdAndUpdate(req.params.id, updates, { new: true })
+    .populate('patient', 'name email avatar')
+    .populate('doctor', 'name email avatar');
+
+  // Trigger notification if date/time changed
+  if (appointmentDate || appointmentTime) {
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`user_${appointment.patient._id.toString()}`).emit('new_notification', {
+        title: '📅 Appointment Updated',
+        message: `Your follow-up appointment with Dr. ${appointment.doctor.name} has been updated.`,
+        type: 'appointment',
+        metadata: { appointmentId: appointment._id },
+        appointment: updated
+      });
+    }
+  }
+
+  res.status(200).json({ success: true, message: 'Appointment updated successfully', data: updated });
 });
 
 // @desc    Get available slots for a doctor

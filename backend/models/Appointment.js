@@ -20,6 +20,11 @@ const mongoose = require('mongoose');
         enum: ['in-person', 'video', 'phone'],
         default: 'in-person',
       },
+      priority: {
+        type: String,
+        enum: ['Low', 'Medium', 'High'],
+        default: 'Medium',
+      },
       status: {
         type: String,
         enum: ['pending', 'confirmed', 'completed', 'cancelled', 'no-show', 'rescheduled'],

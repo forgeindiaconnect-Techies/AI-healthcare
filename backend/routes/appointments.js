@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAppointments, getAppointment, bookAppointment, updateAppointmentStatus, rescheduleAppointment, getAvailableSlots, getTodayAppointments, deleteAppointment } = require('../controllers/appointmentController');
+const { getAppointments, getAppointment, bookAppointment, updateAppointmentStatus, rescheduleAppointment, getAvailableSlots, getTodayAppointments, deleteAppointment, updateAppointment } = require('../controllers/appointmentController');
 const { protect, authorize, logActivity } = require('../middleware/auth');
 const { appointmentValidator } = require('../middleware/validator');
 
@@ -11,6 +11,7 @@ router.post('/', authorize('patient', 'doctor'), appointmentValidator, logActivi
 router.get('/today', authorize('doctor', 'admin'), getTodayAppointments);
 router.get('/slots/:doctorId', getAvailableSlots);
 router.get('/:id', getAppointment);
+router.put('/:id', logActivity('UPDATE_APPOINTMENT', 'Appointment'), updateAppointment);
 router.put('/:id/status', logActivity('UPDATE_APPOINTMENT_STATUS', 'Appointment'), updateAppointmentStatus);
 router.put('/:id/reschedule', logActivity('RESCHEDULE_APPOINTMENT', 'Appointment'), rescheduleAppointment);
 router.delete('/:id', authorize('admin'), logActivity('DELETE_APPOINTMENT', 'Appointment'), deleteAppointment);

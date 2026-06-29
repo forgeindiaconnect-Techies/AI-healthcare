@@ -68,6 +68,17 @@ const PatientFollowUps = () => {
     }
   };
 
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case 'High':
+        return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-rose-100 text-rose-700">High Priority</span>;
+      case 'Low':
+        return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-100 text-emerald-700">Low Priority</span>;
+      default:
+        return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-100 text-amber-700">Medium Priority</span>;
+    }
+  };
+
   const getModeIcon = (mode) => {
     switch (mode) {
       case 'video': return <Video className="w-4 h-4" />;
@@ -191,7 +202,10 @@ const PatientFollowUps = () => {
                         </p>
                       </div>
                     </div>
-                    {getStatusBadge(apt.status)}
+                    <div className="flex gap-2">
+                      {apt.priority && getPriorityBadge(apt.priority)}
+                      {getStatusBadge(apt.status)}
+                    </div>
                   </div>
                   
                   <div className="bg-cyan-50/50 rounded-xl p-4 border border-cyan-100/50">
