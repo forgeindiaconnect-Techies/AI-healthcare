@@ -8,6 +8,7 @@ const Prescription = require('../models/Prescription');
 const DoctorNote = require('../models/DoctorNote');
 const Doctor = require('../models/Doctor');
 const Report = require('../models/Report');
+const MedicalReport = require('../models/MedicalReport');
 const TreatmentPlan = require('../models/TreatmentPlan');
 
 // @desc    Get complete patient profile for doctor
@@ -230,12 +231,9 @@ exports.getAllReportsForDoctor = asyncHandler(async (req, res, next) => {
   const doctor = await Doctor.findOne({ user: req.user._id });
   if (!doctor) return next(new ErrorResponse('Doctor profile not found', 404));
 
-  const reports = await Report.find() // Should ideally be filtered by patients assigned to the doctor, but for demo we will fetch all or mock
-    .populate({
-      path: 'patient',
-      populate: { path: 'user', select: 'name email avatar' }
-    })
-    .sort('-createdAt');
+  const reports = await MedicalReport.find() // Should ideally be filtered by patients assigned to the doctor, but for demo we will fetch all or mock
+    .populate('patient', 'name email avatar')
+    .sort('-reportDate');
 
   res.status(200).json({
     success: true,
@@ -248,13 +246,13 @@ exports.getAllReportsForDoctor = asyncHandler(async (req, res, next) => {
 // @access  Private/Doctor
 exports.reviewReport = asyncHandler(async (req, res, next) => {
   const { doctorNotes } = req.body;
-  let report = await Report.findById(req.params.id);
+  let report = await MedicalReport.findById(req.params.id);
 
   if (!report) {
     return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
   }
 
-  report.status = 'Reviewed';
+  report.status = 'reviewed';
   report.doctorNotes = doctorNotes;
   await report.save();
 

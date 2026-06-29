@@ -85,7 +85,7 @@ const ReviewReports = () => {
                   </div>
                   <div>
                     <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{report.title}</h3>
-                    <p style={{ margin: 0, fontSize: 13, color: colors.textMuted }}>{report.type}</p>
+                    <p style={{ margin: 0, fontSize: 13, color: colors.textMuted }}>{report.reportType}</p>
                   </div>
                 </div>
                 <div style={{ 
@@ -96,20 +96,21 @@ const ReviewReports = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 4,
-                  background: report.status === 'Reviewed' ? '#dcfce7' : '#fef9c3',
-                  color: report.status === 'Reviewed' ? '#166534' : '#854d0e'
+                  background: report.status?.toLowerCase() === 'reviewed' ? '#dcfce7' : '#fef9c3',
+                  color: report.status?.toLowerCase() === 'reviewed' ? '#166534' : '#854d0e',
+                  textTransform: 'capitalize'
                 }}>
-                  {report.status === 'Reviewed' ? <CheckCircle size={12} /> : <Clock size={12} />}
+                  {report.status?.toLowerCase() === 'reviewed' ? <CheckCircle size={12} /> : <Clock size={12} />}
                   {report.status}
                 </div>
               </div>
 
               <div style={{ padding: '12px 0', borderTop: `1px solid ${colors.border}`, borderBottom: `1px solid ${colors.border}`, marginBottom: 16 }}>
                 <p style={{ margin: '0 0 8px', fontSize: 14 }}>
-                  <span style={{ color: colors.textMuted }}>Patient:</span> <span style={{ fontWeight: 500 }}>{report.patient?.user?.name || 'Unknown'}</span>
+                  <span style={{ color: colors.textMuted }}>Patient:</span> <span style={{ fontWeight: 500 }}>{report.patient?.name || 'Unknown'}</span>
                 </p>
                 <p style={{ margin: 0, fontSize: 14 }}>
-                  <span style={{ color: colors.textMuted }}>Uploaded:</span> {new Date(report.uploadDate).toLocaleDateString()}
+                  <span style={{ color: colors.textMuted }}>Uploaded:</span> {new Date(report.reportDate || report.createdAt).toLocaleDateString()}
                 </p>
               </div>
 
@@ -133,7 +134,7 @@ const ReviewReports = () => {
                   <ExternalLink size={16} style={{ marginRight: 8 }} />
                   View File
                 </Button>
-                {report.status !== 'Reviewed' && (
+                {report.status?.toLowerCase() !== 'reviewed' && (
                   <Button 
                     variant="primary" 
                     style={{ flex: 1, padding: '8px 0' }}

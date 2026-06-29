@@ -219,6 +219,15 @@ const LabResults = () => {
                     </div>
                   )}
 
+                  {selectedReport.doctorNotes && (
+                    <div className="mt-6 bg-blue-50 rounded-2xl p-5 border border-blue-100">
+                      <h4 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-blue-600" /> Doctor's Review
+                      </h4>
+                      <p className="text-blue-700 text-sm leading-relaxed">{selectedReport.doctorNotes}</p>
+                    </div>
+                  )}
+
                 </div>
               </div>
             ) : (

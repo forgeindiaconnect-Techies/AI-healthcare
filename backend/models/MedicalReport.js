@@ -37,6 +37,7 @@ const medicalReportSchema = new mongoose.Schema(
     },
     tags: [String],
     isArchived: { type: Boolean, default: false },
+    doctorNotes: { type: String },
   },
   { timestamps: true }
 );

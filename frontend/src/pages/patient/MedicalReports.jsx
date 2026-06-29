@@ -304,6 +304,17 @@ const MedicalReports = () => {
                         {report.aiAnalysis?.summary || report.aiSummary || 'Analysis pending.'}
                       </p>
                     </div>
+
+                    {report.doctorNotes && (
+                      <div className="mt-3 bg-blue-50/50 p-3 rounded-lg border border-blue-100/50">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-blue-700 mb-1.5 flex items-center">
+                          <AlertCircle className="w-3.5 h-3.5 mr-1" /> Doctor's Review
+                        </h4>
+                        <p className="text-sm text-gray-700">
+                          {report.doctorNotes}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </Card>
               ))}
