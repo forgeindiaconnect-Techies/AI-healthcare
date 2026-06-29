@@ -225,10 +225,14 @@ const FollowUpSchedule = () => {
             label="Select Patient" 
             value={formData.patient} 
             onChange={(e) => setFormData({...formData, patient: e.target.value})}
-            options={[
-              { label: 'Select a patient...', value: '' },
-              ...patients.map(p => ({ label: p.user?.name || 'Unknown', value: p.user?._id }))
-            ]}
+            options={
+              patients.length === 0 
+                ? [{ label: 'No patients found', value: '' }] 
+                : [
+                    { label: 'Select a patient...', value: '' },
+                    ...patients.map(p => ({ label: p.name || 'Unknown Patient', value: p._id }))
+                  ]
+            }
           />
           
           <div style={{ display: 'flex', gap: 16 }}>
