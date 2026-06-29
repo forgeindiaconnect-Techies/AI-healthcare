@@ -97,7 +97,7 @@ const FollowUpSchedule = () => {
         await API.put(`/api/appointments/${selectedAptId}`, formData, config);
         toast.success('Follow-up updated successfully');
       } else {
-        await API.post('/api/appointments', { ...formData, type: 'follow-up' }, config);
+        await API.post('/api/appointments', { ...formData, doctor: user._id, type: 'follow-up' }, config);
         toast.success('Follow-up scheduled successfully');
       }
       setIsModalOpen(false);
