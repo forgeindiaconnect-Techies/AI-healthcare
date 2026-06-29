@@ -51,7 +51,16 @@ exports.getPatientMedicalProfile = asyncHandler(async (req, res, next) => {
 // @access  Private/Doctor
 exports.addDiagnosis = asyncHandler(async (req, res, next) => {
   const doctor = await Doctor.findOne({ user: req.user._id });
+  if (!doctor) return next(new ErrorResponse('Doctor profile not found', 404));
   req.body.doctor = doctor._id;
+
+  // The frontend sends user ID for patient, so we need to find the Patient profile
+  let patientProfile = await Patient.findOne({ user: req.body.patient });
+  if (!patientProfile) return next(new ErrorResponse('Patient profile not found', 404));
+  req.body.patient = patientProfile._id;
+
+  if (!req.body.confidence) req.body.confidence = 100;
+  if (!req.body.riskLevel) req.body.riskLevel = 'Medium';
   
   const diagnosis = await Diagnosis.create(req.body);
   
@@ -116,10 +125,29 @@ exports.getPatientReport = asyncHandler(async (req, res, next) => {
 // @access  Private/Doctor
 exports.getAllDiagnoses = asyncHandler(async (req, res, next) => {
   const doctor = await Doctor.findOne({ user: req.user._id });
+  if (!doctor) return next(new ErrorResponse('Doctor profile not found', 404));
+
   const diagnoses = await Diagnosis.find({ doctor: doctor._id })
     .populate({
       path: 'patient',
-      populate: { path: 'user', select: 'name email' }
+      populate: { path: 'user', select: 'name email avatar' }
+    })
+    .sort('-createdAt');
+  
+  res.status(200).json({ success: true, count: diagnoses.length, data: diagnoses });
+});
+
+// @desc    Get all diagnoses for a patient (logged in)
+// @route   GET /api/medical/my-diagnoses
+// @access  Private/Patient
+exports.getMyDiagnoses = asyncHandler(async (req, res, next) => {
+  const patient = await Patient.findOne({ user: req.user._id });
+  if (!patient) return next(new ErrorResponse('Patient profile not found', 404));
+
+  const diagnoses = await Diagnosis.find({ patient: patient._id })
+    .populate({
+      path: 'doctor',
+      populate: { path: 'user', select: 'name email avatar' }
     })
     .sort('-createdAt');
   

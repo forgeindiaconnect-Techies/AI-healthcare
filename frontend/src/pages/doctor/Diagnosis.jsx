@@ -1,43 +1,109 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Badge, Avatar, Button } from '../../components/ui/SharedUI';
+import { Card, Badge, Avatar, Button, Modal, Input, Select } from '../../components/ui/SharedUI';
 import { colors } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../api/api';
-import { Stethoscope, AlertCircle, Calendar } from 'lucide-react';
+import { Stethoscope, AlertCircle, Calendar, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Diagnosis = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [diagnoses, setDiagnoses] = useState([]);
+  const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [formData, setFormData] = useState({
+    patient: '',
+    primaryDiagnosis: '',
+    symptoms: '',
+    riskLevel: 'Medium',
+    treatmentAdvice: '',
+    labRecommendations: '',
+    followUpDate: ''
+  });
+
+  const fetchDiagnoses = async () => {
+    try {
+      const { data } = await API.get('/api/medical/diagnosis', {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      setDiagnoses(data.data || []);
+    } catch (err) {
+      console.error("Failed to fetch diagnoses:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPatients = async () => {
+    try {
+      const { data } = await API.get('/api/doctors/patients', {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      setPatients(data.data || []);
+    } catch (err) {
+      console.error("Failed to fetch patients:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchDiagnoses = async () => {
-      try {
-        const { data } = await API.get('/api/medical/diagnosis', {
-          headers: { Authorization: `Bearer ${user.token}` }
-        });
-        setDiagnoses(data.data || []);
-      } catch (err) {
-        console.error("Failed to fetch diagnoses:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchDiagnoses();
+    fetchPatients();
   }, [user.token]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.patient || !formData.primaryDiagnosis) {
+      toast.error('Patient and Primary Diagnosis are required');
+      return;
+    }
+
+    try {
+      const payload = {
+        ...formData,
+        symptoms: formData.symptoms ? formData.symptoms.split(',').map(s => s.trim()) : [],
+        labRecommendations: formData.labRecommendations ? formData.labRecommendations.split(',').map(s => s.trim()) : [],
+      };
+
+      await API.post('/api/medical/diagnosis', payload, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      toast.success('Diagnosis added successfully');
+      setIsModalOpen(false);
+      setFormData({
+        patient: '',
+        primaryDiagnosis: '',
+        symptoms: '',
+        riskLevel: 'Medium',
+        treatmentAdvice: '',
+        labRecommendations: '',
+        followUpDate: ''
+      });
+      fetchDiagnoses(); // Refresh list
+    } catch (err) {
+      console.error("Failed to add diagnosis", err);
+      toast.error(err.response?.data?.error || 'Failed to add diagnosis');
+    }
+  };
 
   return (
     <div style={{ padding: 24, fontFamily: "'Inter', sans-serif", maxWidth: 1200, margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <div style={{ width: 48, height: 48, borderRadius: 12, background: colors.primary + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.primary }}>
-          <Stethoscope size={24} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: colors.primary + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.primary }}>
+            <Stethoscope size={24} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: colors.text }}>Diagnosis Management</h1>
+            <p style={{ margin: 0, fontSize: 14, color: colors.textMuted }}>Clinic-wide patient diagnosis tracking</p>
+          </div>
         </div>
-        <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: colors.text }}>Diagnosis Management</h1>
-          <p style={{ margin: 0, fontSize: 14, color: colors.textMuted }}>Clinic-wide patient diagnosis tracking</p>
-        </div>
+        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+          <Plus size={18} style={{ marginRight: 8 }} /> Add Diagnosis
+        </Button>
       </div>
 
       <Card style={{ padding: 0, overflow: 'hidden' }}>
@@ -58,7 +124,6 @@ const Diagnosis = () => {
                 <tr style={{ background: colors.surfaceAlt, borderBottom: `1px solid ${colors.border}` }}>
                   <th style={{ padding: '16px 24px', fontSize: 12, textTransform: 'uppercase', color: colors.textMuted, fontWeight: 600 }}>Patient</th>
                   <th style={{ padding: '16px 24px', fontSize: 12, textTransform: 'uppercase', color: colors.textMuted, fontWeight: 600 }}>Primary Diagnosis</th>
-                  <th style={{ padding: '16px 24px', fontSize: 12, textTransform: 'uppercase', color: colors.textMuted, fontWeight: 600 }}>Confidence</th>
                   <th style={{ padding: '16px 24px', fontSize: 12, textTransform: 'uppercase', color: colors.textMuted, fontWeight: 600 }}>Risk Level</th>
                   <th style={{ padding: '16px 24px', fontSize: 12, textTransform: 'uppercase', color: colors.textMuted, fontWeight: 600 }}>Date</th>
                   <th style={{ padding: '16px 24px', fontSize: 12, textTransform: 'uppercase', color: colors.textMuted, fontWeight: 600, textAlign: 'right' }}>Actions</th>
@@ -79,15 +144,7 @@ const Diagnosis = () => {
                     <td style={{ padding: '16px 24px' }}>
                       <div style={{ fontWeight: 600, color: colors.primary, fontSize: 14 }}>{d.primaryDiagnosis}</div>
                       <div style={{ fontSize: 12, color: colors.textMuted, maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {d.possibleConditions?.join(', ')}
-                      </div>
-                    </td>
-                    <td style={{ padding: '16px 24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 40, height: 6, borderRadius: 3, background: colors.surfaceAlt, overflow: 'hidden' }}>
-                          <div style={{ width: `${d.confidence}%`, height: '100%', background: colors.success }}></div>
-                        </div>
-                        <span style={{ fontSize: 13, fontWeight: 600 }}>{d.confidence}%</span>
+                        {d.symptoms?.join(', ')}
                       </div>
                     </td>
                     <td style={{ padding: '16px 24px' }}>
@@ -106,6 +163,76 @@ const Diagnosis = () => {
           </div>
         )}
       </Card>
+
+      {/* Add Diagnosis Modal */}
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Diagnosis" width={600}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          
+          <Select 
+            label="Select Patient *" 
+            value={formData.patient} 
+            onChange={(e) => setFormData({...formData, patient: e.target.value})}
+            options={[
+              { value: '', label: 'Select a patient' },
+              ...patients.map(p => ({ value: p._id, label: p.name }))
+            ]}
+          />
+
+          <Input 
+            label="Primary Diagnosis *" 
+            placeholder="e.g. Type 2 Diabetes" 
+            value={formData.primaryDiagnosis} 
+            onChange={(e) => setFormData({...formData, primaryDiagnosis: e.target.value})} 
+          />
+
+          <Input 
+            label="Symptoms (comma separated)" 
+            placeholder="e.g. Fatigue, Increased thirst" 
+            value={formData.symptoms} 
+            onChange={(e) => setFormData({...formData, symptoms: e.target.value})} 
+          />
+
+          <Select 
+            label="Severity (Risk Level)" 
+            value={formData.riskLevel} 
+            onChange={(e) => setFormData({...formData, riskLevel: e.target.value})}
+            options={[
+              { value: 'Low', label: 'Low' },
+              { value: 'Medium', label: 'Medium' },
+              { value: 'High', label: 'High' }
+            ]}
+          />
+
+          <Input 
+            label="Treatment Advice" 
+            placeholder="e.g. Strict diet, Metformin 500mg" 
+            value={formData.treatmentAdvice} 
+            onChange={(e) => setFormData({...formData, treatmentAdvice: e.target.value})} 
+            multiline
+            rows={3}
+          />
+
+          <Input 
+            label="Lab Recommendations (comma separated)" 
+            placeholder="e.g. HbA1c, Fasting Blood Sugar" 
+            value={formData.labRecommendations} 
+            onChange={(e) => setFormData({...formData, labRecommendations: e.target.value})} 
+          />
+
+          <Input 
+            label="Follow-up Date" 
+            type="date"
+            value={formData.followUpDate} 
+            onChange={(e) => setFormData({...formData, followUpDate: e.target.value})} 
+          />
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 16 }}>
+            <Button variant="secondary" type="button" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+            <Button variant="primary" type="submit">Save Diagnosis</Button>
+          </div>
+        </form>
+      </Modal>
+
     </div>
   );
 };

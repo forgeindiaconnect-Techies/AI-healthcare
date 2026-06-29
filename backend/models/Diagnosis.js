@@ -18,6 +18,9 @@ const diagnosisSchema = new mongoose.Schema(
       bloodSugar: Number,
       cholesterol: Number,
     },
+    treatmentAdvice: { type: String },
+    labRecommendations: [{ type: String }],
+    followUpDate: { type: Date },
     aiGenerated: { type: Boolean, default: false }
   },
   { timestamps: true }

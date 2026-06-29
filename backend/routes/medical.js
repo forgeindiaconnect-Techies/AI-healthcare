@@ -14,12 +14,17 @@ const {
   getAllReportsForDoctor,
   reviewReport,
   createTreatmentPlan,
-  getTreatmentPlans
+  getTreatmentPlans,
+  getMyDiagnoses,
 } = require('../controllers/medicalController');
 
 const router = express.Router();
 
-// All routes require doctor access
+// Patient routes
+router.route('/my-diagnoses')
+  .get(protect, authorize('patient'), getMyDiagnoses);
+
+// All other routes require doctor access
 router.use(protect);
 router.use(authorize('doctor', 'admin'));
 
