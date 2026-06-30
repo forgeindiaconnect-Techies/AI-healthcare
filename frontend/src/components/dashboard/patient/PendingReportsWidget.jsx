@@ -4,17 +4,25 @@ import { FileText, ChevronRight, AlertCircle } from 'lucide-react';
 import { Card, Badge } from '../../ui/SharedUI';
 import { colors } from '../../../theme/colors';
 
-const PendingReportsWidget = ({ loading }) => {
+const PendingReportsWidget = ({ reports = [], loading }) => {
   const navigate = useNavigate();
 
   if (loading) {
     return <Card><div className="animate-pulse h-24 bg-gray-100 rounded-xl"></div></Card>;
   }
 
-  const reports = [
-    { id: 1, name: 'Complete Blood Count', date: '2026-06-20', status: 'Pending Review', critical: false },
-    { id: 2, name: 'Lipid Profile', date: '2026-06-15', status: 'Reviewed', critical: true },
-  ];
+  if (reports.length === 0) {
+    return (
+      <Card>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-gray-900 text-lg flex items-center">
+            <FileText className="w-5 h-5 mr-2 text-teal-500" /> Medical Reports
+          </h3>
+        </div>
+        <p className="text-gray-500 text-sm text-center py-4">No pending medical reports.</p>
+      </Card>
+    );
+  }
 
   return (
     <Card>

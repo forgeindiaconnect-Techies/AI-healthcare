@@ -8,11 +8,20 @@ const NextMedicationWidget = ({ medications = [], loading }) => {
     return <Card><div className="animate-pulse h-24 bg-gray-100 rounded-xl"></div></Card>;
   }
 
-  // Mock data if empty
-  const activeMeds = medications.length > 0 ? medications : [
-    { id: 1, name: 'Lisinopril', dosage: '10mg', time: '08:00 AM', status: 'taken' },
-    { id: 2, name: 'Atorvastatin', dosage: '20mg', time: '08:00 PM', status: 'pending' },
-  ];
+  const activeMeds = medications || [];
+
+  if (activeMeds.length === 0) {
+    return (
+      <Card>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-gray-900 text-lg flex items-center">
+            <Pill className="w-5 h-5 mr-2 text-rose-500" /> Today's Medications
+          </h3>
+        </div>
+        <p className="text-gray-500 text-sm text-center py-4">No active medications for today.</p>
+      </Card>
+    );
+  }
 
   const nextMed = activeMeds.find(m => m.status === 'pending') || activeMeds[0];
 

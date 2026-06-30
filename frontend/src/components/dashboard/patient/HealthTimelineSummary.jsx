@@ -3,11 +3,7 @@ import { GitCommit, Activity, Pill, User } from 'lucide-react';
 import { Card } from '../../ui/SharedUI';
 
 const HealthTimelineSummary = () => {
-  const events = [
-    { id: 1, date: 'Today, 08:00 AM', title: 'Medication Taken', desc: 'Lisinopril 10mg', icon: Pill, color: 'text-green-500', bg: 'bg-green-50' },
-    { id: 2, date: 'Yesterday', title: 'Vitals Recorded', desc: 'BP 120/80, HR 72', icon: Activity, color: 'text-blue-500', bg: 'bg-blue-50' },
-    { id: 3, date: 'Jun 15, 2026', title: 'Doctor Visit', desc: 'Dr. Sarah Johnson', icon: User, color: 'text-purple-500', bg: 'bg-purple-50' },
-  ];
+  const events = [];
 
   return (
     <Card>
@@ -16,7 +12,7 @@ const HealthTimelineSummary = () => {
       </h3>
 
       <div className="space-y-4">
-        {events.map((event, idx) => {
+        {events.length > 0 ? events.map((event, idx) => {
           const Icon = event.icon;
           return (
             <div key={event.id} className="relative pl-6 pb-2">
@@ -33,7 +29,9 @@ const HealthTimelineSummary = () => {
               </div>
             </div>
           );
-        })}
+        }) : (
+          <p className="text-gray-500 text-sm py-4">No recent activity recorded.</p>
+        )}
       </div>
     </Card>
   );

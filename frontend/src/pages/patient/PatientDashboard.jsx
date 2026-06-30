@@ -21,9 +21,7 @@ const PatientDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [reports, setReports] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
-  const [notifications, setNotifications] = useState([
-    { _id: "n1", type: "info", title: "Welcome!", message: "Welcome to your new dashboard!", createdAt: new Date().toISOString(), isRead: false }
-  ]);
+  const [notifications, setNotifications] = useState([]);
   
   const [loading, setLoading] = useState(true);
   const [selectedKPI, setSelectedKPI] = useState(null); // 'Appointments', 'Reports', 'Prescriptions', 'Notifications'
@@ -67,15 +65,7 @@ const PatientDashboard = () => {
   };
 
   // Hardcoded for now until backend routes exist
-  const vitals = [
-    { date: "Jan", bp: 120, hr: 72, glucose: 95 },
-    { date: "Feb", bp: 118, hr: 75, glucose: 98 },
-    { date: "Mar", bp: 125, hr: 71, glucose: 92 },
-    { date: "Apr", bp: 122, hr: 78, glucose: 101 },
-    { date: "May", bp: 119, hr: 73, glucose: 96 },
-    { date: "Jun", bp: 121, hr: 70, glucose: 94 },
-    { date: "Jul", bp: 117, hr: 74, glucose: 97 },
-  ];
+  const vitals = [];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,9 +98,7 @@ const PatientDashboard = () => {
   const activePrescriptions = prescriptions.filter(p => p.status === 'active');
   const unreadNotifications = notifications.filter(n => !n.isRead);
 
-  const nextAppt = upcomingAppointments[0] || 
-                   // Fallback dummy for demo purposes
-                   { appointmentDate: new Date(Date.now() + 86400000), appointmentTime: '10:00 AM', reason: 'Annual Checkup', doctor: { name: 'Sarah Johnson' } };
+  const nextAppt = upcomingAppointments[0];
 
   if (loading) return (
     <div className="flex items-center justify-center h-[50vh]">
@@ -240,26 +228,32 @@ const PatientDashboard = () => {
         <div className="xl:col-span-2 space-y-6 min-w-0">
           <Card style={{ overflow: 'hidden' }}>
             <div className="font-bold text-lg mb-4 text-gray-900">📈 Vital Signs Trend</div>
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={vitals} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Area type="monotone" dataKey="bp" stroke={colors.primary} strokeWidth={3} fillOpacity={1} fill="url(#colorBp)" name="Blood Pressure" />
-                <Area type="monotone" dataKey="hr" stroke={colors.success} strokeWidth={3} fillOpacity={1} fill="url(#colorHr)" name="Heart Rate" />
-                <defs>
-                  <linearGradient id="colorBp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={colors.primary} stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor={colors.primary} stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorHr" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={colors.success} stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor={colors.success} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-              </AreaChart>
-            </ResponsiveContainer>
+            {vitals.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={vitals} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  <Area type="monotone" dataKey="bp" stroke={colors.primary} strokeWidth={3} fillOpacity={1} fill="url(#colorBp)" name="Blood Pressure" />
+                  <Area type="monotone" dataKey="hr" stroke={colors.success} strokeWidth={3} fillOpacity={1} fill="url(#colorHr)" name="Heart Rate" />
+                  <defs>
+                    <linearGradient id="colorBp" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={colors.primary} stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor={colors.primary} stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorHr" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={colors.success} stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor={colors.success} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[280px] text-gray-400">
+                No vital signs data recorded yet.
+              </div>
+            )}
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

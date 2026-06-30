@@ -14,21 +14,7 @@ const AIInsightsWidget = () => {
       </div>
 
       <div className="space-y-4">
-        <div className="bg-white rounded-xl p-3 border border-indigo-50/50 shadow-sm flex items-start gap-3">
-          <div className="mt-0.5 p-1.5 bg-blue-100 text-blue-600 rounded-md"><Droplets className="w-4 h-4"/></div>
-          <div>
-            <p className="text-sm font-semibold text-gray-900">Hydration Alert</p>
-            <p className="text-xs text-gray-600 mt-0.5">Your recorded water intake is below average for the past 3 days. Try drinking 2 more glasses today.</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-3 border border-indigo-50/50 shadow-sm flex items-start gap-3">
-          <div className="mt-0.5 p-1.5 bg-rose-100 text-rose-600 rounded-md"><HeartPulse className="w-4 h-4"/></div>
-          <div>
-            <p className="text-sm font-semibold text-gray-900">Cardio Check</p>
-            <p className="text-xs text-gray-600 mt-0.5">Your recent vital signs show excellent stability. Keep up your current light exercise routine!</p>
-          </div>
-        </div>
+        <p className="text-gray-500 text-sm text-center py-4">No AI health insights available yet.</p>
       </div>
     </Card>
   );
