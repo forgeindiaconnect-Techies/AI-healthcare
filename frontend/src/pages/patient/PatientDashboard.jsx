@@ -34,7 +34,10 @@ const PatientDashboard = () => {
   const [isSearchingDoctors, setIsSearchingDoctors] = useState(false);
 
   const searchDoctors = async (query) => {
-    if (!query) return;
+    if (!query || query.trim() === '') {
+      navigate('/dashboard/doctor-recommendations');
+      return;
+    }
     setIsSearchingDoctors(true);
     
     // Simple AI/heuristic mapping for common symptoms to specialties
@@ -176,7 +179,7 @@ const PatientDashboard = () => {
                       <div className="text-xs text-gray-500">{doc.specialization}</div>
                     </div>
                   </div>
-                  <Button size="sm" onClick={() => navigate('/patient/recommendations')}>Book</Button>
+                  <Button size="sm" onClick={() => navigate('/dashboard/doctor-recommendations')}>Book</Button>
                 </div>
               ))}
             </div>
