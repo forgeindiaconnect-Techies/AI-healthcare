@@ -4,11 +4,7 @@ import { Users, Search, Edit2, Trash2, Eye } from 'lucide-react';
 const AdminPatientManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const mockPatients = [
-    { id: 1, name: 'Jane Doe', email: 'jane@example.com', phone: '+1 234-567-8900', registered: '2026-05-10', status: 'Active' },
-    { id: 2, name: 'Robert Smith', email: 'robert@example.com', phone: '+1 234-567-8911', registered: '2026-06-01', status: 'Active' },
-    { id: 3, name: 'Alice Johnson', email: 'alice@example.com', phone: '+1 234-567-8922', registered: '2026-06-15', status: 'Inactive' }
-  ];
+  const mockPatients = [];
 
   return (
     <div className="space-y-6">
@@ -46,46 +42,58 @@ const AdminPatientManagement = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {mockPatients.map((patient) => (
-              <tr key={patient.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm mr-3">
-                      {patient.name.split(' ').map(n => n[0]).join('').substring(0,2)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">{patient.name}</p>
-                      <p className="text-xs text-gray-500">ID: PAT-{patient.id}4920</p>
-                    </div>
+            {mockPatients.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="py-12 text-center text-gray-500">
+                  <div className="flex flex-col items-center justify-center">
+                    <Users className="w-12 h-12 text-gray-300 mb-4" />
+                    <p className="font-medium text-lg text-gray-900">No patients found</p>
+                    <p className="text-sm">No registered patients are currently available.</p>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <p className="text-sm text-gray-900">{patient.email}</p>
-                  <p className="text-xs text-gray-500">{patient.phone}</p>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {patient.registered}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    patient.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {patient.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                  <button className="p-1.5 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-md transition-colors" title="View Profile">
-                    <Eye className="w-4 h-4" />
-                  </button>
-                  <button className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors" title="Edit">
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-colors" title="Delete">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
               </tr>
-            ))}
+            ) : (
+              mockPatients.map((patient) => (
+                <tr key={patient.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm mr-3">
+                        {patient.name.split(' ').map(n => n[0]).join('').substring(0,2)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{patient.name}</p>
+                        <p className="text-xs text-gray-500">ID: PAT-{patient.id}4920</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <p className="text-sm text-gray-900">{patient.email}</p>
+                    <p className="text-xs text-gray-500">{patient.phone}</p>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {patient.registered}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      patient.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {patient.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                    <button className="p-1.5 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-md transition-colors" title="View Profile">
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors" title="Edit">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-colors" title="Delete">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

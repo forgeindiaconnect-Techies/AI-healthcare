@@ -15,35 +15,7 @@ const AdminVideoConsults = () => {
   const navigate = useNavigate();
 
   // Mock Data
-  const mockConsults = [
-    {
-      _id: "mock_1",
-      patient: { name: "James Miller", email: "james.m@example.com", avatar: "https://i.pravatar.cc/150?u=james" },
-      doctor: { name: "Sarah Jenkins", avatar: "https://i.pravatar.cc/150?u=sarah" },
-      appointmentDate: new Date(Date.now() + 86400000).toISOString(),
-      appointmentTime: "10:30 AM",
-      meetingLink: "https://meet.google.com/abc-defg-hij",
-      status: "confirmed"
-    },
-    {
-      _id: "mock_2",
-      patient: { name: "Emily Chen", email: "emily.c@example.com", avatar: "https://i.pravatar.cc/150?u=emily" },
-      doctor: { name: "Michael Chen", avatar: "https://i.pravatar.cc/150?u=michael" },
-      appointmentDate: new Date(Date.now() - 86400000).toISOString(),
-      appointmentTime: "02:15 PM",
-      meetingLink: "https://meet.google.com/xyz-uvwx-yz",
-      status: "completed"
-    },
-    {
-      _id: "mock_3",
-      patient: { name: "Robert Taylor", email: "robert.t@example.com", avatar: null },
-      doctor: { name: "Amanda Smith", avatar: null },
-      appointmentDate: new Date(Date.now() + 172800000).toISOString(),
-      appointmentTime: "04:00 PM",
-      meetingLink: "https://meet.google.com/123-456-789",
-      status: "pending"
-    }
-  ];
+  const mockConsults = [];
   
   // Pagination & Filtering
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,18 +40,14 @@ const AdminVideoConsults = () => {
 
       const { data } = await API.get(url, config);
       const fetchedConsults = data.data || [];
-      if (fetchedConsults.length === 0) {
-        let filteredMock = mockConsults;
-        if (statusFilter !== 'all') {
-          filteredMock = mockConsults.filter(c => c.status === statusFilter);
-        }
-        setConsults(filteredMock);
-        setTotalPages(1);
-        setTotalConsults(filteredMock.length);
-      } else {
+      if (fetchedConsults.length > 0) {
         setConsults(fetchedConsults);
         setTotalPages(data.pages || 1);
         setTotalConsults(data.total || 0);
+      } else {
+        setConsults([]);
+        setTotalPages(1);
+        setTotalConsults(0);
       }
     } catch (error) {
       console.error('Error fetching admin video consults:', error);

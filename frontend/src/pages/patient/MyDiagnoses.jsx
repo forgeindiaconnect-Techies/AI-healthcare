@@ -7,56 +7,7 @@ const MyDiagnoses = () => {
   const [selectedDiagnosis, setSelectedDiagnosis] = useState(null);
 
   // Mock data for diagnoses
-  const mockDiagnoses = [
-    {
-      id: '1',
-      name: 'Type 2 Diabetes Mellitus',
-      description: 'A chronic condition that affects the way the body processes blood sugar (glucose).',
-      diagnosedBy: 'Dr. Sarah Smith',
-      diagnosisDate: '2025-11-15',
-      severity: 'Medium',
-      status: 'Active',
-      lastUpdated: '2026-06-25',
-      symptoms: ['Increased thirst', 'Frequent urination', 'Fatigue'],
-      treatmentPlan: 'Dietary changes, regular exercise, and medication management.',
-      medications: ['Metformin 500mg (Twice daily)'],
-      followUpSchedule: 'Every 3 months',
-      doctorNotes: 'Patient is showing good progress with the new diet plan. Need to monitor HbA1c closely.',
-      relatedLabReports: ['HbA1c Blood Test - 2026-06-20']
-    },
-    {
-      id: '2',
-      name: 'Hypertension',
-      description: 'High blood pressure, a condition in which the force of the blood against the artery walls is too high.',
-      diagnosedBy: 'Dr. Michael Chen',
-      diagnosisDate: '2024-05-10',
-      severity: 'Low',
-      status: 'Improving',
-      lastUpdated: '2026-05-12',
-      symptoms: ['Occasional headaches', 'Shortness of breath during exertion'],
-      treatmentPlan: 'Sodium restriction, daily exercise, and stress management.',
-      medications: ['Lisinopril 10mg (Once daily)'],
-      followUpSchedule: 'Every 6 months',
-      doctorNotes: 'Blood pressure is well controlled on current medication. Continue current regimen.',
-      relatedLabReports: ['Comprehensive Metabolic Panel - 2026-05-10']
-    },
-    {
-      id: '3',
-      name: 'Acute Bronchitis',
-      description: 'Inflammation of the lining of the bronchial tubes, which carry air to and from the lungs.',
-      diagnosedBy: 'Dr. Emily Carter',
-      diagnosisDate: '2026-01-05',
-      severity: 'Low',
-      status: 'Recovered',
-      lastUpdated: '2026-02-10',
-      symptoms: ['Cough', 'Production of mucus', 'Fatigue', 'Slight fever'],
-      treatmentPlan: 'Rest, hydration, and over-the-counter cough suppressants.',
-      medications: ['Cough Syrup with Dextromethorphan (As needed)'],
-      followUpSchedule: 'None required unless symptoms return',
-      doctorNotes: 'Patient fully recovered. Lungs sound clear.',
-      relatedLabReports: []
-    }
-  ];
+  const mockDiagnoses = [];
 
   const filteredDiagnoses = mockDiagnoses.filter(d => 
     d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 

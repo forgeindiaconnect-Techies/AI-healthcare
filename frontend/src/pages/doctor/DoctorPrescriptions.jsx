@@ -10,12 +10,7 @@ const DoctorPrescriptions = () => {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
 
-  const mockPrescriptions = [
-    { id: 1, patient: 'Jane Doe', date: '2026-06-18', medicines: 2, status: 'Active', details: 'Amoxicillin 500mg (1x daily)\nIbuprofen 400mg (as needed)' },
-    { id: 2, patient: 'Alice Smith', date: '2026-06-15', medicines: 1, status: 'Completed', details: 'Lisinopril 10mg (1x daily)' },
-    { id: 3, patient: 'Michael Johnson', date: '2026-06-12', medicines: 3, status: 'Active', details: 'Metformin 500mg (2x daily)\nAtorvastatin 20mg (1x nightly)\nAspirin 81mg (1x daily)' },
-    { id: 4, patient: 'Sarah Williams', date: '2026-06-10', medicines: 1, status: 'Completed', details: 'Azithromycin 250mg (1x daily for 5 days)' }
-  ];
+  const mockPrescriptions = [];
 
   const handleDownload = (rx) => {
     const content = `HEALTH AI CLINIC\n------------------------\nPatient: ${rx.patient}\nDate: ${rx.date}\nStatus: ${rx.status}\n\nRx:\n${rx.details}\n\nDoctor Signature: ____________`;

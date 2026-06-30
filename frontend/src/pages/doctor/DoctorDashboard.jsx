@@ -49,16 +49,11 @@ const DoctorDashboard = () => {
       setLoading(false);
     }
 
-    // 2. Setup Real-time Notifications Mock
-    realtimeService.startMocking();
-    const unsubscribe = realtimeService.subscribe('notification', (notif) => {
-      setNotifications(prev => [notif, ...prev]);
-      toast.success(notif.message, { icon: '🔔' });
-    });
+    // Optional: Real-time integration could be connected here later.
+    const unsubscribe = () => {};
 
     return () => {
       unsubscribe();
-      realtimeService.stopMocking();
     };
   }, [user]);
 
@@ -78,13 +73,6 @@ const DoctorDashboard = () => {
     }
   });
   let uniquePatients = Array.from(uniquePatientsMap.values());
-  if (uniquePatients.length === 0) {
-    // Fallback dummy data if no patients loaded yet
-    uniquePatients = [
-      { _id: '1', name: 'Jane Doe', email: 'jane@example.com' },
-      { _id: '2', name: 'John Smith', email: 'john@example.com' }
-    ];
-  }
 
   const completedAppointments = appointments.filter(a => a.status?.toLowerCase() === 'completed');
   const noShowAppointments = appointments.filter(a => a.status?.toLowerCase() === 'no-show');

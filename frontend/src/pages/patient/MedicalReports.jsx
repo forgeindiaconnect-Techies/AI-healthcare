@@ -21,11 +21,7 @@ const MedicalReports = () => {
 
   const categories = ['Blood Test', 'X-Ray', 'MRI', 'CT Scan', 'Prescription', 'Other'];
 
-  const mockReports = [
-    { _id: '1', title: 'Complete Blood Count', category: 'Blood Test', fileType: 'pdf', status: 'Reviewed', createdAt: new Date(Date.now() - 864000000).toISOString(), aiSummary: 'All values are within normal ranges. Platelets are optimal.', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { _id: '2', title: 'Chest X-Ray', category: 'X-Ray', fileType: 'image', status: 'Pending Review', createdAt: new Date(Date.now() - 172800000).toISOString(), aiSummary: 'Awaiting radiologist interpretation. No obvious abnormalities detected by initial AI scan.', fileUrl: 'https://placehold.co/600x400/png' },
-    { _id: '3', title: 'Lipid Profile', category: 'Blood Test', fileType: 'pdf', status: 'Critical', createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), aiSummary: 'LDL Cholesterol is elevated. Follow-up consultation recommended.', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' }
-  ];
+  const mockReports = [];
 
   useEffect(() => {
     fetchReports();
@@ -37,14 +33,12 @@ const MedicalReports = () => {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       const { data } = await API.get('/api/reports', config);
       const fetchedReports = data.data || [];
-      if (fetchedReports.length === 0) {
-        setReports(mockReports);
-      } else {
+      if (fetchedReports.length > 0) {
         setReports(fetchedReports);
       }
     } catch (error) {
       console.error('Error fetching reports:', error);
-      setReports(mockReports); // fallback
+      setReports([]); // fallback
     } finally {
       setLoading(false);
     }
@@ -141,12 +135,7 @@ const MedicalReports = () => {
     if (window.confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        // If it's a mock report (id is 1,2,3), just filter it out
-        if (id.length < 5) {
-            setReports(reports.filter(r => r._id !== id));
-            toast.success('Mock report removed');
-            return;
-        }
+        // Removing mock report check since mock data is cleared
         await API.delete(`/api/reports/${id}`, config);
         setReports(reports.filter(r => r._id !== id));
         toast.success('Report deleted successfully');
@@ -166,7 +155,7 @@ const MedicalReports = () => {
 
   const handleDownload = (url) => {
     const fixedUrl = getCorrectUrl(url);
-    if (!fixedUrl) { toast.error("Download not available for mock reports."); return; }
+    if (!fixedUrl) { toast.error("Download not available for this report."); return; }
     window.open(fixedUrl, '_blank');
   };
 
