@@ -32,7 +32,6 @@ const navItems = {
     { id: "dashboard/doctor-patients", label: "My Patients", icon: "👥" },
     { id: "dashboard/review-reports", label: "Review Reports", icon: "📋" },
     { id: "dashboard/diagnosis", label: "Diagnosis", icon: "🩺" },
-    { id: "dashboard/lab-recommendations", label: "Lab Recommendations", icon: "🔬" },
     { id: "dashboard/doctor-treatment-plans", label: "Treatment Plans", icon: "📝" },
     { id: "dashboard/prescriptions", label: "Prescriptions", icon: "💊" },
     { id: "dashboard/follow-up", label: "Follow-up Schedule", icon: "📅" },
