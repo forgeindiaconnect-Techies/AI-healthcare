@@ -27,8 +27,8 @@ const mongoose = require('mongoose');
       },
       status: {
         type: String,
-        enum: ['pending', 'confirmed', 'completed', 'cancelled', 'no-show', 'rescheduled'],
-        default: 'pending',
+        enum: ['Pending Doctor Approval', 'Approved - Payment Pending', 'Payment Completed', 'Meeting Scheduled', 'Completed', 'Cancelled', 'Rejected', 'no-show', 'rescheduled', 'pending', 'confirmed'],
+        default: 'Pending Doctor Approval',
       },
       reason: { type: String, required: true },
       symptoms: [String],

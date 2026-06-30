@@ -175,9 +175,6 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('This time slot is already booked. Please choose another time.', 409));
   }
 
-  // Generate meeting link or token
-  const meetingRoomId = uuidv4();
-  const meetingLink = mode === 'video' ? `/consultation/${meetingRoomId}` : undefined;
   const queueNumber = mode !== 'video' ? Math.floor(Math.random() * 50) + 1 : undefined;
 
   const appointment = await Appointment.create({
@@ -194,7 +191,7 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
     symptoms: symptoms || [],
     notes: { [req.user.role]: notes || '' },
     consultationFee: doctorProfile?.consultationFee || 0,
-    meetingLink,
+    status: 'Pending Doctor Approval',
     queueNumber,
     roomNumber: roomNumber || (mode !== 'video' ? 'Room 101' : undefined)
   });
@@ -277,14 +274,18 @@ exports.updateAppointmentStatus = asyncHandler(async (req, res, next) => {
   // Emit socket event to the patient
   const io = req.app.get('io');
   if (io) {
-    let title = `Appointment ${status.charAt(0).toUpperCase() + status.slice(1)}`;
-    let message = `Your appointment with Dr. ${appointment.doctor.name} has been ${status}.`;
-    if (status === 'confirmed') {
-      title = '✅ Appointment Confirmed';
-      message = `Doctor Dr. ${appointment.doctor.name} has approved your appointment for ${new Date(appointment.appointmentDate).toDateString()} at ${appointment.appointmentTime}.`;
-    } else if (status === 'rejected') {
+    let title = `Appointment Status Updated`;
+    let message = `Your appointment with Dr. ${appointment.doctor.name} is now: ${status}.`;
+    
+    if (status === 'Approved - Payment Pending') {
+      title = '✅ Appointment Approved';
+      message = `Dr. ${appointment.doctor.name} has approved your appointment. Please complete the payment to schedule the meeting.`;
+    } else if (status === 'Rejected') {
       title = '❌ Appointment Rejected';
       message = `Your appointment request has been rejected by Dr. ${appointment.doctor.name}. Please select another available time or doctor.`;
+    } else if (status === 'Meeting Scheduled') {
+      title = '📅 Meeting Scheduled';
+      message = `Payment successful! Your meeting with Dr. ${appointment.doctor.name} is scheduled.`;
     }
 
     io.to(`user_${appointment.patient._id.toString()}`).emit('new_notification', {

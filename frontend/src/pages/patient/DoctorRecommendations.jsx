@@ -31,7 +31,12 @@ const DoctorRecommendations = () => {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       // Fetching up to 50 top-rated doctors
       const { data } = await API.get('/api/doctors?limit=50', config);
-      setDoctors(data.data || []);
+      // Smart sort: Highest rating, then experience
+      const sortedDoctors = (data.data || []).sort((a, b) => {
+        if (b.rating !== a.rating) return (b.rating || 0) - (a.rating || 0);
+        return (b.experience || 0) - (a.experience || 0);
+      });
+      setDoctors(sortedDoctors);
     } catch (error) {
       console.error('Error fetching doctors', error);
       toast.error('Failed to load doctor recommendations');
@@ -83,7 +88,7 @@ const DoctorRecommendations = () => {
       };
 
       await API.post('/api/appointments', payload, config);
-      toast.success('Appointment Booked Successfully!');
+      toast.success('Booking request sent for Doctor approval!');
       setBookingModalOpen(false);
       
       // Optionally redirect to appointments page
@@ -221,9 +226,12 @@ const DoctorRecommendations = () => {
                 <div className="flex-1 pt-1">
                   <div className="flex justify-between items-start">
                     <h3 className="font-bold text-lg text-gray-900 group-hover:text-indigo-700 transition-colors line-clamp-1">{doc.user?.name || 'Unknown Doctor'}</h3>
-                    <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-1 rounded-lg">
-                      <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                      <span className="text-xs font-bold">{doc.rating?.toFixed(1) || 'N/A'}</span>
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-1 rounded-lg">
+                        <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                        <span className="text-xs font-bold">{doc.rating?.toFixed(1) || 'N/A'}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-400 mt-0.5">{doc.totalRatings || 0} Reviews</span>
                     </div>
                   </div>
                   <p className="text-indigo-600 font-semibold text-sm mt-0.5">{doc.specialization}</p>

@@ -71,12 +71,33 @@ exports.processPayment = asyncHandler(async (req, res, next) => {
     description
   });
 
-  // If there is an associated appointment, mark it as paid
+  // If there is an associated appointment, mark it as paid and generate meeting link
   if (relatedAppointment) {
+    const { v4: uuidv4 } = require('uuid');
+    const apt = await Appointment.findById(relatedAppointment).populate('doctor', 'name');
+    
+    let meetingLink = undefined;
+    if (apt && apt.mode === 'video') {
+      meetingLink = `/consultation/${uuidv4()}`;
+    }
+
     await Appointment.findByIdAndUpdate(relatedAppointment, {
       paymentStatus: 'paid',
-      paymentMethod: method
+      paymentMethod: method,
+      status: 'Meeting Scheduled',
+      meetingLink
     });
+    
+    // Notify Patient about meeting scheduled
+    const io = req.app.get('io');
+    if (io && apt) {
+      io.to(`user_${apt.patient.toString()}`).emit('new_notification', {
+        title: '📅 Meeting Scheduled',
+        message: `Payment successful! Your meeting with Dr. ${apt.doctor.name} is scheduled.`,
+        type: 'appointment',
+        metadata: { appointmentId: apt._id, status: 'Meeting Scheduled' }
+      });
+    }
   }
 
   res.status(201).json({

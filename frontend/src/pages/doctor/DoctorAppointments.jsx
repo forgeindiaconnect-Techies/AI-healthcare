@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../api/api';
-import { useAuth } from '../../context/AuthContext';
-import { Calendar, Clock, Video, CheckCircle, XCircle, RefreshCw, Plus, Video as VideoIcon, Building2, Ticket, FileText, UserCircle, Users, Stethoscope } from 'lucide-react';
+import { Calendar, Clock, Video, CheckCircle, XCircle, RefreshCw, Plus, Video as VideoIcon, Building2, Ticket, FileText, UserCircle, Users, Stethoscope, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
+import DoctorChat from './DoctorChat';
 
 const DoctorAppointments = () => {
   const { user } = useAuth();
@@ -23,6 +23,9 @@ const DoctorAppointments = () => {
 
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingData, setBookingData] = useState({ patient: '', doctor: '', date: '', time: '', type: 'general', mode: 'video', reason: '', roomNumber: '' });
+
+  const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [selectedAppointmentForChat, setSelectedAppointmentForChat] = useState(null);
 
   const fetchAppointments = async () => {
     try {
@@ -130,10 +133,13 @@ const DoctorAppointments = () => {
       case 'scheduled':
       case 'confirmed': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'approved - payment pending': return 'bg-indigo-100 text-indigo-800 border-indigo-200 animate-pulse';
+      case 'meeting scheduled': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       case 'cancelled':
       case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
       case 'no-show': return 'bg-gray-200 text-gray-700 border-gray-300';
-      case 'pending': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'pending':
+      case 'pending doctor approval': return 'bg-amber-100 text-amber-800 border-amber-200';
       case 'rescheduled': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'live':
       case 'consulting': return 'bg-indigo-100 text-indigo-800 border-indigo-200 animate-pulse';
@@ -279,10 +285,18 @@ const DoctorAppointments = () => {
                 </div>
 
                 {/* Action Footer */}
-                <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2 justify-end">
-                  {apt.status === 'pending' && (
+                <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2 justify-end items-center">
+                  {['approved - payment pending', 'meeting scheduled', 'confirmed', 'completed'].includes(apt.status?.toLowerCase()) && (
+                    <button 
+                      onClick={() => { setSelectedAppointmentForChat(apt); setChatModalOpen(true); }}
+                      className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-sm font-bold transition-all flex items-center gap-2 mr-auto"
+                    >
+                      <MessageSquare className="w-4 h-4" /> Chat
+                    </button>
+                  )}
+                  {(apt.status === 'pending' || apt.status === 'Pending Doctor Approval') && (
                      <>
-                        <button onClick={() => updateStatus(apt._id, 'confirmed')} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm">Approve</button>
+                        <button onClick={() => updateStatus(apt._id, 'Approved - Payment Pending')} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm">Approve</button>
                         <button onClick={() => updateStatus(apt._id, 'rejected')} className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-sm font-bold flex items-center gap-2 transition-all">Reject</button>
                      </>
                   )}
@@ -453,6 +467,23 @@ const DoctorAppointments = () => {
           </div>
         </div>
       )}
+
+      {chatModalOpen && selectedAppointmentForChat && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-2xl relative">
+            <button onClick={() => setChatModalOpen(false)} className="absolute -top-12 right-0 text-white hover:text-gray-200 p-2 rounded-full transition-all">
+              <XCircle className="w-8 h-8" />
+            </button>
+            <DoctorChat
+              patientId={selectedAppointmentForChat.patient._id || selectedAppointmentForChat.patient}
+              appointmentId={selectedAppointmentForChat._id}
+              patientName={selectedAppointmentForChat.patient.name}
+              patientAvatar={selectedAppointmentForChat.patient.avatar}
+            />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../api/api';
-import { Calendar, Clock, Video, CheckCircle, XCircle, RefreshCw, Plus, Building2, Ticket, Video as VideoIcon, UserCircle, Stethoscope } from 'lucide-react';
+import { Calendar, Clock, Video, CheckCircle, XCircle, RefreshCw, Plus, Building2, Ticket, Video as VideoIcon, UserCircle, Stethoscope, MessageSquare, Star } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
-import toast from 'react-hot-toast';
+import PaymentModal from '../../../components/dashboard/patient/PaymentModal';
+import PatientChat from './PatientChat';
+import ReviewModal from '../../../components/dashboard/patient/ReviewModal';
 
 const CountdownTimer = ({ targetDate }) => {
   const [timeLeft, setTimeLeft] = useState('');
@@ -39,6 +41,15 @@ const PatientAppointments = () => {
   
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [rescheduleData, setRescheduleData] = useState({ id: null, newDate: '', newTime: '', reason: '' });
+
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedAppointmentForPayment, setSelectedAppointmentForPayment] = useState(null);
+
+  const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [selectedAppointmentForChat, setSelectedAppointmentForChat] = useState(null);
+
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedAppointmentForReview, setSelectedAppointmentForReview] = useState(null);
 
   const fetchAppointments = async () => {
     try {
@@ -222,10 +233,13 @@ const PatientAppointments = () => {
       case 'scheduled':
       case 'confirmed': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'approved - payment pending': return 'bg-indigo-100 text-indigo-800 border-indigo-200 animate-pulse';
+      case 'meeting scheduled': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       case 'cancelled':
       case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
       case 'no-show': return 'bg-gray-200 text-gray-700 border-gray-300';
-      case 'pending': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'pending': 
+      case 'pending doctor approval': return 'bg-amber-100 text-amber-800 border-amber-200';
       case 'rescheduled': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'live':
       case 'consulting': return 'bg-indigo-100 text-indigo-800 border-indigo-200 animate-pulse';
@@ -235,7 +249,7 @@ const PatientAppointments = () => {
 
   const filteredAppointments = appointments.filter(apt => {
     const s = apt.status?.toLowerCase();
-    if (activeTab === 'Upcoming') return ['scheduled', 'confirmed', 'pending', 'rescheduled'].includes(s);
+    if (activeTab === 'Upcoming') return ['scheduled', 'meeting scheduled', 'approved - payment pending', 'confirmed', 'pending', 'pending doctor approval', 'rescheduled'].includes(s);
     if (activeTab === 'Completed') return s === 'completed';
     if (activeTab === 'Cancelled') return ['cancelled', 'rejected', 'no-show'].includes(s);
     return true;
@@ -414,7 +428,23 @@ const PatientAppointments = () => {
 
                 {/* Action Footer */}
                 {activeTab === 'Upcoming' && (
-                  <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2 justify-end">
+                  <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2 justify-end items-center">
+                    {apt.status?.toLowerCase() === 'approved - payment pending' && (
+                      <button 
+                        onClick={() => { setSelectedAppointmentForPayment(apt); setPaymentModalOpen(true); }}
+                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-all mr-auto"
+                      >
+                        Pay Now
+                      </button>
+                    )}
+                    {['approved - payment pending', 'meeting scheduled', 'confirmed', 'completed'].includes(apt.status?.toLowerCase()) && (
+                      <button 
+                        onClick={() => { setSelectedAppointmentForChat(apt); setChatModalOpen(true); }}
+                        className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-sm font-bold transition-all flex items-center gap-2"
+                      >
+                        <MessageSquare className="w-4 h-4" /> Chat
+                      </button>
+                    )}
                     <button 
                       onClick={() => { setRescheduleData({ id: apt._id, newDate: '', newTime: '', reason: '' }); setShowRescheduleModal(true); }}
                       className="px-4 py-2 bg-white border border-gray-200 hover:bg-gray-100 rounded-xl text-sm font-bold text-gray-700 transition-all"
@@ -426,6 +456,22 @@ const PatientAppointments = () => {
                       className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-100 rounded-xl text-sm font-bold transition-all"
                     >
                       Cancel Visit
+                    </button>
+                  </div>
+                )}
+                {activeTab === 'Completed' && (
+                  <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2 justify-end items-center">
+                    <button 
+                      onClick={() => { setSelectedAppointmentForChat(apt); setChatModalOpen(true); }}
+                      className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-sm font-bold transition-all flex items-center gap-2 mr-auto"
+                    >
+                      <MessageSquare className="w-4 h-4" /> Chat
+                    </button>
+                    <button 
+                      onClick={() => { setSelectedAppointmentForReview(apt); setReviewModalOpen(true); }}
+                      className="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-100 rounded-xl text-sm font-bold transition-all flex items-center gap-2"
+                    >
+                      <Star className="w-4 h-4" /> Rate Doctor
                     </button>
                   </div>
                 )}
@@ -588,6 +634,46 @@ const PatientAppointments = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {paymentModalOpen && selectedAppointmentForPayment && (
+        <PaymentModal
+          appointment={selectedAppointmentForPayment}
+          userToken={user.token}
+          onClose={() => setPaymentModalOpen(false)}
+          onSuccess={() => {
+            setPaymentModalOpen(false);
+            fetchAppointments();
+          }}
+        />
+      )}
+
+      {chatModalOpen && selectedAppointmentForChat && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-2xl relative">
+            <button onClick={() => setChatModalOpen(false)} className="absolute -top-12 right-0 text-white hover:text-gray-200 p-2 rounded-full transition-all">
+              <XCircle className="w-8 h-8" />
+            </button>
+            <PatientChat
+              doctorId={selectedAppointmentForChat.doctor._id || selectedAppointmentForChat.doctor}
+              appointmentId={selectedAppointmentForChat._id}
+              doctorName={selectedAppointmentForChat.doctor.name}
+              doctorAvatar={selectedAppointmentForChat.doctor.avatar}
+            />
+          </div>
+        </div>
+      )}
+
+      {reviewModalOpen && selectedAppointmentForReview && (
+        <ReviewModal
+          appointment={selectedAppointmentForReview}
+          userToken={user.token}
+          onClose={() => setReviewModalOpen(false)}
+          onSuccess={() => {
+            setReviewModalOpen(false);
+            fetchAppointments();
+          }}
+        />
       )}
 
     </div>

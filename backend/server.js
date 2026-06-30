@@ -24,6 +24,7 @@ const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
 const appointmentRoutes = require('./routes/appointments');
+const chatRoutes = require('./routes/chat');
 const { doctorRouter, patientRouter, adminRouter, reportRouter, prescriptionRouter, aiRouter, notificationRouter, consultationRouter, symptomRouter, paymentRouter, insuranceRouter, dietRouter } = require('./routes/index');
 const medicalRoutes = require('./routes/medical');
 const schedulerService = require('./services/schedulerService');
@@ -95,6 +96,21 @@ io.on('connection', (socket) => {
 
   socket.on('send_message', ({ to, message }) => {
     io.to(`user_${to}`).emit('receive_message', message);
+  });
+
+  // Patient-Doctor Chat Events
+  socket.on('chat_message', async (messageData) => {
+    const { receiver } = messageData;
+    // Assuming messageData is already saved to DB by the sender via API, or we can save it here.
+    // For simplicity, we just route the event. The API controller handles DB saving for files,
+    // and we'll let the frontend call API for text messages too, OR handle it entirely here.
+    // We'll let the client emit this after saving to DB for real-time delivery.
+    io.to(`user_${receiver}`).emit('chat_message', messageData);
+  });
+
+  socket.on('read_receipt', ({ senderId, receiverId }) => {
+    // Notify senderId that their messages were read by receiverId
+    io.to(`user_${senderId}`).emit('messages_read', { by: receiverId });
   });
 
   // WebRTC Video Consultation Signaling
@@ -223,6 +239,7 @@ app.use('/api/payments', paymentRouter);
 app.use('/api/insurance', insuranceRouter);
 app.use('/api/diet', dietRouter);
 app.use('/api/medical', medicalRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Serve uploads directory (fallback for local uploads in dev)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
