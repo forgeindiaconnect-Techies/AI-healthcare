@@ -223,16 +223,13 @@ const PatientDashboard = () => {
         />
       </div>
 
-      {/* Dynamic Top Row: Appointment, AI Insights, Emergency */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Dynamic Top Row: Appointment, AI Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="lg:col-span-1 min-w-0">
           <UpcomingAppointmentWidget nextAppt={nextAppt} loading={loading} />
         </div>
         <div className="lg:col-span-1 min-w-0">
           <AIInsightsWidget />
-        </div>
-        <div className="lg:col-span-1 min-w-0">
-          <EmergencyProfileWidget />
         </div>
       </div>
 
@@ -273,30 +270,6 @@ const PatientDashboard = () => {
 
         {/* Right Column (Narrower) */}
         <div className="space-y-6">
-          <Card className="text-center bg-gradient-to-b from-white to-gray-50 border-gray-100">
-            <div className="font-bold text-lg mb-6 text-gray-900">Health Score</div>
-            <div className="relative inline-flex items-center justify-center w-36 h-36 rounded-full border-[8px] border-green-50 mb-4">
-              <div className="absolute inset-0 border-[8px] border-green-500 rounded-full" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 87%, 0 87%)' }}></div>
-              <div className="text-center">
-                <div className="text-4xl font-extrabold text-gray-900">87</div>
-                <div className="text-xs font-semibold text-green-600">Excellent</div>
-              </div>
-            </div>
-            
-            <div className="space-y-4 mt-2">
-              {[{ label: "Heart", value: 92, color: colors.danger }, { label: "Lungs", value: 88, color: colors.primary }, { label: "Metabolic", value: 78, color: colors.warning }].map(m => (
-                <div key={m.label} className="text-left">
-                  <div className="flex justify-between text-xs mb-1.5 font-medium text-gray-600">
-                    <span>{m.label}</span><span className="text-gray-900 font-bold">{m.value}%</span>
-                  </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${m.value}%`, background: m.color }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-
           <HealthTimelineSummary />
         </div>
       </div>
