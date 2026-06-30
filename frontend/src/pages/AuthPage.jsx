@@ -18,13 +18,7 @@ const AuthPage = () => {
   
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  useEffect(() => {
-    if (user) {
-      if (user.role === 'admin') navigate('/dashboard/admin');
-      else if (user.role === 'doctor') navigate('/dashboard/doctor-dashboard');
-      else navigate('/dashboard/patients');
-    }
-  }, [user, navigate]);
+  // Removed auto-redirect useEffect so that navigating to /login stays on the login page as requested.
 
   const quickLogins = [
     { label: "Patient", email: "james@email.com", password: "Patient@123", icon: "🧑" },
@@ -50,6 +44,16 @@ const AuthPage = () => {
       
       if (!result.success) {
         throw new Error(result.message);
+      }
+      
+      // Redirect based on user role after successful login
+      const userRole = result.user.role;
+      if (userRole === 'admin') {
+        navigate('/dashboard/admin');
+      } else if (userRole === 'doctor') {
+        navigate('/dashboard/doctor-dashboard');
+      } else {
+        navigate('/dashboard/patients');
       }
     } catch (err) {
       setError(err.message || "Authentication failed");

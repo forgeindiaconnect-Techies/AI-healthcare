@@ -110,6 +110,13 @@ const RoleRoute = ({ role, children }) => {
   return children;
 };
 
+const DashboardIndex = () => {
+  const { user } = useAuth();
+  if (user?.role === 'admin') return <Navigate to="admin" replace />;
+  if (user?.role === 'doctor') return <Navigate to="doctor-dashboard" replace />;
+  return <Navigate to="patients" replace />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -132,7 +139,7 @@ function App() {
               } 
             >
               {/* Redirect /dashboard to role-specific root automatically */}
-              <Route index element={<Navigate to="patients" replace />} />
+              <Route index element={<DashboardIndex />} />
 
               {/* Patient Routes */}
               <Route path="patients" element={<RoleRoute role="patient"><PatientDashboard /></RoleRoute>} />
