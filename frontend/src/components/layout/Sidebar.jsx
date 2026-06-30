@@ -8,6 +8,7 @@ const navItems = {
   patient: [
     { id: "dashboard/patients", label: "Dashboard", icon: "🏠" },
     { id: "dashboard/appointments", label: "Appointments", icon: "📅" },
+    { id: "dashboard/my-diagnoses", label: "My Diagnoses", icon: "🩺" },
     { id: "dashboard/ai-chat", label: "Ask Health Questions", icon: "🤖" },
     { id: "dashboard/symptoms", label: "AI Symptom Checker", icon: "🔍" },
     { id: "dashboard/doctor-recommendations", label: "Doctor Recommendations", icon: "👨‍⚕️" },

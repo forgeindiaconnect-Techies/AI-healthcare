@@ -49,6 +49,7 @@ import HealthSummary from './pages/patient/HealthSummary';
 import DoctorRecommendations from './pages/patient/DoctorRecommendations';
 import PaymentHistory from './pages/patient/PaymentHistory';
 import PatientFollowUps from './pages/patient/PatientFollowUps';
+import MyDiagnoses from './pages/patient/MyDiagnoses';
 
 // NEW DOCTOR IMPORTS
 import ReviewReports from './pages/doctor/ReviewReports';
@@ -135,6 +136,7 @@ function App() {
 
               {/* Patient Routes */}
               <Route path="patients" element={<RoleRoute role="patient"><PatientDashboard /></RoleRoute>} />
+              <Route path="my-diagnoses" element={<RoleRoute role="patient"><MyDiagnoses /></RoleRoute>} />
               <Route path="symptoms" element={<RoleRoute role="patient"><SymptomChecker /></RoleRoute>} />
               <Route path="ai-chat" element={<RoleRoute role="patient"><HealthChat /></RoleRoute>} />
               <Route path="diabetes-diet" element={<RoleRoute role="patient"><DiabetesDiet /></RoleRoute>} />
