@@ -225,13 +225,13 @@ const PatientDashboard = () => {
 
       {/* Dynamic Top Row: Appointment, AI Insights, Emergency */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 min-w-0">
           <UpcomingAppointmentWidget nextAppt={nextAppt} loading={loading} />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 min-w-0">
           <AIInsightsWidget />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 min-w-0">
           <EmergencyProfileWidget />
         </div>
       </div>
@@ -240,8 +240,8 @@ const PatientDashboard = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         {/* Left Column (Wider) */}
-        <div className="xl:col-span-2 space-y-6">
-          <Card>
+        <div className="xl:col-span-2 space-y-6 min-w-0">
+          <Card style={{ overflow: 'hidden' }}>
             <div className="font-bold text-lg mb-4 text-gray-900">📈 Vital Signs Trend</div>
             <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={vitals} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
