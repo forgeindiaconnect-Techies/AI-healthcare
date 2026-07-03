@@ -643,6 +643,51 @@ Ensure the plan avoids the patient's allergies and does not conflict with their 
       throw new Error('AI analysis parsing failed');
     }
   }
+
+  // ─────────────────────────────────────────────
+  // FINAL CLINICAL REPORT GENERATOR
+  // ─────────────────────────────────────────────
+  async generateFinalClinicalReport(reportData, doctorNotes) {
+    if (!this.anthropic && !this.gemini) {
+      return {
+        content: `FINAL CLINICAL REPORT\n\nPatient: ${reportData.patient?.name || 'Unknown'}\nDate: ${new Date().toLocaleDateString()}\n\nAI Analysis Summary: ${reportData.aiAnalysis?.summary || 'N/A'}\n\nDoctor's Notes: ${doctorNotes || 'None'}\n\nAssessment: This is a simulated final report.`
+      };
+    }
+
+    const systemPrompt = `You are an expert Medical AI summarizing a final clinical report for a doctor.
+Synthesize the original AI Analysis and the Doctor's specific notes into a concise, professional clinical summary.
+Include sections for:
+1. Patient Overview
+2. Key Clinical Findings (from AI Analysis)
+3. Doctor's Observations/Notes
+4. Final Recommendations/Plan
+
+Format as plain professional text (no markdown formatting if possible, use ALL CAPS for section headers).`;
+
+    const input = `AI Analysis: ${reportData.aiAnalysis?.summary || 'N/A'}\nKey Findings: ${reportData.aiAnalysis?.keyFindings?.join(', ') || 'N/A'}\nDoctor Notes: ${doctorNotes || 'No specific notes provided.'}`;
+
+    if (this.gemini) {
+      try {
+        const model = this.gemini.getGenerativeModel({ model: 'gemini-flash-latest' });
+        const chat = model.startChat({
+          systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] }
+        });
+        const result = await chat.sendMessage(input);
+        return { content: result.response.text() };
+      } catch (error) {
+        return { content: "Error generating final report with AI." };
+      }
+    }
+
+    const response = await this.anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: input }],
+    });
+
+    return { content: response.content[0].text };
+  }
 }
 
 module.exports = new AIService();

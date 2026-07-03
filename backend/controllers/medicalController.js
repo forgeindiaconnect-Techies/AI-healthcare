@@ -329,6 +329,47 @@ exports.askReportAI = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc    Generate final clinical report based on AI and Doctor Notes
+// @route   POST /api/medical/reports/:id/final-report
+// @access  Private/Doctor
+exports.generateFinalReport = asyncHandler(async (req, res, next) => {
+  const { notes } = req.body;
+  const report = await MedicalReport.findById(req.params.id).populate('patient', 'name email');
+
+  if (!report) {
+    return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
+  }
+
+  const aiService = require('../services/aiService');
+  
+  // Create a structured final clinical report using AI to synthesize findings
+  const systemPrompt = `You are an expert Medical AI summarizing a final clinical report. 
+Synthesize the original AI Analysis and the Doctor's specific notes into a concise, professional clinical summary.
+Include:
+1. Patient Overview
+2. Key Clinical Findings
+3. Doctor's Observations/Notes
+4. Final Recommendations/Plan
+
+Format as plain professional text (no markdown formatting if possible).`;
+
+  const input = `AI Analysis: ${report.aiAnalysis?.summary || 'N/A'}\nKey Findings: ${report.aiAnalysis?.keyFindings?.join(', ') || 'N/A'}\nDoctor Notes: ${notes || 'No specific notes provided.'}`;
+  
+  const response = await aiService.generateFinalClinicalReport(report, notes);
+  
+  report.doctorNotes = notes;
+  report.finalReport = response.content;
+  report.status = 'reviewed';
+  report.reviewedDate = new Date();
+  
+  await report.save();
+
+  res.status(200).json({
+    success: true,
+    data: report
+  });
+});
+
 // @desc    Create treatment plan
 // @route   POST /api/medical/treatment-plans
 // @access  Private/Doctor

@@ -25,19 +25,16 @@ const ReviewReports = () => {
   useEffect(() => {
     if (selectedReport && (!selectedReport.aiAnalysis?.summary)) {
       setAnalysisLoading(true);
-      fetch(`${process.env.REACT_APP_API_URL || ''}/api/medical/reports/${selectedReport._id}/analyze`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      })
-        .then(res => res.json())
-        .then(data => {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      API.post(`/api/reports/${selectedReport._id}/analyze`, {}, config)
+        .then(({ data }) => {
           if (data.success) {
             // Update the report in local state
-            const updated = { ...selectedReport, aiAnalysis: data.data.aiAnalysis };
+            const updated = { ...selectedReport, aiAnalysis: data.data.analysis || data.data.report.aiAnalysis };
             setSelectedReport(updated);
           }
         })
+        .catch(err => console.error("Analysis failed:", err))
         .finally(() => setAnalysisLoading(false));
     }
   }, [selectedReport]);
@@ -45,18 +42,21 @@ const ReviewReports = () => {
   const handleGenerateFinalReport = () => {
     if (!selectedReport) return;
     setFinalReportGenerating(true);
-    fetch(`${process.env.REACT_APP_API_URL || ''}/api/medical/reports/${selectedReport._id}/final-report`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    })
-      .then(res => res.json())
-      .then(data => {
+    const config = { headers: { Authorization: `Bearer ${user.token}` } };
+    API.post(`/api/medical/reports/${selectedReport._id}/final-report`, { notes: reviewNotes }, config)
+      .then(({ data }) => {
         if (data.success) {
-          alert('Final report generated and saved.');
+          toast.success('Final report generated and saved.');
+          // Refresh report list
+          fetchReports();
+          setSelectedReport(data.data);
         } else {
-          alert('Failed to generate final report.');
+          toast.error('Failed to generate final report.');
         }
+      })
+      .catch(err => {
+        console.error(err);
+        toast.error('Failed to generate final report.');
       })
       .finally(() => setFinalReportGenerating(false));
   };
@@ -525,12 +525,30 @@ const ReviewReports = () => {
                 {/* Final Notes */}
                 <div style={{ marginBottom: 24 }}>
                   <h3 style={{ fontSize: 15, margin: '0 0 12px' }}>Final Doctor Notes</h3>
-                  <textarea 
-                    value={reviewNotes}
-                    onChange={(e) => setReviewNotes(e.target.value)}
-                    placeholder="Add your review notes for this patient..."
-                    style={{ width: '100%', height: 120, padding: 12, borderRadius: 8, border: `1px solid ${colors.border}`, fontFamily: 'inherit', resize: 'vertical', fontSize: 14 }}
-                  />
+                  {selectedReport.finalReport ? (
+                    <div style={{ padding: 16, background: '#f8fafc', borderRadius: 8, border: `1px solid ${colors.border}`, fontSize: 14, whiteSpace: 'pre-wrap', marginBottom: 16 }}>
+                      <div style={{ fontWeight: 600, color: colors.primary, marginBottom: 8 }}>AI-Assisted Final Clinical Report</div>
+                      {selectedReport.finalReport}
+                    </div>
+                  ) : (
+                    <textarea 
+                      value={reviewNotes}
+                      onChange={(e) => setReviewNotes(e.target.value)}
+                      placeholder="Add your review notes for this patient..."
+                      style={{ width: '100%', height: 120, padding: 12, borderRadius: 8, border: `1px solid ${colors.border}`, fontFamily: 'inherit', resize: 'vertical', fontSize: 14 }}
+                    />
+                  )}
+                  
+                  {!selectedReport.finalReport && (
+                    <Button 
+                      variant="outline" 
+                      onClick={handleGenerateFinalReport} 
+                      disabled={finalReportGenerating || analysisLoading} 
+                      style={{ width: '100%', marginTop: 12 }}
+                    >
+                      {finalReportGenerating ? 'Generating Clinical Report...' : 'Generate Final Clinical Report'}
+                    </Button>
+                  )}
                 </div>
 
                 <div style={{ display: 'flex', gap: 12, paddingBottom: 20 }}>

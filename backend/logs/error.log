@@ -431,3 +431,4 @@
     at C:\Users\Admin\Desktop\AI healthcare\backend\controllers\medicalController.js:17:17
     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
 2026-06-27 15:56:15 [error]: MongoDB connection failed: MONGODB_URI is not defined in environment variables. Please add your MongoDB connection string in the Render Dashboard -> Environment variables.
+2026-07-03 17:11:33 [error]: MongoDB connection failed: MONGODB_URI is not defined in environment variables. Please add your MongoDB connection string in the Render Dashboard -> Environment variables.
