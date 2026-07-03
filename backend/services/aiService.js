@@ -559,6 +559,90 @@ Report Context:
       model: response.model,
     };
   }
+  // ─────────────────────────────────────────────
+  // DIET ANALYZER
+  // ─────────────────────────────────────────────
+  async analyzeDiet(condition, patientInfo) {
+    if (!this.anthropic && !this.gemini) {
+      return {
+        condition: condition || "Unknown",
+        summary: "This is a mock AI diet plan since no API keys are configured.",
+        riskLevel: "LOW",
+        recommendedFoods: ["Water", "Vegetables"],
+        avoidFoods: ["Junk food", "Excess sugar"],
+        breakfast: ["Oatmeal", "Fruit"],
+        lunch: ["Salad", "Lean protein"],
+        dinner: ["Soup", "Vegetables"],
+        snacks: ["Nuts", "Yogurt"],
+        waterIntake: "2-3 Liters",
+        lifestyleTips: ["Exercise 30 mins daily", "Sleep 7-8 hours"],
+        monitoring: "Check vitals regularly",
+        warningSigns: ["Dizziness", "Severe pain"],
+        disclaimer: "This diet plan is AI-assisted and for general guidance. Please follow your doctor's advice for final treatment."
+      };
+    }
+
+    const prompt = `You are an expert nutritionist and medical AI. Analyze the following condition and generate a personalized diet plan based on the patient's profile.
+
+Condition/Problem: ${condition}
+Patient Profile:
+- Age: ${patientInfo.age || 'Unknown'}
+- Gender: ${patientInfo.gender || 'Unknown'}
+- Height: ${patientInfo.height ? patientInfo.height + ' cm' : 'Unknown'}
+- Weight: ${patientInfo.weight ? patientInfo.weight + ' kg' : 'Unknown'}
+- BMI: ${patientInfo.bmi || 'Unknown'}
+- Existing Diseases/Conditions: ${patientInfo.chronicConditions?.join(', ') || 'None'}
+- Allergies: ${patientInfo.allergies?.join(', ') || 'None'}
+- Current Medicines: ${patientInfo.currentMedications?.map(m => m.name).join(', ') || 'None'}
+
+Provide a JSON response with exactly this structure:
+{
+  "condition": "The standardized name of the condition (e.g., Diabetes, Hypertension)",
+  "summary": "Short explanation of the diet strategy (2-3 sentences)",
+  "riskLevel": "LOW", // MUST be exactly LOW, MEDIUM, or HIGH
+  "recommendedFoods": ["Food 1", "Food 2"],
+  "avoidFoods": ["Food 1", "Food 2"],
+  "breakfast": ["Item 1", "Item 2"],
+  "lunch": ["Item 1", "Item 2"],
+  "dinner": ["Item 1", "Item 2"],
+  "snacks": ["Item 1", "Item 2"],
+  "waterIntake": "Recommended daily water intake",
+  "lifestyleTips": ["Tip 1", "Tip 2"],
+  "monitoring": "What to monitor (e.g., Fasting sugar, BP)",
+  "warningSigns": ["Sign 1", "Sign 2"],
+  "disclaimer": "This diet plan is AI-assisted and for general guidance. Please follow your doctor's advice for final treatment."
+}
+
+Ensure the plan avoids the patient's allergies and does not conflict with their medications. Return ONLY valid JSON.`;
+
+    if (this.gemini) {
+      try {
+        const model = this.gemini.getGenerativeModel({ model: 'gemini-flash-latest' });
+        const result = await model.generateContent(prompt);
+        const text = result.response.text().replace(/```json|```/g, '').replace(/```/g, '').trim();
+        const analysis = JSON.parse(text);
+        return analysis;
+      } catch (error) {
+        logger.error('Gemini analyzeDiet error: ' + error.message);
+        throw new Error('AI analysis failed');
+      }
+    }
+
+    // Fallback to Anthropic
+    const response = await this.anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1500,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    try {
+      const text = response.content[0].text.replace(/```json|```/g, '').trim();
+      return JSON.parse(text);
+    } catch (parseError) {
+      logger.error('Failed to parse diet analysis JSON');
+      throw new Error('AI analysis parsing failed');
+    }
+  }
 }
 
 module.exports = new AIService();

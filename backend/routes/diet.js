@@ -3,7 +3,8 @@ const {
   getDiseases,
   getDietPlans,
   createDietReport,
-  getPatientDietReports
+  getPatientDietReports,
+  analyzeDietPlan
 } = require('../controllers/dietController');
 const { protect } = require('../middleware/auth');
 
@@ -15,5 +16,6 @@ router.get('/diseases', getDiseases);
 router.get('/plans/:diseaseId', getDietPlans);
 router.post('/reports', createDietReport);
 router.get('/reports/:patientId', getPatientDietReports);
+router.post('/analyze', analyzeDietPlan);
 
 module.exports = router;

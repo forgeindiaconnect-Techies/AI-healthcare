@@ -76,3 +76,49 @@ exports.getPatientDietReports = async (req, res, next) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+// @desc    Analyze a patient's condition and generate a diet plan using AI
+// @route   POST /api/diet/analyze
+// @access  Private
+exports.analyzeDietPlan = async (req, res, next) => {
+  try {
+    const { condition } = req.body;
+    if (!condition) {
+      return res.status(400).json({ success: false, message: 'Please provide a condition to analyze' });
+    }
+
+    // Fetch patient profile
+    const Patient = require('../models/Patient');
+    const patient = await Patient.findOne({ user: req.user.id }).populate('user');
+    
+    let patientInfo = {};
+    if (patient) {
+      patientInfo = {
+        age: patient.user?.dateOfBirth ? new Date().getFullYear() - new Date(patient.user.dateOfBirth).getFullYear() : undefined,
+        gender: patient.user?.gender,
+        height: patient.height,
+        weight: patient.weight,
+        bmi: patient.height && patient.weight ? (patient.weight / ((patient.height / 100) * (patient.height / 100))).toFixed(1) : undefined,
+        chronicConditions: patient.chronicConditions,
+        allergies: patient.allergies,
+        currentMedications: patient.currentMedications
+      };
+    }
+
+    // Import aiService dynamically if not at top level
+    const aiService = require('../services/aiService');
+    const analysisResult = await aiService.analyzeDiet(condition, patientInfo);
+
+    // Save history
+    const DietAnalysisHistory = require('../models/DietAnalysisHistory');
+    const history = await DietAnalysisHistory.create({
+      patient: req.user.id,
+      condition,
+      result: analysisResult
+    });
+
+    res.status(200).json({ success: true, data: analysisResult });
+  } catch (error) {
+    logger.error(`Analyze diet plan error: ${error.message}`);
+    res.status(500).json({ success: false, message: 'Server error during AI analysis' });
+  }
+};
