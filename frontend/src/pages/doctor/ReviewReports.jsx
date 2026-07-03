@@ -109,7 +109,11 @@ const ReviewReports = () => {
         setFileMissing(false);
       }
     } catch (e) {
-      setFileMissing(false);
+      if (correctUrl.includes('/uploads/')) {
+        setFileMissing(true);
+      } else {
+        setFileMissing(false);
+      }
     }
   };
 
@@ -223,8 +227,14 @@ const ReviewReports = () => {
         setFileMissing(false);
       }
     } catch (e) {
-      // If HEAD fails due to CORS, assume it might load in the iframe
-      setFileMissing(false);
+      console.error("File check failed:", e);
+      // If fetch fails (CORS, network error) and it's a local upload, it's highly likely missing
+      if (correctUrl.includes('/uploads/')) {
+        setFileMissing(true);
+      } else {
+        // If it's Cloudinary etc., it might load in iframe despite fetch failing
+        setFileMissing(false);
+      }
     }
     
     setViewFileUrl(correctUrl);

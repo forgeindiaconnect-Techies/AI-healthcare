@@ -165,7 +165,11 @@ const MedicalReports = () => {
         setFileMissing(false);
       }
     } catch (e) {
-      setFileMissing(false);
+      if (fixedUrl.includes('/uploads/')) {
+        setFileMissing(true);
+      } else {
+        setFileMissing(false);
+      }
     }
 
     setPreviewReport({ ...report, fixedUrl });

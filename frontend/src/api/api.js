@@ -23,17 +23,20 @@ API.interceptors.response.use(
 
 export const getCorrectUrl = (url) => {
   if (!url) return null;
+  // Replace spaces with %20 to avoid fetch TypeError: Invalid URL
+  let safeUrl = url.replace(/ /g, '%20');
+  
   let backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   if (backendUrl.endsWith('/')) {
     backendUrl = backendUrl.slice(0, -1);
   }
-  if (url.includes('http://localhost:5000')) {
-    return url.replace('http://localhost:5000', backendUrl);
+  if (safeUrl.includes('http://localhost:5000')) {
+    return safeUrl.replace('http://localhost:5000', backendUrl);
   }
-  if (url.startsWith('/uploads/')) {
-    return `${backendUrl}${url}`;
+  if (safeUrl.startsWith('/uploads/')) {
+    return `${backendUrl}${safeUrl}`;
   }
-  return url;
+  return safeUrl;
 };
 
 export default API;
