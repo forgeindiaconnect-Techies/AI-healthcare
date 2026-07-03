@@ -27,6 +27,7 @@ const medicalReportSchema = new mongoose.Schema(
     },
     isSharedWithDoctor: { type: Boolean, default: false },
     sharedWith: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    extractedText: { type: String },
     aiAnalysis: {
       summary: String,
       keyFindings: [String],

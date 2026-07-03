@@ -18,6 +18,48 @@ const ReviewReports = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [chatMessage, setChatMessage] = useState('');
   const [chatting, setChatting] = useState(false);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [finalReportGenerating, setFinalReportGenerating] = useState(false);
+
+  // Fetch AI analysis if not present when opening modal
+  useEffect(() => {
+    if (selectedReport && (!selectedReport.aiAnalysis?.summary)) {
+      setAnalysisLoading(true);
+      fetch(`${process.env.REACT_APP_API_URL || ''}/api/medical/reports/${selectedReport._id}/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            // Update the report in local state
+            const updated = { ...selectedReport, aiAnalysis: data.data.aiAnalysis };
+            setSelectedReport(updated);
+          }
+        })
+        .finally(() => setAnalysisLoading(false));
+    }
+  }, [selectedReport]);
+
+  const handleGenerateFinalReport = () => {
+    if (!selectedReport) return;
+    setFinalReportGenerating(true);
+    fetch(`${process.env.REACT_APP_API_URL || ''}/api/medical/reports/${selectedReport._id}/final-report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('Final report generated and saved.');
+        } else {
+          alert('Failed to generate final report.');
+        }
+      })
+      .finally(() => setFinalReportGenerating(false));
+  };
   const [submitting, setSubmitting] = useState(false);
   const [zoom, setZoom] = useState(1);
   const chatEndRef = useRef(null);
