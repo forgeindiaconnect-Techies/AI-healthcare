@@ -16,11 +16,37 @@ const ErrorResponse = require('../utils/errorResponse');
 // @route   GET /api/patients/profile
 // @access  Private (patient)
 exports.getPatientProfile = asyncHandler(async (req, res, next) => {
-  const patient = await Patient.findOne({ user: req.user.id })
+  let patient = await Patient.findOne({ user: req.user.id })
     .populate('user', 'name email phone avatar dateOfBirth gender address')
     .populate('preferredDoctor', 'name email');
 
   if (!patient) return next(new ErrorResponse('Patient profile not found', 404));
+
+  // --- AUTO SEED DUMMY DATA FOR EMPTY PROFILES (FOR DEMO) ---
+  if (!patient.bloodType && (!patient.vitals || patient.vitals.length === 0)) {
+    patient.bloodType = 'O+';
+    patient.height = 175;
+    patient.weight = 72;
+    patient.healthScore = 88;
+    patient.allergies = ['Penicillin', 'Peanuts', 'Dust Mites'];
+    patient.chronicConditions = ['Type 2 Diabetes', 'Mild Hypertension'];
+    patient.vitals = [
+      { date: new Date(Date.now() - 86400000 * 2), bloodPressure: { systolic: 125, diastolic: 82 }, heartRate: 74, temperature: 36.8, oxygenSaturation: 98, respiratoryRate: 16, glucoseLevel: 110 },
+      { date: new Date(), bloodPressure: { systolic: 120, diastolic: 80 }, heartRate: 72, temperature: 37.0, oxygenSaturation: 99, respiratoryRate: 15, glucoseLevel: 105 }
+    ];
+    patient.currentMedications = [
+      { name: 'Metformin', dosage: '500mg', frequency: 'Twice daily', startDate: new Date(Date.now() - 86400000 * 30) },
+      { name: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', startDate: new Date(Date.now() - 86400000 * 60) },
+      { name: 'Atorvastatin', dosage: '20mg', frequency: 'Once daily at night', startDate: new Date(Date.now() - 86400000 * 15) }
+    ];
+    await patient.save();
+    
+    // Re-fetch to ensure populated fields remain intact
+    patient = await Patient.findOne({ user: req.user.id })
+      .populate('user', 'name email phone avatar dateOfBirth gender address')
+      .populate('preferredDoctor', 'name email');
+  }
+
   res.status(200).json({ success: true, data: patient });
 });
 
