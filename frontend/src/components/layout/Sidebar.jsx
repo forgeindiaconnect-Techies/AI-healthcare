@@ -13,7 +13,6 @@ const navItems = {
     { id: "dashboard/symptoms", label: "AI Symptom Checker", icon: "🔍" },
     { id: "dashboard/doctor-recommendations", label: "Doctor Recommendations", icon: "👨‍⚕️" },
     { id: "dashboard/reports", label: "Medical Reports", icon: "📋" },
-    { id: "dashboard/upload-reports", label: "Upload Reports", icon: "📤" },
     { id: "dashboard/lab-results", label: "Lab Test Results", icon: "🔬" },
     { id: "dashboard/prescriptions", label: "View Prescriptions", icon: "💊" },
     { id: "dashboard/treatment-plan", label: "View Treatment Plan", icon: "📝" },
