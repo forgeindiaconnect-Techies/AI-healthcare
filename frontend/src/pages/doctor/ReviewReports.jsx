@@ -160,12 +160,49 @@ const ReviewReports = () => {
     if (!url) return null;
     const secureUrl = getSecureUrl(url);
     const isImage = secureUrl.match(/\.(jpeg|jpg|gif|png|webp)($|\?)/i) || secureUrl.includes('image/upload');
-    
+
     if (isImage) {
-      return <img src={secureUrl} alt="Report" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />;
-    } else {
-      return <iframe src={secureUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="Report Viewer" />;
+      return (
+        <img
+          src={secureUrl}
+          alt="Report"
+          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 8 }}
+        />
+      );
     }
+
+    // For PDFs and other documents — use Google Docs Viewer to bypass X-Frame-Options
+    const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(secureUrl)}&embedded=true`;
+
+    return (
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <iframe
+          src={googleDocsUrl}
+          style={{ width: '100%', height: '100%', border: 'none' }}
+          title="Report Viewer"
+          onError={() => {}}
+        />
+        {/* Fallback download button shown below the viewer */}
+        <div style={{ padding: '8px 0', textAlign: 'center' }}>
+          <a
+            href={getDownloadUrl(secureUrl)}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              color: colors.primary,
+              fontSize: 13,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              textDecoration: 'none',
+              fontWeight: 500
+            }}
+          >
+            <Download size={14} /> Can't see the file? Open / Download directly
+          </a>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -319,7 +356,12 @@ const ReviewReports = () => {
                     <AlertTriangle size={18} />
                     <span>AI Pre-Analysis Summary</span>
                   </div>
-                  {selectedReport.aiAnalysis?.summary ? (
+                  {analysisLoading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#0369a1', fontSize: 13 }}>
+                      <div style={{ width: 16, height: 16, border: '2px solid #bae6fd', borderTopColor: '#0369a1', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                      Analyzing report... extracting text and values.
+                    </div>
+                  ) : selectedReport.aiAnalysis?.summary ? (
                     <>
                       <p style={{ fontSize: 14, margin: '0 0 12px', color: '#0f172a' }}>{selectedReport.aiAnalysis.summary}</p>
                       {selectedReport.aiAnalysis.keyFindings?.length > 0 && (
