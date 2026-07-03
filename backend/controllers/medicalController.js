@@ -30,8 +30,9 @@ exports.getPatientMedicalProfile = asyncHandler(async (req, res, next) => {
   const diagnoses = await Diagnosis.find({ patient: patient._id }).sort('-createdAt');
   const labRecommendations = await LabRecommendation.find({ patient: patient._id }).sort('-createdAt');
   const followUps = await FollowUp.find({ patient: patient._id }).sort('-createdAt');
-  const prescriptions = await Prescription.find({ patient: patient._id }).sort('-createdAt');
+  const prescriptions = await Prescription.find({ patient: patient.user }).sort('-createdAt');
   const notes = await DoctorNote.find({ patient: patient._id }).sort('-createdAt');
+  const reports = await MedicalReport.find({ patient: patient.user }).sort('-reportDate');
 
   res.status(200).json({
     success: true,
@@ -41,7 +42,8 @@ exports.getPatientMedicalProfile = asyncHandler(async (req, res, next) => {
       labRecommendations,
       followUps,
       prescriptions,
-      notes
+      notes,
+      reports
     }
   });
 });
@@ -380,4 +382,170 @@ exports.getTreatmentPlans = asyncHandler(async (req, res, next) => {
     success: true,
     data: plans
   });
+});
+
+// @desc    Update patient details
+// @route   PUT /api/medical/patients/:id
+// @access  Private/Doctor
+exports.updatePatientProfile = asyncHandler(async (req, res, next) => {
+  const { age, gender, bloodType, height, weight, allergies, chronicConditions, emergencyContact } = req.body;
+  
+  let patient = await Patient.findById(req.params.id);
+  if (!patient) {
+    patient = await Patient.findOne({ user: req.params.id });
+  }
+  if (!patient) {
+    return next(new ErrorResponse('Patient not found', 404));
+  }
+
+  // Update User fields if provided (for age/gender)
+  if (age || gender) {
+    const User = require('../models/User');
+    const user = await User.findById(patient.user);
+    if (user) {
+      if (gender) user.gender = gender;
+      if (age && !user.dateOfBirth) {
+        const currentYear = new Date().getFullYear();
+        user.dateOfBirth = new Date(`${currentYear - age}-01-01`);
+      }
+      await user.save();
+    }
+  }
+
+  // Update Patient fields
+  if (bloodType !== undefined) patient.bloodType = bloodType;
+  if (height !== undefined) patient.height = height;
+  if (weight !== undefined) patient.weight = weight;
+  if (allergies) patient.allergies = Array.isArray(allergies) ? allergies : allergies.split(',').map(s => s.trim());
+  if (chronicConditions) patient.chronicConditions = Array.isArray(chronicConditions) ? chronicConditions : chronicConditions.split(',').map(s => s.trim());
+  if (emergencyContact) patient.emergencyContact = emergencyContact;
+
+  await patient.save();
+
+  res.status(200).json({ success: true, data: patient });
+});
+
+// @desc    Add vitals to patient
+// @route   POST /api/medical/patients/:id/vitals
+// @access  Private/Doctor
+exports.addVitals = asyncHandler(async (req, res, next) => {
+  let patient = await Patient.findById(req.params.id);
+  if (!patient) patient = await Patient.findOne({ user: req.params.id });
+  if (!patient) return next(new ErrorResponse('Patient not found', 404));
+
+  const vitalsEntry = {
+    ...req.body,
+    recordedBy: req.user._id,
+    date: new Date()
+  };
+
+  patient.vitals.push(vitalsEntry);
+  patient.vitals.sort((a, b) => b.date - a.date);
+  await patient.save();
+
+  res.status(200).json({ success: true, data: patient.vitals });
+});
+
+// @desc    Patient Level AI Chat
+// @route   POST /api/medical/patients/:id/ai-chat
+// @access  Private/Doctor
+exports.patientAIChat = asyncHandler(async (req, res, next) => {
+  const { message } = req.body;
+  let patient = await Patient.findById(req.params.id).populate('user', 'name');
+  if (!patient) patient = await Patient.findOne({ user: req.params.id }).populate('user', 'name');
+  if (!patient) return next(new ErrorResponse('Patient not found', 404));
+
+  const diagnoses = await Diagnosis.find({ patient: patient._id }).sort('-createdAt').limit(5);
+  const history = patient.aiDiagnosisChatHistory || [];
+  
+  const aiService = require('../services/aiService');
+  const reportContext = {
+    patient: patient.user,
+    title: 'General Patient Profile',
+    reportType: 'Profile',
+    aiAnalysis: {
+      summary: `Patient has ${diagnoses.length} recent diagnoses.`,
+      keyFindings: diagnoses.map(d => `${d.primaryDiagnosis} (Confidence: ${d.confidence}%)`)
+    }
+  };
+
+  const response = await aiService.chatAboutReport(reportContext, history, message);
+
+  if (!patient.aiDiagnosisChatHistory) {
+    patient.aiDiagnosisChatHistory = [];
+  }
+  
+  patient.aiDiagnosisChatHistory.push({ role: 'user', content: message });
+  patient.aiDiagnosisChatHistory.push({ role: 'assistant', content: response.content });
+  
+  await patient.save();
+
+  res.status(200).json({ success: true, data: patient.aiDiagnosisChatHistory });
+});
+
+// @desc    Update lifestyle recommendations
+// @route   PUT /api/medical/patients/:id/lifestyle
+// @access  Private/Doctor
+exports.updateLifestyle = asyncHandler(async (req, res, next) => {
+  let patient = await Patient.findById(req.params.id);
+  if (!patient) patient = await Patient.findOne({ user: req.params.id });
+  if (!patient) return next(new ErrorResponse('Patient not found', 404));
+
+  patient.lifestyle = { ...patient.lifestyle, ...req.body };
+  await patient.save();
+
+  res.status(200).json({ success: true, data: patient.lifestyle });
+});
+
+// @desc    Add prescription
+// @route   POST /api/medical/prescriptions
+// @access  Private/Doctor
+exports.addPrescription = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findOne({ user: req.user._id });
+  
+  let patient = await Patient.findById(req.body.patient);
+  if (!patient) patient = await Patient.findOne({ user: req.body.patient });
+  if (!patient) return next(new ErrorResponse('Patient not found', 404));
+
+  const prescription = await Prescription.create({
+    patient: patient.user,
+    doctor: req.user._id,
+    diagnosis: req.body.diagnosis || 'General',
+    medicines: req.body.medications || req.body.medicines,
+    instructions: req.body.instructions
+  });
+
+  res.status(201).json({ success: true, data: prescription });
+});
+
+// @desc    Update prescription
+// @route   PUT /api/medical/prescriptions/:id
+// @access  Private/Doctor
+exports.editPrescription = asyncHandler(async (req, res, next) => {
+  const prescription = await Prescription.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  res.status(200).json({ success: true, data: prescription });
+});
+
+// @desc    Delete prescription
+// @route   DELETE /api/medical/prescriptions/:id
+// @access  Private/Doctor
+exports.deletePrescription = asyncHandler(async (req, res, next) => {
+  await Prescription.findByIdAndDelete(req.params.id);
+  res.status(200).json({ success: true, data: {} });
+});
+
+// @desc    Update doctor note
+// @route   PUT /api/medical/notes/:id
+// @access  Private/Doctor
+exports.editDoctorNote = asyncHandler(async (req, res, next) => {
+  const note = await DoctorNote.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  res.status(200).json({ success: true, data: note });
+});
+
+// @desc    Delete doctor note
+// @route   DELETE /api/medical/notes/:id
+// @access  Private/Doctor
+exports.deleteDoctorNote = asyncHandler(async (req, res, next) => {
+  await DoctorNote.findByIdAndDelete(req.params.id);
+  res.status(200).json({ success: true, data: {} });
 });

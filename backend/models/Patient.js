@@ -77,6 +77,21 @@ const patientSchema = new mongoose.Schema(
         provider: String,
       },
     ],
+    aiDiagnosisChatHistory: [
+      {
+        role: { type: String, enum: ['user', 'assistant'] },
+        content: String,
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
+    lifestyle: {
+      diet: String,
+      exercise: String,
+      sleep: String,
+      water: String,
+      smokingAlcohol: String,
+      notes: String,
+    },
     totalAppointments: { type: Number, default: 0 },
     totalReports: { type: Number, default: 0 },
   },

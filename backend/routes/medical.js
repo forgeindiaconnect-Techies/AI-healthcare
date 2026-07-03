@@ -17,6 +17,15 @@ const {
   createTreatmentPlan,
   getTreatmentPlans,
   getMyDiagnoses,
+  updatePatientProfile,
+  addVitals,
+  patientAIChat,
+  updateLifestyle,
+  addPrescription,
+  editPrescription,
+  deletePrescription,
+  editDoctorNote,
+  deleteDoctorNote
 } = require('../controllers/medicalController');
 
 const router = express.Router();
@@ -30,7 +39,13 @@ router.use(protect);
 router.use(authorize('doctor', 'admin'));
 
 router.post('/consultation', saveConsultation);
-router.get('/patients/:id', getPatientMedicalProfile);
+router.route('/patients/:id')
+  .get(getPatientMedicalProfile)
+  .put(updatePatientProfile);
+
+router.post('/patients/:id/vitals', addVitals);
+router.post('/patients/:id/ai-chat', patientAIChat);
+router.put('/patients/:id/lifestyle', updateLifestyle);
 
 router.route('/diagnosis')
   .post(addDiagnosis)
@@ -44,7 +59,18 @@ router.route('/followup')
   .post(addFollowUp)
   .get(getAllFollowUps);
 
-router.post('/notes', addDoctorNote);
+router.route('/notes')
+  .post(addDoctorNote);
+router.route('/notes/:id')
+  .put(editDoctorNote)
+  .delete(deleteDoctorNote);
+
+router.route('/prescriptions')
+  .post(addPrescription);
+router.route('/prescriptions/:id')
+  .put(editPrescription)
+  .delete(deletePrescription);
+
 router.get('/report/:patientId', getPatientReport);
 
 // Reports Review
