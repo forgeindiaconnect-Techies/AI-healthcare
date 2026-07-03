@@ -1,8 +1,11 @@
 import React from 'react';
-import { AlertTriangle, FileText, Activity } from 'lucide-react';
+import { AlertTriangle, FileText, Activity, ArrowRight } from 'lucide-react';
 import { Skeleton } from '../../ui/Skeleton';
+import { useNavigate } from 'react-router-dom';
 
 const ActionItems = ({ loading }) => {
+  const navigate = useNavigate();
+
   if (loading) {
     return (
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-800">
@@ -19,33 +22,43 @@ const ActionItems = ({ loading }) => {
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Action Items</h2>
       
       <div className="space-y-3">
-        {/* Urgent Item */}
+        {/* Critical Lab Results → Review Reports */}
         <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+          <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 shrink-0">
             <AlertTriangle className="w-5 h-5" />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <h4 className="text-sm font-semibold text-red-900 dark:text-red-300">Critical Lab Results</h4>
-            <p className="text-xs text-red-700 dark:text-red-400/80 mt-1">2 patients have abnormal lab results requiring immediate review.</p>
-            <button className="text-xs font-medium text-red-600 dark:text-red-400 mt-2 hover:underline">Review Now</button>
+            <p className="text-xs text-red-700 dark:text-red-400/80 mt-1">Patients have uploaded reports requiring your review.</p>
+            <button
+              onClick={() => navigate('/dashboard/review-reports')}
+              className="mt-2 text-xs font-bold text-red-600 dark:text-red-400 hover:text-red-800 flex items-center gap-1 transition-colors group"
+            >
+              Review Now <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </button>
           </div>
         </div>
 
-        {/* Normal Item */}
+        {/* Prescription Renewals → Prescriptions */}
         <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0">
             <FileText className="w-5 h-5" />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300">Prescription Renewals</h4>
-            <p className="text-xs text-blue-700 dark:text-blue-400/80 mt-1">3 pending requests for medication refills.</p>
-            <button className="text-xs font-medium text-blue-600 dark:text-blue-400 mt-2 hover:underline">Manage Requests</button>
+            <p className="text-xs text-blue-700 dark:text-blue-400/80 mt-1">Patients need prescription renewals and medication refills.</p>
+            <button
+              onClick={() => navigate('/dashboard/prescriptions')}
+              className="mt-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 flex items-center gap-1 transition-colors group"
+            >
+              Manage Requests <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </button>
           </div>
         </div>
 
-        {/* Low Priority Item */}
+        {/* System Maintenance - informational only */}
         <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-white dark:bg-slate-700 text-gray-600 dark:text-gray-400 shadow-sm">
+          <div className="p-2 rounded-lg bg-white dark:bg-slate-700 text-gray-600 dark:text-gray-400 shadow-sm shrink-0">
             <Activity className="w-5 h-5" />
           </div>
           <div>
