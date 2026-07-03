@@ -58,7 +58,7 @@ exports.getAppointments = asyncHandler(async (req, res) => {
   await autoUpdateNoShows();
 
   const { page = 1, limit = 100, status, startDate, endDate, type } = req.query;
-  const query = {};
+  const query = { isDeleted: { $ne: true } };
 
   // Role-based filtering
   if (req.user.role === 'patient') query.patient = req.user.id;
@@ -109,7 +109,8 @@ exports.getTodayAppointments = asyncHandler(async (req, res, next) => {
     appointmentDate: {
       $gte: today,
       $lt: tomorrow
-    }
+    },
+    isDeleted: { $ne: true }
   })
     .populate('patient', 'name email avatar phone dateOfBirth gender')
     .sort({ appointmentTime: 1 });
@@ -406,6 +407,7 @@ exports.getAvailableSlots = asyncHandler(async (req, res, next) => {
       $lt: new Date(new Date(date).setHours(23, 59, 59, 999)),
     },
     status: { $nin: ['cancelled', 'no-show'] },
+    isDeleted: { $ne: true }
   }).select('appointmentTime');
 
   const bookedTimes = booked.map((a) => a.appointmentTime);
@@ -444,4 +446,35 @@ exports.deleteAppointment = asyncHandler(async (req, res, next) => {
   if (!appointment) return next(new ErrorResponse('Appointment not found', 404));
   await appointment.deleteOne();
   res.status(200).json({ success: true, message: 'Appointment deleted' });
+});
+
+// @desc    Soft delete (remove) an appointment (Doctor only)
+// @route   PATCH /api/appointments/:id/remove
+// @access  Private/Doctor
+exports.removeAppointment = asyncHandler(async (req, res, next) => {
+  const appointment = await Appointment.findById(req.params.id);
+
+  if (!appointment) {
+    return next(new ErrorResponse('Appointment not found', 404));
+  }
+
+  // Ensure user is doctor and owns the appointment
+  if (req.user.role !== 'doctor') {
+    return next(new ErrorResponse('Not authorized to remove appointments', 403));
+  }
+
+  if (appointment.doctor.toString() !== req.user.id) {
+    return next(new ErrorResponse('Not authorized to remove this appointment', 403));
+  }
+
+  appointment.isDeleted = true;
+  appointment.deletedAt = new Date();
+  appointment.deletedBy = req.user.id;
+  
+  await appointment.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Appointment removed successfully'
+  });
 });

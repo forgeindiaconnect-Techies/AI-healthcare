@@ -55,6 +55,9 @@ const mongoose = require('mongoose');
       meetingLink: String, // for video consultations
       queueNumber: Number,
       roomNumber: String,
+      isDeleted: { type: Boolean, default: false },
+      deletedAt: Date,
+      deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     },
     { timestamps: true }
   );
