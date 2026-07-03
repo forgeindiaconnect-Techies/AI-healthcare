@@ -3,6 +3,7 @@ import API from '../../api/api';
 import { Calendar, Clock, Video, CheckCircle, XCircle, RefreshCw, Plus, Building2, Ticket, Video as VideoIcon, UserCircle, Stethoscope, MessageSquare, Star } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
+import toast from 'react-hot-toast';
 import PaymentModal from '../../components/dashboard/patient/PaymentModal';
 import PatientChat from './PatientChat';
 import ReviewModal from '../../components/dashboard/patient/ReviewModal';
