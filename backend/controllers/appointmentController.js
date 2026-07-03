@@ -27,21 +27,21 @@ const isSlotAvailable = async (doctorId, date, time, excludeId = null) => {
 const autoUpdateNoShows = async () => {
   try {
     const now = new Date();
-    // Find appointments that are pending or confirmed
+    // Find appointments that are pending, confirmed, or meeting scheduled
     const activeAppointments = await Appointment.find({
-      status: { $in: ['pending', 'confirmed'] }
+      status: { $in: ['pending', 'confirmed', 'meeting scheduled'] }
     });
 
     for (let apt of activeAppointments) {
-      // Calculate end time
+      // Calculate start time
       const dateString = apt.appointmentDate.toISOString().split('T')[0];
       const appointmentStart = new Date(`${dateString}T${apt.appointmentTime}:00`);
       
-      const duration = apt.duration || 30;
-      const appointmentEnd = new Date(appointmentStart.getTime() + duration * 60000);
+      // 5 minute grace period
+      const expiryTime = new Date(appointmentStart.getTime() + 5 * 60000);
 
-      // If end time has passed and patient hasn't joined, mark as no-show
-      if (now > appointmentEnd && !apt.patientJoined) {
+      // If 5 minutes have passed since start time and patient hasn't joined, mark as no-show
+      if (now > expiryTime && !apt.patientJoined) {
         apt.status = 'no-show';
         await apt.save();
       }

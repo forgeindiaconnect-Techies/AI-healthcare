@@ -31,6 +31,13 @@ const DoctorAppointments = () => {
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const [aptToRemove, setAptToRemove] = useState(null);
 
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
   const fetchAppointments = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
@@ -168,6 +175,26 @@ const DoctorAppointments = () => {
     }
   };
 
+  const getMeetingStatus = (apt) => {
+    if (['no-show', 'cancelled', 'completed'].includes(apt.status?.toLowerCase())) {
+      return { isActive: false, label: apt.status === 'completed' ? 'Meeting Ended' : (apt.status === 'no-show' ? 'Expired - Patient did not join' : 'Cancelled') };
+    }
+    
+    if (!apt.meetingLink) return { isActive: false, label: 'Waiting for creation...' };
+
+    const dateStr = new Date(apt.appointmentDate).toISOString().split('T')[0];
+    const aptStart = new Date(`${dateStr}T${apt.appointmentTime}:00`);
+    const aptEnd = new Date(aptStart.getTime() + 5 * 60000);
+
+    if (currentTime < aptStart) {
+      return { isActive: false, label: 'Meeting Scheduled' };
+    } else if (currentTime >= aptStart && currentTime <= aptEnd) {
+      return { isActive: true, label: 'Join Call Here' };
+    } else {
+      return { isActive: false, label: 'Expired - Waiting for status update' };
+    }
+  };
+
   const filteredAppointments = appointments.filter(apt => {
     if (filter === 'All') return true;
     if (filter === 'Online') return apt.mode === 'video';
@@ -267,21 +294,26 @@ const DoctorAppointments = () => {
                   </div>
 
                   {/* Mode Specific Info */}
-                  {isOnline ? (
-                     <div className={`p-3 rounded-xl border flex items-start gap-3 ${apt.status === 'no-show' || apt.status === 'cancelled' ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-blue-50/50 border-blue-100/50'}`}>
-                        <div className={`p-2 rounded-lg shrink-0 ${apt.status === 'no-show' || apt.status === 'cancelled' ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-600'}`}><Video className="w-4 h-4" /></div>
-                        <div>
-                          <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${apt.status === 'no-show' || apt.status === 'cancelled' ? 'text-gray-500' : 'text-blue-500'}`}>Meeting Link Generated</p>
-                          {apt.meetingLink && !['no-show', 'cancelled', 'completed'].includes(apt.status) ? (
-                             <a href={apt.meetingLink} target="_blank" rel="noreferrer" className="text-xs text-blue-800 font-bold hover:underline truncate inline-block w-48">Join Call Here</a>
-                          ) : (
-                             <p className="text-xs text-gray-500 font-medium truncate w-48">
-                               {apt.status === 'no-show' ? 'Expired' : (apt.status === 'completed' ? 'Meeting Ended' : 'Waiting for creation...')}
-                             </p>
-                          )}
-                        </div>
-                     </div>
-                  ) : (
+                  {isOnline ? (() => {
+                     const meetingInfo = getMeetingStatus(apt);
+                     const isDead = ['no-show', 'cancelled'].includes(apt.status?.toLowerCase()) || (meetingInfo.label.includes('Expired') && !meetingInfo.isActive);
+                     
+                     return (
+                       <div className={`p-3 rounded-xl border flex items-start gap-3 ${isDead ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-blue-50/50 border-blue-100/50'}`}>
+                          <div className={`p-2 rounded-lg shrink-0 ${isDead ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-600'}`}><Video className="w-4 h-4" /></div>
+                          <div>
+                            <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${isDead ? 'text-gray-500' : 'text-blue-500'}`}>Meeting Link</p>
+                            {meetingInfo.isActive ? (
+                               <a href={apt.meetingLink} target="_blank" rel="noreferrer" className="text-xs text-blue-800 font-bold hover:underline truncate inline-block w-48">{meetingInfo.label}</a>
+                            ) : (
+                               <p className="text-xs text-gray-500 font-medium truncate w-48">
+                                 {meetingInfo.label}
+                               </p>
+                            )}
+                          </div>
+                       </div>
+                     );
+                  })() : (
                      <div className="grid grid-cols-2 gap-4">
                         <div className="bg-amber-50/50 p-3 rounded-xl border border-amber-100/50 flex items-start gap-3">
                           <div className="p-2 bg-amber-100 text-amber-600 rounded-lg shrink-0"><Ticket className="w-4 h-4" /></div>

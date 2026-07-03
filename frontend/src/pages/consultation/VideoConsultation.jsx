@@ -47,6 +47,30 @@ const VideoConsultation = () => {
           navigate('/dashboard');
           return;
         }
+        
+        if (['no-show', 'cancelled'].includes(currentApt.status)) {
+          toast.error("This consultation has been cancelled or expired.");
+          navigate('/dashboard');
+          return;
+        }
+
+        // Validate time window
+        const now = new Date();
+        const dateStr = new Date(currentApt.appointmentDate).toISOString().split('T')[0];
+        const aptStart = new Date(`${dateStr}T${currentApt.appointmentTime}:00`);
+        const aptEnd = new Date(aptStart.getTime() + 5 * 60000);
+
+        if (now < aptStart) {
+          toast.error("The meeting has not started yet.");
+          navigate('/dashboard');
+          return;
+        }
+
+        if (now > aptEnd && !currentApt.patientJoined && !currentApt.doctorJoined) {
+          toast.error("The meeting link has expired.");
+          navigate('/dashboard');
+          return;
+        }
 
         setAppointment(currentApt);
       } catch (err) {

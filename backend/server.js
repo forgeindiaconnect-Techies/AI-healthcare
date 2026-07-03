@@ -124,9 +124,22 @@ io.on('connection', (socket) => {
 
 
   // WebRTC Video Consultation Signaling
-  socket.on('join-consultation-room', ({ roomId, userId, role }) => {
+  socket.on('join-consultation-room', async ({ roomId, userId, role }) => {
     socket.join(`consultation_${roomId}`);
     logger.info(`User ${userId} (${role}) joined consultation room ${roomId}`);
+    
+    try {
+      const Appointment = require('./models/Appointment');
+      const apt = await Appointment.findOne({ meetingLink: { $regex: roomId } });
+      if (apt) {
+        if (role === 'patient') apt.patientJoined = true;
+        if (role === 'doctor') apt.doctorJoined = true;
+        await apt.save();
+      }
+    } catch (err) {
+      console.error('Error updating join status:', err);
+    }
+
     // Notify others in the room
     socket.to(`consultation_${roomId}`).emit('user-connected', { userId, role, socketId: socket.id });
   });

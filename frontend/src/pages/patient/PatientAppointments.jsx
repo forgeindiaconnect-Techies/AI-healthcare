@@ -52,6 +52,13 @@ const PatientAppointments = () => {
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedAppointmentForReview, setSelectedAppointmentForReview] = useState(null);
 
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
   const fetchAppointments = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
@@ -248,6 +255,26 @@ const PatientAppointments = () => {
     }
   };
 
+  const getMeetingStatus = (apt) => {
+    if (['no-show', 'cancelled', 'completed'].includes(apt.status?.toLowerCase())) {
+      return { isActive: false, label: apt.status === 'completed' ? 'Meeting Ended' : (apt.status === 'no-show' ? 'Expired - You did not join' : 'Cancelled') };
+    }
+    
+    if (!apt.meetingLink) return { isActive: false, label: 'Waiting for creation...' };
+
+    const dateStr = new Date(apt.appointmentDate).toISOString().split('T')[0];
+    const aptStart = new Date(`${dateStr}T${apt.appointmentTime}:00`);
+    const aptEnd = new Date(aptStart.getTime() + 5 * 60000);
+
+    if (currentTime < aptStart) {
+      return { isActive: false, label: 'Meeting Scheduled' };
+    } else if (currentTime >= aptStart && currentTime <= aptEnd) {
+      return { isActive: true, label: 'Join Call Here' };
+    } else {
+      return { isActive: false, label: 'Expired - Waiting for status update' };
+    }
+  };
+
   const filteredAppointments = appointments.filter(apt => {
     const s = apt.status?.toLowerCase();
     if (activeTab === 'Upcoming') return ['scheduled', 'meeting scheduled', 'approved - payment pending', 'confirmed', 'pending', 'pending doctor approval', 'rescheduled'].includes(s);
@@ -317,8 +344,9 @@ const PatientAppointments = () => {
             const aptTimeStr = apt.appointmentTime || '00:00';
             const [h, m] = aptTimeStr.split(':');
             const aptDateTime = new Date(`${aptDateStr}T${h}:${m}:00`);
-            const diffMins = (aptDateTime.getTime() - new Date().getTime()) / 60000;
-            const isStartingSoon = apt.status === 'confirmed' && diffMins > 0 && diffMins <= 15;
+            const diffMins = (aptDateTime.getTime() - currentTime.getTime()) / 60000;
+            const isStartingSoon = (apt.status === 'confirmed' || apt.status === 'meeting scheduled') && diffMins > 0 && diffMins <= 15;
+            const meetingInfo = isOnline ? getMeetingStatus(apt) : null;
             
             return (
               <div key={apt._id} className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col group">
@@ -371,25 +399,29 @@ const PatientAppointments = () => {
                               ⏳ <CountdownTimer targetDate={aptDateTime} />
                             </p>
                          </div>
-                         <a href={apt.meetingLink || '#'} target="_blank" rel="noreferrer" className="w-full text-center px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-all shadow-md hover:-translate-y-0.5">
-                           Join Video Consultation
-                         </a>
+                         <button disabled className="w-full text-center px-4 py-3 bg-gray-300 text-gray-500 rounded-xl text-sm font-bold shadow-sm cursor-not-allowed">
+                           Link available at exact time
+                         </button>
                        </div>
-                     ) : (
-                       <div className={`p-3 rounded-xl border flex items-start gap-3 ${apt.status === 'no-show' || apt.status === 'cancelled' ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-blue-50/50 border-blue-100/50'}`}>
-                          <div className={`p-2 rounded-lg shrink-0 ${apt.status === 'no-show' || apt.status === 'cancelled' ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-600'}`}><Video className="w-4 h-4" /></div>
-                          <div>
-                            <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${apt.status === 'no-show' || apt.status === 'cancelled' ? 'text-gray-500' : 'text-blue-500'}`}>Meeting Link Generated</p>
-                            {apt.meetingLink && !['no-show', 'cancelled', 'completed'].includes(apt.status) ? (
-                               <a href={apt.meetingLink} target="_blank" rel="noreferrer" className="text-xs text-blue-800 font-bold hover:underline truncate inline-block w-48">Join Call Here</a>
-                            ) : (
-                               <p className="text-xs text-gray-500 font-medium truncate w-48">
-                                 {apt.status === 'no-show' ? 'Expired' : (apt.status === 'completed' ? 'Meeting Ended' : 'Link will be available soon.')}
-                               </p>
-                            )}
+                     ) : (() => {
+                        const isDead = ['no-show', 'cancelled'].includes(apt.status?.toLowerCase()) || (meetingInfo.label.includes('Expired') && !meetingInfo.isActive);
+                        
+                        return (
+                          <div className={`p-3 rounded-xl border flex items-start gap-3 ${isDead ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-blue-50/50 border-blue-100/50'}`}>
+                             <div className={`p-2 rounded-lg shrink-0 ${isDead ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-600'}`}><Video className="w-4 h-4" /></div>
+                             <div>
+                               <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${isDead ? 'text-gray-500' : 'text-blue-500'}`}>Meeting Link</p>
+                               {meetingInfo.isActive ? (
+                                  <a href={apt.meetingLink} target="_blank" rel="noreferrer" className="text-xs text-blue-800 font-bold hover:underline truncate inline-block w-48">{meetingInfo.label}</a>
+                               ) : (
+                                  <p className="text-xs text-gray-500 font-medium truncate w-48">
+                                    {meetingInfo.label}
+                                  </p>
+                               )}
+                             </div>
                           </div>
-                       </div>
-                     )
+                        );
+                     })()
                   ) : (
                      isStartingSoon ? (
                         <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-4 rounded-xl shadow-lg flex items-center justify-between text-white border border-emerald-600">
