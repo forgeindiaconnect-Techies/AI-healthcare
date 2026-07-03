@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
-import { ClipboardList, Calendar, User, Clock, AlertCircle, FileText, CheckCircle, Activity, ChevronRight, CheckSquare } from 'lucide-react';
+import { ClipboardList, Calendar, User, Clock, AlertCircle, FileText, CheckCircle, Activity, ChevronRight, CheckSquare, Eye, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const TreatmentPlan = () => {
   const { user } = useAuth();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   useEffect(() => {
     fetchTreatmentPlans();
@@ -103,9 +104,18 @@ const TreatmentPlan = () => {
                   </div>
                 </div>
                 
-                <div className={`px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm border shadow-sm ${getStatusColor(plan.status)}`}>
-                  {getStatusIcon(plan.status)}
-                  {plan.status}
+                <div className="flex items-center gap-3">
+                  <div className={`px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm border shadow-sm ${getStatusColor(plan.status)}`}>
+                    {getStatusIcon(plan.status)}
+                    {plan.status}
+                  </div>
+                  <button 
+                    onClick={() => setSelectedPlan(plan)}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-sm font-bold transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View Plan
+                  </button>
                 </div>
               </div>
 
@@ -150,6 +160,80 @@ const TreatmentPlan = () => {
               
             </div>
           ))}
+        </div>
+      )}
+
+      {/* View Plan Modal */}
+      {selectedPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+                <CheckSquare className="text-indigo-600" />
+                {selectedPlan.title}
+              </h2>
+              <button onClick={() => setSelectedPlan(null)} className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+              <div className="flex flex-wrap gap-4 items-center justify-between">
+                 <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                   <Calendar className="w-4 h-4 text-indigo-400" />
+                   {new Date(selectedPlan.startDate).toLocaleDateString()}
+                   {selectedPlan.endDate && ` - ${new Date(selectedPlan.endDate).toLocaleDateString()}`}
+                 </div>
+                 <div className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(selectedPlan.status)} flex items-center gap-1.5`}>
+                   {getStatusIcon(selectedPlan.status)}
+                   {selectedPlan.status}
+                 </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Prescribing Doctor</h4>
+                  <div className="flex items-center gap-3">
+                    {selectedPlan.doctor?.user?.avatar ? (
+                      <img src={selectedPlan.doctor.user.avatar} alt="Doctor" className="w-10 h-10 rounded-full object-cover border" />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 border"><User className="w-5 h-5" /></div>
+                    )}
+                    <span className="font-bold text-gray-900 text-sm">Dr. {selectedPlan.doctor?.user?.name || 'Unknown'}</span>
+                  </div>
+                </div>
+
+                <div>
+                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description</h4>
+                   <p className="text-gray-700 text-sm leading-relaxed">{selectedPlan.description || "N/A"}</p>
+                </div>
+
+                <div>
+                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Goals</h4>
+                   {selectedPlan.goals?.length > 0 ? (
+                     <ul className="list-disc pl-5 space-y-1">
+                       {selectedPlan.goals.map((g, i) => <li key={i} className="text-gray-700 text-sm">{g}</li>)}
+                     </ul>
+                   ) : (
+                     <p className="text-gray-500 text-sm">No specific goals listed.</p>
+                   )}
+                </div>
+
+                <div>
+                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Instructions</h4>
+                   <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100/50">
+                     <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">{selectedPlan.instructions || "N/A"}</p>
+                   </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+              <button onClick={() => setSelectedPlan(null)} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors">
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
