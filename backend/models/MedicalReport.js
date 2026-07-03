@@ -38,6 +38,14 @@ const medicalReportSchema = new mongoose.Schema(
     tags: [String],
     isArchived: { type: Boolean, default: false },
     doctorNotes: { type: String },
+    reviewedDate: { type: Date },
+    aiChatHistory: [
+      {
+        role: { type: String, enum: ['user', 'assistant'] },
+        content: String,
+        timestamp: { type: Date, default: Date.now }
+      }
+    ]
   },
   { timestamps: true }
 );

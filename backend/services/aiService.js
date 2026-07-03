@@ -484,6 +484,81 @@ Return JSON:
       return { riskLevel: 'moderate', summary: response.content[0].text };
     }
   }
+
+  // ─────────────────────────────────────────────
+  // REPORT CHAT ASSISTANT
+  // ─────────────────────────────────────────────
+  async chatAboutReport(reportData, chatHistory, newQuestion) {
+    if (!this.anthropic && !this.gemini) {
+      return {
+        content: "This is a mock AI response since no API keys are configured. The report appears normal, but please verify independently.",
+        tokensUsed: 50,
+        model: 'mock-model'
+      };
+    }
+
+    const systemPrompt = `You are a specialized medical AI assistant designed to help doctors review patient medical reports.
+Your role is to assist the doctor by answering questions about the specific report provided.
+Always maintain a professional, clinical tone.
+Do not make definitive final diagnoses. Remind the doctor that they hold the final clinical judgment if asked for a final decision.
+
+Report Context:
+- Patient Name: ${reportData.patient?.name || 'Unknown'}
+- Report Title: ${reportData.title || 'Untitled'}
+- Report Type: ${reportData.reportType || 'Unknown'}
+- Report Date: ${reportData.reportDate ? new Date(reportData.reportDate).toLocaleDateString() : 'Unknown'}
+- AI Pre-Analysis Summary: ${reportData.aiAnalysis?.summary || 'None available'}
+- AI Pre-Analysis Findings: ${reportData.aiAnalysis?.keyFindings?.join(', ') || 'None available'}`;
+
+    if (this.gemini) {
+      try {
+        const model = this.gemini.getGenerativeModel({ model: 'gemini-flash-latest' });
+        const geminiMessages = chatHistory.map((m) => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }));
+        
+        const chat = model.startChat({
+          systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] },
+          history: geminiMessages
+        });
+
+        const result = await chat.sendMessage(newQuestion);
+        
+        return {
+          content: result.response.text(),
+          tokensUsed: 100,
+          model: 'gemini-flash-latest',
+        };
+      } catch (error) {
+        logger.error('Gemini chatAboutReport error: ' + error.message);
+        return {
+          content: "I encountered an error connecting to the AI service. Please try again.",
+          tokensUsed: 0,
+          model: 'error'
+        };
+      }
+    }
+
+    // Fallback to Claude if no Gemini
+    const allMessages = [...chatHistory, { role: 'user', content: newQuestion }].map((m) => ({
+      role: m.role,
+      content: m.content
+    }));
+
+    const response = await this.anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: allMessages,
+    });
+
+    return {
+      content: response.content[0].text,
+      tokensUsed: response.usage.input_tokens + response.usage.output_tokens,
+      model: response.model,
+    };
+  }
 }
 
 module.exports = new AIService();

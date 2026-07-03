@@ -1,22 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button } from '../../components/ui/SharedUI';
 import { colors } from '../../theme/colors';
 import API, { getCorrectUrl } from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FileText, CheckCircle, Clock, X, ExternalLink } from 'lucide-react';
+import { FileText, CheckCircle, Clock, X, ExternalLink, Send, Download, ZoomIn, ZoomOut, AlertTriangle, MessageSquare } from 'lucide-react';
 
 const ReviewReports = () => {
   const { user } = useAuth();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const [viewFileUrl, setViewFileUrl] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
+  
   const [reviewNotes, setReviewNotes] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
+  const [chatMessage, setChatMessage] = useState('');
+  const [chatting, setChatting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
     fetchReports();
   }, []);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory, chatting]);
 
   const fetchReports = async () => {
     try {
@@ -32,24 +46,53 @@ const ReviewReports = () => {
     }
   };
 
-  const handleReview = async () => {
-    if (!reviewNotes.trim()) {
-      toast.error('Please enter review notes');
-      return;
-    }
+  const handleReviewClick = (report) => {
+    setSelectedReport(report);
+    setReviewNotes(report.doctorNotes || '');
+    setChatHistory(report.aiChatHistory || []);
+    setZoom(1);
+  };
+
+  const handleSaveStatus = async (status) => {
     try {
       setSubmitting(true);
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await API.put(`/api/medical/reports/${selectedReport._id}/review`, { doctorNotes: reviewNotes }, config);
-      toast.success('Report marked as reviewed');
-      setSelectedReport(null);
-      setReviewNotes('');
+      await API.put(`/api/medical/reports/${selectedReport._id}/review`, { 
+        doctorNotes: reviewNotes,
+        status: status 
+      }, config);
+      toast.success(`Report ${status === 'reviewed' ? 'marked as reviewed' : 'draft saved'}`);
+      
+      if (status === 'reviewed') {
+        setSelectedReport(null);
+      }
       fetchReports();
     } catch (error) {
       console.error(error);
-      toast.error('Failed to submit review');
+      toast.error('Failed to save review');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleChatSubmit = async (e) => {
+    e.preventDefault();
+    if (!chatMessage.trim() || chatting) return;
+    
+    const msg = chatMessage;
+    setChatMessage('');
+    setChatHistory(prev => [...prev, { role: 'user', content: msg }]);
+    setChatting(true);
+    
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await API.post(`/api/medical/reports/${selectedReport._id}/chat`, { message: msg }, config);
+      setChatHistory(data.data);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to get AI response');
+    } finally {
+      setChatting(false);
     }
   };
 
@@ -125,65 +168,173 @@ const ReviewReports = () => {
                 <Button 
                   variant="outline" 
                   style={{ flex: 1, padding: '8px 0' }}
-                  onClick={() => {
-                    const fixedUrl = getCorrectUrl(report.fileUrl);
-                    if (fixedUrl) window.open(fixedUrl, '_blank');
-                    else toast.error('File not available.');
-                  }}
+                  onClick={() => setViewFileUrl(getCorrectUrl(report.fileUrl))}
                 >
-                  <ExternalLink size={16} style={{ marginRight: 8 }} />
                   View File
                 </Button>
-                {report.status?.toLowerCase() !== 'reviewed' && (
-                  <Button 
-                    variant="primary" 
-                    style={{ flex: 1, padding: '8px 0' }}
-                    onClick={() => {
-                      setSelectedReport(report);
-                      setReviewNotes('');
-                    }}
-                  >
-                    Review
-                  </Button>
-                )}
+                <Button 
+                  variant={report.status?.toLowerCase() === 'reviewed' ? "outline" : "primary"} 
+                  style={{ flex: 1, padding: '8px 0' }}
+                  onClick={() => handleReviewClick(report)}
+                >
+                  {report.status?.toLowerCase() === 'reviewed' ? 'Edit Review' : 'Review'}
+                </Button>
               </div>
             </Card>
           ))}
         </div>
       )}
 
-      {selectedReport && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <Card style={{ width: '100%', maxWidth: 500, padding: 24, margin: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h2 style={{ margin: 0, fontSize: 20 }}>Review Report</h2>
-              <button onClick={() => setSelectedReport(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-                <X size={20} color={colors.textMuted} />
-              </button>
+      {/* File Viewer Modal */}
+      {viewFileUrl && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+          <div style={{ background: '#fff', width: '90%', height: '90%', borderRadius: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '16px 24px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0 }}>Report Viewer</h3>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ZoomOut size={20}/></button>
+                <span style={{ fontSize: 14 }}>{Math.round(zoom * 100)}%</span>
+                <button onClick={() => setZoom(z => Math.min(3, z + 0.2))} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ZoomIn size={20}/></button>
+                <a href={viewFileUrl} download target="_blank" rel="noreferrer" style={{ color: colors.primary, marginLeft: 16 }}><Download size={20}/></a>
+                <button onClick={() => { setViewFileUrl(null); setZoom(1); }} style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: 16 }}>
+                  <X size={24} color={colors.textMuted} />
+                </button>
+              </div>
             </div>
-            
-            <div style={{ marginBottom: 16 }}>
-              <p style={{ margin: '0 0 4px', fontSize: 13, color: colors.textMuted }}>Report Title</p>
-              <p style={{ margin: 0, fontWeight: 500 }}>{selectedReport.title}</p>
+            <div style={{ flex: 1, background: '#f1f5f9', overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'center center', transition: 'transform 0.2s', width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <iframe src={viewFileUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="Report Viewer" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Split-screen Review Modal */}
+      {selectedReport && !viewFileUrl && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#f8fafc', display: 'flex', flexDirection: 'column', zIndex: 1000 }}>
+          <div style={{ padding: '16px 24px', background: '#fff', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 20 }}>Reviewing: {selectedReport.title}</h2>
+              <p style={{ margin: 0, fontSize: 13, color: colors.textMuted }}>Patient: {selectedReport.patient?.name} | Uploaded: {new Date(selectedReport.reportDate || selectedReport.createdAt).toLocaleDateString()}</p>
+            </div>
+            <button onClick={() => setSelectedReport(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}>
+              <X size={24} color={colors.textMuted} />
+            </button>
+          </div>
+          
+          <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            {/* Left Side: Viewer */}
+            <div style={{ flex: 1, borderRight: `1px solid ${colors.border}`, display: 'flex', flexDirection: 'column', background: '#e2e8f0' }}>
+              <div style={{ padding: '8px 16px', background: '#fff', display: 'flex', justifyContent: 'flex-end', gap: 12, borderBottom: `1px solid ${colors.border}` }}>
+                <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ZoomOut size={16}/></button>
+                <span style={{ fontSize: 13 }}>{Math.round(zoom * 100)}%</span>
+                <button onClick={() => setZoom(z => Math.min(3, z + 0.2))} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ZoomIn size={16}/></button>
+              </div>
+              <div style={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+                <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center', transition: 'transform 0.2s', width: '100%', height: '100%', minHeight: 800 }}>
+                  <iframe src={getCorrectUrl(selectedReport.fileUrl)} style={{ width: '100%', height: '100%', border: 'none', background: '#fff', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} title="Report Viewer" />
+                </div>
+              </div>
             </div>
 
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, color: colors.textMuted, marginBottom: 8 }}>Clinical Notes / Observations</label>
-              <textarea 
-                value={reviewNotes}
-                onChange={(e) => setReviewNotes(e.target.value)}
-                placeholder="Enter your professional assessment of this report..."
-                style={{ width: '100%', height: 120, padding: 12, borderRadius: 8, border: `1px solid ${colors.border}`, fontFamily: 'inherit', resize: 'vertical' }}
-              />
-            </div>
+            {/* Right Side: Chat & Notes */}
+            <div style={{ width: 450, display: 'flex', flexDirection: 'column', background: '#fff', overflowY: 'auto' }}>
+              <div style={{ padding: 20 }}>
+                {/* AI Summary Box */}
+                <div style={{ background: '#f0f9ff', borderRadius: 12, padding: 16, border: '1px solid #bae6fd', marginBottom: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, color: '#0369a1', fontWeight: 600 }}>
+                    <AlertTriangle size={18} />
+                    <span>AI Pre-Analysis Summary</span>
+                  </div>
+                  {selectedReport.aiAnalysis?.summary ? (
+                    <>
+                      <p style={{ fontSize: 14, margin: '0 0 12px', color: '#0f172a' }}>{selectedReport.aiAnalysis.summary}</p>
+                      {selectedReport.aiAnalysis.keyFindings?.length > 0 && (
+                        <div style={{ marginBottom: 12 }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>Key Findings:</span>
+                          <ul style={{ margin: '4px 0 0', paddingLeft: 16, fontSize: 13 }}>
+                            {selectedReport.aiAnalysis.keyFindings.map((f, i) => <li key={i}>{f}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: 12, fontSize: 12 }}>
+                        <span style={{ background: '#e0f2fe', padding: '4px 8px', borderRadius: 4, color: '#0369a1' }}>Status: {selectedReport.aiAnalysis.riskLevel || 'Normal'}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <p style={{ fontSize: 13, margin: 0, color: '#64748b' }}>No AI analysis available for this report.</p>
+                  )}
+                  <p style={{ fontSize: 11, margin: '12px 0 0', color: '#64748b', fontStyle: 'italic', borderTop: '1px solid #bae6fd', paddingTop: 8 }}>
+                    Disclaimer: AI suggestions are for assistance only. Final decision must be verified by the doctor.
+                  </p>
+                </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-              <Button variant="outline" onClick={() => setSelectedReport(null)}>Cancel</Button>
-              <Button variant="primary" onClick={handleReview} disabled={submitting}>
-                {submitting ? 'Saving...' : 'Mark as Reviewed'}
-              </Button>
+                {/* AI Chat Section */}
+                <div style={{ marginBottom: 24 }}>
+                  <h3 style={{ fontSize: 15, margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <MessageSquare size={16} /> Chat about this report
+                  </h3>
+                  <div style={{ border: `1px solid ${colors.border}`, borderRadius: 12, height: 300, display: 'flex', flexDirection: 'column', background: '#fafafa' }}>
+                    <div style={{ flex: 1, padding: 16, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {chatHistory.length === 0 ? (
+                        <div style={{ textAlign: 'center', color: colors.textMuted, fontSize: 13, marginTop: 40 }}>
+                          Ask questions like:<br/><br/>
+                          "Is this report normal?"<br/>
+                          "Explain abnormal values"<br/>
+                          "Give patient-friendly summary"
+                        </div>
+                      ) : (
+                        chatHistory.map((msg, i) => (
+                          <div key={i} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', background: msg.role === 'user' ? colors.primary : '#fff', color: msg.role === 'user' ? '#fff' : colors.text, padding: '10px 14px', borderRadius: 12, border: msg.role === 'user' ? 'none' : `1px solid ${colors.border}`, fontSize: 13, lineHeight: 1.5, borderBottomRightRadius: msg.role === 'user' ? 0 : 12, borderBottomLeftRadius: msg.role === 'user' ? 12 : 0 }}>
+                            {msg.content}
+                          </div>
+                        ))
+                      )}
+                      {chatting && (
+                        <div style={{ alignSelf: 'flex-start', background: '#fff', padding: '10px 14px', borderRadius: 12, border: `1px solid ${colors.border}`, fontSize: 13 }}>
+                          Thinking...
+                        </div>
+                      )}
+                      <div ref={chatEndRef} />
+                    </div>
+                    <form onSubmit={handleChatSubmit} style={{ display: 'flex', borderTop: `1px solid ${colors.border}`, background: '#fff', borderRadius: '0 0 12px 12px' }}>
+                      <input 
+                        type="text" 
+                        value={chatMessage}
+                        onChange={(e) => setChatMessage(e.target.value)}
+                        placeholder="Ask AI about this report..."
+                        style={{ flex: 1, border: 'none', padding: '12px 16px', background: 'transparent', outline: 'none', fontSize: 13 }}
+                      />
+                      <button type="submit" disabled={chatting || !chatMessage.trim()} style={{ background: 'none', border: 'none', padding: '0 16px', cursor: (chatting || !chatMessage.trim()) ? 'default' : 'pointer', color: (chatting || !chatMessage.trim()) ? colors.textMuted : colors.primary }}>
+                        <Send size={18} />
+                      </button>
+                    </form>
+                  </div>
+                </div>
+
+                {/* Final Notes */}
+                <div style={{ marginBottom: 24 }}>
+                  <h3 style={{ fontSize: 15, margin: '0 0 12px' }}>Final Doctor Notes</h3>
+                  <textarea 
+                    value={reviewNotes}
+                    onChange={(e) => setReviewNotes(e.target.value)}
+                    placeholder="Add your review notes for this patient..."
+                    style={{ width: '100%', height: 120, padding: 12, borderRadius: 8, border: `1px solid ${colors.border}`, fontFamily: 'inherit', resize: 'vertical', fontSize: 14 }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: 12, paddingBottom: 20 }}>
+                  <Button variant="outline" onClick={() => handleSaveStatus('pending')} disabled={submitting} style={{ flex: 1 }}>
+                    {submitting ? 'Saving...' : 'Save Draft'}
+                  </Button>
+                  <Button variant="primary" onClick={() => handleSaveStatus('reviewed')} disabled={submitting} style={{ flex: 1 }}>
+                    {submitting ? 'Saving...' : 'Mark as Reviewed'}
+                  </Button>
+                </div>
+              </div>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </div>

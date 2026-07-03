@@ -273,20 +273,57 @@ exports.getAllReportsForDoctor = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/medical/reports/:id/review
 // @access  Private/Doctor
 exports.reviewReport = asyncHandler(async (req, res, next) => {
-  const { doctorNotes } = req.body;
+  const { doctorNotes, status } = req.body;
   let report = await MedicalReport.findById(req.params.id);
 
   if (!report) {
     return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
   }
 
-  report.status = 'reviewed';
   report.doctorNotes = doctorNotes;
+  if (status) {
+    report.status = status;
+    if (status === 'reviewed' && !report.reviewedDate) {
+      report.reviewedDate = new Date();
+    }
+  }
+  
   await report.save();
 
   res.status(200).json({
     success: true,
     data: report
+  });
+});
+
+// @desc    Ask AI about a specific report
+// @route   POST /api/medical/reports/:id/chat
+// @access  Private/Doctor
+exports.askReportAI = asyncHandler(async (req, res, next) => {
+  const { message } = req.body;
+  let report = await MedicalReport.findById(req.params.id).populate('patient', 'name email');
+
+  if (!report) {
+    return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
+  }
+
+  const aiService = require('../services/aiService');
+  
+  const history = report.aiChatHistory || [];
+  const response = await aiService.chatAboutReport(report, history, message);
+
+  if (!report.aiChatHistory) {
+    report.aiChatHistory = [];
+  }
+  
+  report.aiChatHistory.push({ role: 'user', content: message });
+  report.aiChatHistory.push({ role: 'assistant', content: response.content });
+  
+  await report.save();
+
+  res.status(200).json({
+    success: true,
+    data: report.aiChatHistory
   });
 });
 

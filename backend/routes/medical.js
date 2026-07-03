@@ -13,6 +13,7 @@ const {
   saveConsultation,
   getAllReportsForDoctor,
   reviewReport,
+  askReportAI,
   createTreatmentPlan,
   getTreatmentPlans,
   getMyDiagnoses,
@@ -51,6 +52,7 @@ router.route('/reports')
   .get(getAllReportsForDoctor);
 router.route('/reports/:id/review')
   .put(reviewReport);
+router.post('/reports/:id/chat', askReportAI);
 
 // Treatment Plans
 router.route('/treatment-plans')
