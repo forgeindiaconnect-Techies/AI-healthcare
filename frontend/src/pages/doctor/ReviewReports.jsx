@@ -96,6 +96,36 @@ const ReviewReports = () => {
     }
   };
 
+  const getSecureUrl = (url) => {
+    if (!url) return '';
+    let secureUrl = url;
+    if (secureUrl.startsWith('http://') && !secureUrl.includes('localhost')) {
+      secureUrl = secureUrl.replace('http://', 'https://');
+    }
+    return secureUrl;
+  };
+
+  const getDownloadUrl = (url) => {
+    if (!url) return '';
+    let dlUrl = getSecureUrl(url);
+    if (dlUrl.includes('res.cloudinary.com') && !dlUrl.includes('fl_attachment')) {
+      dlUrl = dlUrl.replace('/upload/', '/upload/fl_attachment/');
+    }
+    return dlUrl;
+  };
+
+  const renderViewer = (url) => {
+    if (!url) return null;
+    const secureUrl = getSecureUrl(url);
+    const isImage = secureUrl.match(/\.(jpeg|jpg|gif|png|webp)($|\?)/i) || secureUrl.includes('image/upload');
+    
+    if (isImage) {
+      return <img src={secureUrl} alt="Report" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />;
+    } else {
+      return <iframe src={secureUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="Report Viewer" />;
+    }
+  };
+
   if (loading) {
     return <div className="p-8 text-center text-gray-500">Loading reports...</div>;
   }
@@ -195,7 +225,7 @@ const ReviewReports = () => {
                 <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ZoomOut size={20}/></button>
                 <span style={{ fontSize: 14 }}>{Math.round(zoom * 100)}%</span>
                 <button onClick={() => setZoom(z => Math.min(3, z + 0.2))} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ZoomIn size={20}/></button>
-                <a href={viewFileUrl} download target="_blank" rel="noreferrer" style={{ color: colors.primary, marginLeft: 16 }}><Download size={20}/></a>
+                <a href={getDownloadUrl(viewFileUrl)} download target="_blank" rel="noreferrer" style={{ color: colors.primary, marginLeft: 16 }}><Download size={20}/></a>
                 <button onClick={() => { setViewFileUrl(null); setZoom(1); }} style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: 16 }}>
                   <X size={24} color={colors.textMuted} />
                 </button>
@@ -203,7 +233,7 @@ const ReviewReports = () => {
             </div>
             <div style={{ flex: 1, background: '#f1f5f9', overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ transform: `scale(${zoom})`, transformOrigin: 'center center', transition: 'transform 0.2s', width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <iframe src={viewFileUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="Report Viewer" />
+                {renderViewer(viewFileUrl)}
               </div>
             </div>
           </div>
@@ -232,8 +262,8 @@ const ReviewReports = () => {
                 <button onClick={() => setZoom(z => Math.min(3, z + 0.2))} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ZoomIn size={16}/></button>
               </div>
               <div style={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-                <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center', transition: 'transform 0.2s', width: '100%', height: '100%', minHeight: 800 }}>
-                  <iframe src={getCorrectUrl(selectedReport.fileUrl)} style={{ width: '100%', height: '100%', border: 'none', background: '#fff', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} title="Report Viewer" />
+                <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center', transition: 'transform 0.2s', width: '100%', height: '100%', minHeight: 800, display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#fff', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                  {renderViewer(getCorrectUrl(selectedReport.fileUrl))}
                 </div>
               </div>
             </div>
