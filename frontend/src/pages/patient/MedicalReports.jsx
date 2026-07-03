@@ -147,16 +147,56 @@ const MedicalReports = () => {
   };
 
 
-  const handlePreview = (report) => {
+  const [fileMissing, setFileMissing] = useState(false);
+
+  const handlePreview = async (report) => {
     const fixedUrl = getCorrectUrl(report.fileUrl);
-    if (!fixedUrl) { toast.error("File preview not available for this report."); return; }
+    if (!fixedUrl) { 
+      toast.error("File preview not available for this report."); 
+      return; 
+    }
+    
+    try {
+      const response = await fetch(fixedUrl, { method: 'HEAD' });
+      const contentType = response.headers.get('content-type');
+      if (!response.ok || (contentType && contentType.includes('application/json'))) {
+        setFileMissing(true);
+      } else {
+        setFileMissing(false);
+      }
+    } catch (e) {
+      setFileMissing(false);
+    }
+
     setPreviewReport({ ...report, fixedUrl });
   };
 
-  const handleDownload = (url) => {
+  const handleDownload = async (url, title) => {
     const fixedUrl = getCorrectUrl(url);
-    if (!fixedUrl) { toast.error("Download not available for this report."); return; }
-    window.open(fixedUrl, '_blank');
+    if (!fixedUrl) { 
+      toast.error("Download not available for this report."); 
+      return; 
+    }
+
+    try {
+      const response = await fetch(fixedUrl);
+      const contentType = response.headers.get('content-type');
+      if (!response.ok || (contentType && contentType.includes('application/json'))) {
+        toast.error('Report file not available. Please upload again.');
+        return;
+      }
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = (title || 'medical-report').replace(/\s+/g, '_') + '.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      toast.error('Failed to download file. It may have been removed.');
+    }
   };
 
   const getStatusColor = (status) => {
@@ -315,9 +355,15 @@ const MedicalReports = () => {
       <Modal open={!!previewReport} onClose={() => setPreviewReport(null)} title={previewReport?.title || "Document Preview"} width={800}>
         {previewReport && (
           <div className="flex flex-col h-full min-h-[500px]">
-             <div className="bg-gray-100/80 rounded-xl flex justify-center items-center flex-1 border border-gray-200 shadow-inner overflow-hidden min-h-[500px]">
-                {previewReport.fixedUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) || previewReport.fileType?.includes('image') ? (
-                  <img src={previewReport.fixedUrl} alt={previewReport.title} className="max-w-full max-h-[70vh] object-contain" />
+             <div className="bg-gray-100/80 rounded-xl flex justify-center items-center flex-1 border border-gray-200 shadow-inner overflow-hidden min-h-[500px] relative">
+                {fileMissing ? (
+                  <div className="text-center p-10 text-gray-500">
+                    <AlertCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <h3 className="text-xl font-semibold mb-2">Report file not available</h3>
+                    <p>The original file could not be found. It may have been removed or uploaded locally.</p>
+                  </div>
+                ) : previewReport.fixedUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) || previewReport.fileType?.includes('image') ? (
+                  <img src={previewReport.fixedUrl} alt={previewReport.title} className="max-w-full max-h-[70vh] object-contain" onError={() => setFileMissing(true)} />
                 ) : (
                   <iframe 
                     src={`${previewReport.fixedUrl}#view=FitH`} 
@@ -327,7 +373,7 @@ const MedicalReports = () => {
                 )}
              </div>
              <div className="mt-4 flex justify-end">
-                <Button variant="primary" onClick={() => handleDownload(previewReport.fileUrl)}>
+                <Button variant="primary" onClick={() => handleDownload(previewReport.fileUrl, previewReport.title)}>
                    <Download className="w-4 h-4 inline mr-2" /> Download Document
                 </Button>
              </div>

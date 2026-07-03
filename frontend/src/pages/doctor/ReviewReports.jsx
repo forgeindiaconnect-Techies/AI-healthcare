@@ -88,11 +88,29 @@ const ReviewReports = () => {
     }
   };
 
-  const handleReviewClick = (report) => {
+  const handleReviewClick = async (report) => {
     setSelectedReport(report);
     setReviewNotes(report.doctorNotes || '');
     setChatHistory(report.aiChatHistory || []);
     setZoom(1);
+
+    const correctUrl = getCorrectUrl(report.fileUrl);
+    if (!correctUrl) {
+      setFileMissing(true);
+      return;
+    }
+    
+    try {
+      const response = await fetch(getSecureUrl(correctUrl), { method: 'HEAD' });
+      const contentType = response.headers.get('content-type');
+      if (!response.ok || (contentType && contentType.includes('application/json'))) {
+        setFileMissing(true);
+      } else {
+        setFileMissing(false);
+      }
+    } catch (e) {
+      setFileMissing(false);
+    }
   };
 
   const handleSaveStatus = async (status) => {
@@ -147,6 +165,8 @@ const ReviewReports = () => {
     return secureUrl;
   };
 
+  const [fileMissing, setFileMissing] = useState(false);
+
   const getDownloadUrl = (url) => {
     if (!url) return '';
     let dlUrl = getSecureUrl(url);
@@ -156,8 +176,71 @@ const ReviewReports = () => {
     return dlUrl;
   };
 
+  const handleDownloadReport = async (reportUrl, fileName) => {
+    const url = getCorrectUrl(reportUrl);
+    if (!url) {
+      toast.error('Report file not available. Please upload again.');
+      return;
+    }
+
+    const secureUrl = getSecureUrl(url);
+    try {
+      const response = await fetch(secureUrl);
+      const contentType = response.headers.get('content-type');
+      if (!response.ok || (contentType && contentType.includes('application/json'))) {
+        toast.error('Report file not available. Please upload again.');
+        return;
+      }
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName || 'medical-report.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      toast.error('Failed to download file. It may have been removed.');
+    }
+  };
+
+  const handleViewFile = async (url) => {
+    const correctUrl = getCorrectUrl(url);
+    if (!correctUrl) {
+      setFileMissing(true);
+      setViewFileUrl('missing');
+      return;
+    }
+    
+    // Check if the file is actually returning JSON (404 error from our backend)
+    try {
+      const response = await fetch(getSecureUrl(correctUrl), { method: 'HEAD' });
+      const contentType = response.headers.get('content-type');
+      if (!response.ok || (contentType && contentType.includes('application/json'))) {
+        setFileMissing(true);
+      } else {
+        setFileMissing(false);
+      }
+    } catch (e) {
+      // If HEAD fails due to CORS, assume it might load in the iframe
+      setFileMissing(false);
+    }
+    
+    setViewFileUrl(correctUrl);
+  };
+
   const renderViewer = (url) => {
-    if (!url) return null;
+    if (fileMissing || !url || url === 'missing') {
+      return (
+        <div style={{ textAlign: 'center', padding: 40, color: colors.textMuted }}>
+          <AlertTriangle size={48} style={{ margin: '0 auto 16px', opacity: 0.5 }} />
+          <h3>Report file not available</h3>
+          <p>The original file could not be found. Please request the patient to upload it again.</p>
+        </div>
+      );
+    }
+
     const secureUrl = getSecureUrl(url);
     const isImage = secureUrl.match(/\.(jpeg|jpg|gif|png|webp)($|\?)/i) || secureUrl.includes('image/upload');
 
@@ -167,6 +250,7 @@ const ReviewReports = () => {
           src={secureUrl}
           alt="Report"
           style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 8 }}
+          onError={() => setFileMissing(true)}
         />
       );
     }
@@ -184,24 +268,23 @@ const ReviewReports = () => {
             title="Report Viewer"
           />
         </object>
-        {/* Fallback download button shown below the viewer */}
         <div style={{ padding: '8px 0', textAlign: 'center' }}>
-          <a
-            href={getDownloadUrl(secureUrl)}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            onClick={() => handleDownloadReport(url, 'report.pdf')}
             style={{
               color: colors.primary,
               fontSize: 13,
               display: 'inline-flex',
               alignItems: 'center',
               gap: 4,
-              textDecoration: 'none',
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
               fontWeight: 500
             }}
           >
-            <Download size={14} /> Can't see the file? Open / Download directly
-          </a>
+            <Download size={14} /> Download File
+          </button>
         </div>
       </div>
     );

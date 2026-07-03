@@ -57,11 +57,27 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
     return cloudinary.url(publicId, { secure: true, ...options });
   };
 } else {
-  // Local file storage fallback
-  const uploadDir = path.join(__dirname, '../uploads');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
+  // If in production and Cloudinary is not configured, we MUST throw an error.
+  // Local storage on Render/Vercel is ephemeral, files will be lost on next restart/deploy.
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL ERROR: Cloudinary credentials (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY) are REQUIRED in production.');
+    
+    // Create a dummy multer that just throws an error
+    const errorStorage = multer.diskStorage({
+      destination: (req, file, cb) => cb(new Error('Cloud Storage is not configured for production environment.'), null)
+    });
+    
+    uploadReport = multer({ storage: errorStorage });
+    uploadProfile = multer({ storage: errorStorage });
+    
+    deleteFile = async () => {};
+    getFileUrl = () => null;
+  } else {
+    // Local file storage fallback for development ONLY
+    const uploadDir = path.join(__dirname, '../uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -98,6 +114,7 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
   getFileUrl = (publicId) => {
     return `/uploads/${publicId}`;
   };
+}
 }
 
 module.exports = { cloudinary, uploadReport, uploadProfile, deleteFile, getFileUrl };
