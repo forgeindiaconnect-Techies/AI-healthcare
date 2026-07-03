@@ -1,9 +1,9 @@
 const express = require('express');
 const {
-  getChatHistory,
+  getOrCreateConversation,
+  getMessages,
   sendMessage,
-  markAsRead,
-  uploadChatFile
+  markRead,
 } = require('../controllers/chatController');
 const { protect } = require('../middleware/auth');
 
@@ -11,16 +11,9 @@ const router = express.Router();
 
 router.use(protect);
 
-router.route('/')
-  .post(sendMessage);
-
-router.route('/:userId')
-  .get(getChatHistory);
-
-router.route('/:userId/read')
-  .put(markAsRead);
-
-router.route('/upload')
-  .post(uploadChatFile);
+router.get('/conversation', getOrCreateConversation);
+router.get('/messages', getMessages);
+router.post('/send', sendMessage);
+router.post('/mark-read', markRead);
 
 module.exports = router;

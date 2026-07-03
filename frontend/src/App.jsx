@@ -98,9 +98,30 @@ const ProfileRouter = () => {
 };
 
 import { SocketProvider } from './context/SocketContext';
+import { ChatProvider, useChat } from './context/ChatContext';
 import { ROLES } from './auth/roles';
 import ProtectedRoute from './auth/ProtectedRoute';
 import { Toaster } from 'react-hot-toast';
+import ChatWindow from './components/chat/ChatWindow';
+
+// Global overlay that renders the chat modal opened from notifications
+const GlobalChatOverlay = () => {
+  const { activeChatConfig, closeChat } = useChat();
+  if (!activeChatConfig) return null;
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+      <div className="w-full max-w-lg">
+        <ChatWindow
+          otherUserId={activeChatConfig.otherUserId}
+          otherUserName={activeChatConfig.otherUserName}
+          otherUserRole={activeChatConfig.otherUserRole}
+          otherUserAvatar={activeChatConfig.otherUserAvatar}
+          onClose={closeChat}
+        />
+      </div>
+    </div>
+  );
+};
 
 const RoleRoute = ({ role, children }) => {
   const { user } = useAuth();
@@ -121,6 +142,7 @@ function App() {
   return (
     <AuthProvider>
       <SocketProvider>
+        <ChatProvider>
         <Router>
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -205,7 +227,9 @@ function App() {
             <Route path="*" element={<div className="p-8 text-center text-red-500 font-bold">404 - Not Found</div>} />
           </Routes>
           <Toaster position="top-right" />
+          <GlobalChatOverlay />
         </Router>
+        </ChatProvider>
       </SocketProvider>
     </AuthProvider>
   );

@@ -470,16 +470,13 @@ const DoctorAppointments = () => {
       )}
 
       {chatModalOpen && selectedAppointmentForChat && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-2xl relative">
-            <button onClick={() => setChatModalOpen(false)} className="absolute -top-12 right-0 text-white hover:text-gray-200 p-2 rounded-full transition-all">
-              <XCircle className="w-8 h-8" />
-            </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-lg">
             <DoctorChat
               patientId={selectedAppointmentForChat.patient._id || selectedAppointmentForChat.patient}
-              appointmentId={selectedAppointmentForChat._id}
               patientName={selectedAppointmentForChat.patient.name}
               patientAvatar={selectedAppointmentForChat.patient.avatar}
+              onClose={() => setChatModalOpen(false)}
             />
           </div>
         </div>

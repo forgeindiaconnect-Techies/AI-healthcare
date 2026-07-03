@@ -1,40 +1,42 @@
 const mongoose = require('mongoose');
 
-const messageSchema = new mongoose.Schema({
-  sender: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+const messageSchema = new mongoose.Schema(
+  {
+    conversationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Conversation',
+      required: true,
+    },
+    senderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    receiverId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    senderRole: {
+      type: String,
+      enum: ['doctor', 'patient'],
+      required: true,
+    },
+    message: {
+      type: String,
+    },
+    attachmentUrl: {
+      type: String,
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
   },
-  receiver: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  appointment: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Appointment'
-  },
-  text: {
-    type: String
-  },
-  fileUrl: {
-    type: String
-  },
-  fileType: {
-    type: String, // 'image', 'document', 'prescription'
-  },
-  isRead: {
-    type: Boolean,
-    default: false
-  },
-  readAt: {
-    type: Date
-  }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-// Index for efficient querying of chat history between two users or for an appointment
-messageSchema.index({ sender: 1, receiver: 1 });
-messageSchema.index({ appointment: 1 });
+messageSchema.index({ conversationId: 1, createdAt: 1 });
+messageSchema.index({ senderId: 1, receiverId: 1 });
 
 module.exports = mongoose.model('Message', messageSchema);

@@ -113,6 +113,16 @@ io.on('connection', (socket) => {
     io.to(`user_${senderId}`).emit('messages_read', { by: receiverId });
   });
 
+  // Typing indicators
+  socket.on('typing_start', ({ receiverId, senderName, conversationId }) => {
+    io.to(`user_${receiverId}`).emit('user_typing', { senderName, conversationId, isTyping: true });
+  });
+
+  socket.on('typing_stop', ({ receiverId, conversationId }) => {
+    io.to(`user_${receiverId}`).emit('user_typing', { conversationId, isTyping: false });
+  });
+
+
   // WebRTC Video Consultation Signaling
   socket.on('join-consultation-room', ({ roomId, userId, role }) => {
     socket.join(`consultation_${roomId}`);
