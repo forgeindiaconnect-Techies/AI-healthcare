@@ -68,6 +68,66 @@ const DiabetesDiet = () => {
       monthlyPlan: ['Strict carb counting', 'Insulin dose adjustment', 'CGM tracking'],
       avoidFoods: ['All refined carbs', 'Sugary drinks', 'Trans fats'],
       warnings: ['Strict insulin timing required', 'Carry emergency glucose']
+    },
+    {
+      _id: 'plan-fever-1',
+      disease: 'fallback-fever-id',
+      diseaseType: 'Viral/Bacterial',
+      severity: 'Standard',
+      dailyPlan: {
+        morning: ['Warm ginger tea', 'Soft boiled egg or porridge', 'Fresh orange juice'],
+        afternoon: ['Clear chicken or vegetable soup', 'Soft cooked rice (Khichdi)', 'Boiled carrots'],
+        evening: ['Warm herbal tea', 'A few biscuits'],
+        night: ['Light soup', 'Mashed potatoes or soft rice']
+      },
+      monthlyPlan: ['Rest completely until fever subsides', 'Gradually return to normal diet'],
+      avoidFoods: ['Spicy foods', 'Deep fried foods', 'Heavy dairy products', 'Caffeine'],
+      warnings: ['If fever > 103°F seek medical help', 'Stay extremely hydrated']
+    },
+    {
+      _id: 'plan-bp-1',
+      disease: 'fallback-bp-id',
+      diseaseType: 'Hypertension',
+      severity: 'High',
+      dailyPlan: {
+        morning: ['Celery juice or warm lemon water', 'Oatmeal with chia seeds', 'Banana'],
+        afternoon: ['Grilled chicken or tofu salad', 'Quinoa', 'Steamed broccoli'],
+        evening: ['Green tea', 'Handful of unsalted almonds'],
+        night: ['Light vegetable soup', '1 piece of grilled fish or paneer', 'Small portion of brown rice']
+      },
+      monthlyPlan: ['Check BP daily', 'Limit sodium strictly', '30 mins brisk walk daily'],
+      avoidFoods: ['Salt/High sodium foods', 'Processed meats', 'Pickles', 'Canned soups'],
+      warnings: ['If BP > 180/120 seek emergency care immediately', 'Do not skip medication']
+    },
+    {
+      _id: 'plan-stomach-1',
+      disease: 'fallback-stomach-id',
+      diseaseType: 'Gastritis',
+      severity: 'Standard',
+      dailyPlan: {
+        morning: ['Cold milk or coconut water', 'Oatmeal', 'Banana'],
+        afternoon: ['Plain yogurt with rice', 'Steamed vegetables', 'Non-spicy lentils'],
+        evening: ['Chamomile tea', 'Plain crackers'],
+        night: ['Light lentil soup', 'Soft rice or plain toast']
+      },
+      monthlyPlan: ['Eat smaller, frequent meals', 'Avoid lying down immediately after eating'],
+      avoidFoods: ['Spicy curries', 'Citrus fruits', 'Coffee/Tea', 'Tomato based sauces', 'Fried foods'],
+      warnings: ['If pain is severe and sudden, seek emergency care', 'Watch for dark stools']
+    },
+    {
+      _id: 'plan-headache-1',
+      disease: 'fallback-headache-id',
+      diseaseType: 'Migraine',
+      severity: 'Standard',
+      dailyPlan: {
+        morning: ['Water with magnesium powder', 'Scrambled eggs', 'Whole wheat toast'],
+        afternoon: ['Salmon or leafy green salad', 'Quinoa', 'Avocado'],
+        evening: ['Ginger tea', 'Handful of almonds or pumpkin seeds'],
+        night: ['Grilled chicken or tofu', 'Spinach', 'Sweet potato']
+      },
+      monthlyPlan: ['Identify and track food triggers', 'Maintain consistent sleep schedule', 'Stay hydrated'],
+      avoidFoods: ['Aged cheeses', 'Processed meats (Nitrates)', 'Artificial sweeteners', 'Alcohol (Red wine)'],
+      warnings: ['If headache is "worst of your life", seek emergency care', 'Monitor vision changes']
     }
   ];
 
@@ -493,9 +553,16 @@ const DiabetesDiet = () => {
              <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 text-center text-gray-500">
                No specific diet plan found for this combination. Please contact your doctor.
              </div>
+          ) : dietPlans.length === 0 && selectedDisease ? (
+             <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 text-center text-gray-500 flex flex-col items-center gap-2">
+               <Activity className="w-8 h-8 text-gray-400 mb-2" />
+               <p className="font-bold text-gray-700">No Diet Plan Available</p>
+               <p>We couldn't find a diet plan for {selectedDisease.name}. Please contact your doctor for a personalized plan.</p>
+             </div>
           ) : (
-             <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 text-center text-gray-500">
-               Please complete the flow chart selection above to view your personalized diet plan.
+             <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 text-center text-gray-500 flex flex-col items-center gap-2">
+               <Calendar className="w-8 h-8 text-gray-400 mb-2" />
+               <p>Please complete the flow chart selection above to view your personalized diet plan.</p>
              </div>
           )}
         </div>
