@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 const DoctorChat = ({ patientId, appointmentId, patientName, patientAvatar }) => {
   const { user } = useAuth();
-  const socket = useSocket();
+  const { socket } = useSocket();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
