@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import API from '../../api/api';
 import { Calendar, Clock, Video, CheckCircle, XCircle, RefreshCw, Plus, Video as VideoIcon, Building2, Ticket, FileText, UserCircle, Users, Stethoscope, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import DoctorChat from './DoctorChat';
 
