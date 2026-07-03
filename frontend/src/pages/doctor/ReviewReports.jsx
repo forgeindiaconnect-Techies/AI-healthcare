@@ -171,17 +171,19 @@ const ReviewReports = () => {
       );
     }
 
-    // For PDFs and other documents — use Google Docs Viewer to bypass X-Frame-Options
-    const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(secureUrl)}&embedded=true`;
-
     return (
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <iframe
-          src={googleDocsUrl}
+        <object
+          data={secureUrl}
+          type="application/pdf"
           style={{ width: '100%', height: '100%', border: 'none' }}
-          title="Report Viewer"
-          onError={() => {}}
-        />
+        >
+          <iframe
+            src={secureUrl}
+            style={{ width: '100%', height: '100%', border: 'none' }}
+            title="Report Viewer"
+          />
+        </object>
         {/* Fallback download button shown below the viewer */}
         <div style={{ padding: '8px 0', textAlign: 'center' }}>
           <a

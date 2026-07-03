@@ -186,6 +186,7 @@ app.set('connectedUsers', connectedUsers);
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: false,
+  frameguard: false,
 }));
 
 // CORS
