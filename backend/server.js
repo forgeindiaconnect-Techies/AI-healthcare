@@ -270,6 +270,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 404 handler
 app.use('*', (req, res) => {
+  if (req.originalUrl.startsWith('/uploads/')) {
+    return res.status(404).send('Report file not found. Please upload again.');
+  }
   res.status(404).json({ success: false, error: `Route ${req.originalUrl} not found` });
 });
 

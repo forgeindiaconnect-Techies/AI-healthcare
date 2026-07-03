@@ -180,63 +180,47 @@ const ReviewReports = () => {
     return dlUrl;
   };
 
-  const handleDownloadReport = async (reportUrl, fileName) => {
-    const url = getCorrectUrl(reportUrl);
-    if (!url) {
-      toast.error('Report file not available. Please upload again.');
+  const handleDownloadReport = async (url, fileName) => {
+    const fileUrl = getCorrectUrl(url);
+    if (!fileUrl) {
+      toast.error("Report file not available. Please upload again.");
       return;
     }
 
-    const secureUrl = getSecureUrl(url);
     try {
+      const secureUrl = getSecureUrl(fileUrl);
       const response = await fetch(secureUrl);
-      const contentType = response.headers.get('content-type');
-      if (!response.ok || (contentType && contentType.includes('application/json'))) {
-        toast.error('Report file not available. Please upload again.');
+
+      if (!response.ok) {
+        toast.error("Report file not found. Please upload again.");
         return;
       }
+
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+
+      const link = document.createElement("a");
       link.href = blobUrl;
-      link.download = fileName || 'medical-report.pdf';
+      link.download = fileName || "medical-report.pdf";
       document.body.appendChild(link);
       link.click();
+
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      toast.error('Failed to download file. It may have been removed.');
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error("Unable to download report.");
     }
   };
 
-  const handleViewFile = async (url) => {
+  const handleViewFile = (url) => {
     const correctUrl = getCorrectUrl(url);
     if (!correctUrl) {
       setFileMissing(true);
       setViewFileUrl('missing');
       return;
     }
-    
-    // Check if the file is actually returning JSON (404 error from our backend)
-    try {
-      const response = await fetch(getSecureUrl(correctUrl), { method: 'HEAD' });
-      const contentType = response.headers.get('content-type');
-      if (!response.ok || (contentType && contentType.includes('application/json'))) {
-        setFileMissing(true);
-      } else {
-        setFileMissing(false);
-      }
-    } catch (e) {
-      console.error("File check failed:", e);
-      // If fetch fails (CORS, network error) and it's a local upload, it's highly likely missing
-      if (correctUrl.includes('/uploads/')) {
-        setFileMissing(true);
-      } else {
-        // If it's Cloudinary etc., it might load in iframe despite fetch failing
-        setFileMissing(false);
-      }
-    }
-    
+    setFileMissing(false);
     setViewFileUrl(correctUrl);
   };
 
@@ -372,7 +356,7 @@ const ReviewReports = () => {
                 <Button 
                   variant="outline" 
                   style={{ flex: 1, padding: '8px 0' }}
-                  onClick={() => setViewFileUrl(getCorrectUrl(report.fileUrl))}
+                  onClick={() => handleViewFile(report.fileUrl)}
                 >
                   View File
                 </Button>
@@ -399,7 +383,7 @@ const ReviewReports = () => {
                 <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ZoomOut size={20}/></button>
                 <span style={{ fontSize: 14 }}>{Math.round(zoom * 100)}%</span>
                 <button onClick={() => setZoom(z => Math.min(3, z + 0.2))} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ZoomIn size={20}/></button>
-                <a href={getDownloadUrl(viewFileUrl)} download target="_blank" rel="noreferrer" style={{ color: colors.primary, marginLeft: 16 }}><Download size={20}/></a>
+                <button onClick={() => handleDownloadReport(viewFileUrl, 'report.pdf')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.primary, marginLeft: 16 }}><Download size={20}/></button>
                 <button onClick={() => { setViewFileUrl(null); setZoom(1); }} style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: 16 }}>
                   <X size={24} color={colors.textMuted} />
                 </button>

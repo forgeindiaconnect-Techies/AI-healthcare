@@ -149,29 +149,15 @@ const MedicalReports = () => {
 
   const [fileMissing, setFileMissing] = useState(false);
 
-  const handlePreview = async (report) => {
+  const handlePreview = (report) => {
     const fixedUrl = getCorrectUrl(report.fileUrl);
     if (!fixedUrl) { 
       toast.error("File preview not available for this report."); 
+      setFileMissing(true);
+      setPreviewReport({ ...report, fixedUrl: 'missing' });
       return; 
     }
-    
-    try {
-      const response = await fetch(fixedUrl, { method: 'HEAD' });
-      const contentType = response.headers.get('content-type');
-      if (!response.ok || (contentType && contentType.includes('application/json'))) {
-        setFileMissing(true);
-      } else {
-        setFileMissing(false);
-      }
-    } catch (e) {
-      if (fixedUrl.includes('/uploads/')) {
-        setFileMissing(true);
-      } else {
-        setFileMissing(false);
-      }
-    }
-
+    setFileMissing(false);
     setPreviewReport({ ...report, fixedUrl });
   };
 
@@ -184,9 +170,8 @@ const MedicalReports = () => {
 
     try {
       const response = await fetch(fixedUrl);
-      const contentType = response.headers.get('content-type');
-      if (!response.ok || (contentType && contentType.includes('application/json'))) {
-        toast.error('Report file not available. Please upload again.');
+      if (!response.ok) {
+        toast.error('Report file not found. Please upload again.');
         return;
       }
       const blob = await response.blob();
