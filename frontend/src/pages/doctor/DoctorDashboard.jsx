@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, XCircle, Clock, Calendar, Users } from 'lucide-react';
+import { Bell, XCircle, Clock, Calendar, Users, TrendingUp } from 'lucide-react';
 import API from '../../api/api';
 import toast from 'react-hot-toast';
 
@@ -96,15 +96,40 @@ const DoctorDashboard = () => {
   // Helper to render the appropriate list in the modal
   const renderDrilldownContent = () => {
     let listData = [];
-    if (drilldownType === 'today') listData = todaysAppointments;
-    if (drilldownType === 'pending') listData = pendingAppointments;
-    if (drilldownType === 'total') listData = appointments;
-    if (drilldownType === 'patients') listData = uniquePatients;
+    // Determine data set based on drilldown type
+    switch (drilldownType) {
+      case 'today':
+        listData = todaysAppointments;
+        break;
+      case 'pending':
+        listData = pendingAppointments;
+        break;
+      case 'total':
+        listData = appointments;
+        break;
+      case 'patients':
+        listData = uniquePatients;
+        break;
+      case 'completed':
+        listData = completedAppointments;
+        break;
+      case 'upcoming':
+        listData = upcomingAppointments;
+        break;
+      case 'no-show':
+        listData = noShowAppointments;
+        break;
+      case 'cancelled':
+        listData = cancelledAppointments;
+        break;
+      default:
+        listData = [];
+    }
 
     if (listData.length === 0) {
       return (
         <div className="py-12 text-center text-gray-500">
-          No records found for this category.
+          No appointments found
         </div>
       );
     }
@@ -161,6 +186,7 @@ const DoctorDashboard = () => {
       </div>
     );
   };
+
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-500">
@@ -248,8 +274,12 @@ const DoctorDashboard = () => {
               <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 {drilldownType === 'today' && <><Calendar className="w-5 h-5 mr-2 text-blue-500" /> Today's Appointments</>}
                 {drilldownType === 'pending' && <><Clock className="w-5 h-5 mr-2 text-amber-500" /> Pending Consultations</>}
-                {drilldownType === 'total' && <><Calendar className="w-5 h-5 mr-2 text-teal-500" /> Total Appointments</>}
+                {drilldownType === 'total' && <><Calendar className="w-5 h-5 mr-2 text-teal-500" /> Total Appointments - {stats?.totalAppointments || 0}</>}
                 {drilldownType === 'patients' && <><Users className="w-5 h-5 mr-2 text-purple-500" /> Patients List</>}
+                {drilldownType === 'completed' && <><Users className="w-5 h-5 mr-2 text-emerald-500" /> Completed Appointments - {stats?.completedAppointments || 0}</>}
+                {drilldownType === 'upcoming' && <><Clock className="w-5 h-5 mr-2 text-blue-500" /> Upcoming Appointments - {stats?.upcomingAppointments || 0}</>}
+                {drilldownType === 'no-show' && <><TrendingUp className="w-5 h-5 mr-2 text-gray-500" /> No-Show Appointments - {stats?.noShowAppointments || 0}</>}
+                {drilldownType === 'cancelled' && <><Calendar className="w-5 h-5 mr-2 text-red-500" /> Cancelled Appointments - {stats?.cancelledAppointments || 0}</>}
               </h2>
               <button 
                 onClick={() => setDrilldownType(null)}
