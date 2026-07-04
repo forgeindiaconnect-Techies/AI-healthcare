@@ -8,6 +8,11 @@ const Appointment = require('../models/Appointment');
 const MedicalReport = require('../models/MedicalReport');
 const Prescription = require('../models/Prescription');
 const { Notification } = require('../models/index');
+const LabRecommendation = require('../models/LabRecommendation');
+const Diagnosis = require('../models/Diagnosis');
+const FollowUp = require('../models/FollowUp');
+const TreatmentPlan = require('../models/TreatmentPlan');
+const Report = require('../models/Report');
 
 const connectDB = async () => {
   await mongoose.connect(process.env.MONGODB_URI);
@@ -22,6 +27,8 @@ const seedData = async () => {
     User.deleteMany({}), Patient.deleteMany({}), Doctor.deleteMany({}),
     Appointment.deleteMany({}), MedicalReport.deleteMany({}),
     Prescription.deleteMany({}), Notification.deleteMany({}),
+    LabRecommendation.deleteMany({}), Diagnosis.deleteMany({}), FollowUp.deleteMany({}),
+    TreatmentPlan.deleteMany({}), Report.deleteMany({})
   ]);
   console.log('🗑️  Cleared existing data');
 
