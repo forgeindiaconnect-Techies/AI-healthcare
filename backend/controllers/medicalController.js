@@ -590,3 +590,18 @@ exports.deleteDoctorNote = asyncHandler(async (req, res, next) => {
   await DoctorNote.findByIdAndDelete(req.params.id);
   res.status(200).json({ success: true, data: {} });
 });
+
+// @desc    Delete medical report
+// @route   DELETE /api/medical/reports/:id
+// @access  Private/Doctor
+exports.deleteReport = asyncHandler(async (req, res, next) => {
+  const report = await MedicalReport.findById(req.params.id);
+  
+  if (!report) {
+    return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
+  }
+
+  await report.deleteOne();
+
+  res.status(200).json({ success: true, data: {} });
+});

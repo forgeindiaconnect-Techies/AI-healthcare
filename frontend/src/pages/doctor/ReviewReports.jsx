@@ -4,7 +4,7 @@ import { colors } from '../../theme/colors';
 import API, { getCorrectUrl } from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FileText, CheckCircle, Clock, X, ExternalLink, Send, Download, ZoomIn, ZoomOut, AlertTriangle, MessageSquare } from 'lucide-react';
+import { FileText, CheckCircle, Clock, X, ExternalLink, Send, Download, ZoomIn, ZoomOut, AlertTriangle, MessageSquare, Trash2 } from 'lucide-react';
 
 const ReviewReports = () => {
   const { user } = useAuth();
@@ -136,6 +136,20 @@ const ReviewReports = () => {
       toast.error('Failed to save review');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteReport = async (reportId) => {
+    if (!window.confirm("Are you sure you want to remove this report?")) return;
+    
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.delete(`/api/medical/reports/${reportId}`, config);
+      toast.success('Report removed successfully');
+      setReports(reports.filter(r => r._id !== reportId));
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to remove report');
     }
   };
 
@@ -367,6 +381,26 @@ const ReviewReports = () => {
                 >
                   {report.status?.toLowerCase() === 'reviewed' ? 'Edit Review' : 'Review'}
                 </Button>
+                <button
+                  onClick={() => handleDeleteReport(report._id)}
+                  style={{
+                    background: 'none',
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: 8,
+                    padding: '0 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#ef4444',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = '#fee2e2'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                  title="Remove Report"
+                >
+                  <Trash2 size={18} />
+                </button>
               </div>
             </Card>
           ))}

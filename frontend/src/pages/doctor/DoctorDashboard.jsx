@@ -30,30 +30,31 @@ const DoctorDashboard = () => {
   const [drilldownType, setDrilldownType] = useState(null);
 
   useEffect(() => {
-    // 1. Fetch Appointments
+    // 1. Initial fetch of appointments
     const fetchAppointments = async () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         const { data } = await API.get('/api/appointments', config);
         setAppointments(data.data || []);
       } catch (error) {
-        console.error("Error fetching appointments:", error);
+        console.error('Error fetching appointments:', error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     if (user?.token) {
       fetchAppointments();
     } else {
       setLoading(false);
     }
 
-    // Optional: Real-time integration could be connected here later.
-    const unsubscribe = () => {};
+    // 2. Set up polling for live updates (every 30 seconds)
+    const intervalId = setInterval(fetchAppointments, 30000);
 
+    // Cleanup on unmount
     return () => {
-      unsubscribe();
+      clearInterval(intervalId);
     };
   }, [user]);
 

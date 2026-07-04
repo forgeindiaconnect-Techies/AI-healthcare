@@ -26,7 +26,8 @@ const {
   deletePrescription,
   editDoctorNote,
   deleteDoctorNote,
-  generateFinalReport
+  generateFinalReport,
+  deleteReport
 } = require('../controllers/medicalController');
 
 const router = express.Router();
@@ -77,6 +78,8 @@ router.get('/report/:patientId', getPatientReport);
 // Reports Review
 router.route('/reports')
   .get(getAllReportsForDoctor);
+router.route('/reports/:id')
+  .delete(deleteReport);
 router.route('/reports/:id/review')
   .put(reviewReport);
 router.post('/reports/:id/chat', askReportAI);
