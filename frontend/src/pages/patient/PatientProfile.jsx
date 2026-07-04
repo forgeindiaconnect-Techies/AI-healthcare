@@ -26,9 +26,7 @@ const PatientProfile = () => {
   const [profileData, setProfileData] = useState(() => getStorageData("healthai_profile", {
     name: user?.name || "James Miller",
     phone: "",
-    address: "123 Health Ave, NY",
-    provider: "BlueCross Health",
-    policy: "POL-9988776655"
+    address: "123 Health Ave, NY"
   }));
 
   useEffect(() => {
@@ -122,32 +120,7 @@ const PatientProfile = () => {
               </div>
             </div>
 
-            <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2 mt-8">Insurance Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Provider</label>
-                <div className="relative">
-                  <Shield className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
-                  <input 
-                    type="text" 
-                    value={profileData.provider}
-                    onChange={(e) => setProfileData({...profileData, provider: e.target.value})}
-                    required
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500" 
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Policy Number</label>
-                <input 
-                  type="text" 
-                  value={profileData.policy}
-                  onChange={(e) => setProfileData({...profileData, policy: e.target.value})}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500" 
-                />
-              </div>
-            </div>
+
             
             <div className="pt-6 flex justify-end">
               <button type="submit" className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm flex items-center transition-colors">
