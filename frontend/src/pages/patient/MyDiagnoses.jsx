@@ -1,15 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Eye, Stethoscope, FileText, Activity, AlertCircle, FilePlus, User, Calendar, Pill } from 'lucide-react';
 import { Card, Badge, Modal, Button } from '../../components/ui/SharedUI';
+import { useAuth } from '../../context/AuthContext';
+import API from '../../api/api';
+import toast from 'react-hot-toast';
 
 const MyDiagnoses = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDiagnosis, setSelectedDiagnosis] = useState(null);
+  const [diagnoses, setDiagnoses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for diagnoses
-  const mockDiagnoses = [];
+  useEffect(() => {
+    const fetchDiagnoses = async () => {
+      try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const { data } = await API.get('/api/medical/my-diagnoses', config);
+        
+        // Map backend data to frontend format
+        const formatted = data.data.map(d => ({
+          id: d._id,
+          name: d.primaryDiagnosis,
+          diagnosedBy: d.doctor?.user?.name || 'Unknown Doctor',
+          diagnosisDate: new Date(d.createdAt).toLocaleDateString(),
+          severity: d.riskLevel,
+          status: 'Active', // Or derive from date/status
+          lastUpdated: new Date(d.updatedAt).toLocaleDateString(),
+          description: d.description || d.treatmentAdvice || 'No description provided.',
+          symptoms: d.symptoms || [],
+          treatmentPlan: d.treatmentAdvice || 'No specific treatment plan.',
+          medications: d.labRecommendations || [], // Map lab recs or similar here if no meds
+          followUpSchedule: d.followUpDate ? new Date(d.followUpDate).toLocaleDateString() : 'Not scheduled',
+          doctorNotes: '', // Keep empty or map if added later
+          relatedLabReports: []
+        }));
+        
+        setDiagnoses(formatted);
+      } catch (error) {
+        console.error('Error fetching diagnoses:', error);
+        toast.error('Failed to load diagnosis records');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filteredDiagnoses = mockDiagnoses.filter(d => 
+    fetchDiagnoses();
+  }, [user.token]);
+
+  const filteredDiagnoses = diagnoses.filter(d => 
     d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     d.diagnosedBy.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -112,7 +151,7 @@ const MyDiagnoses = () => {
               {filteredDiagnoses.length === 0 && (
                 <tr>
                   <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
-                    No diagnoses found matching "{searchTerm}"
+                    {loading ? 'Loading diagnosis records...' : (searchTerm ? `No diagnoses found matching "${searchTerm}"` : 'No diagnosis records found')}
                   </td>
                 </tr>
               )}

@@ -27,7 +27,9 @@ const {
   editDoctorNote,
   deleteDoctorNote,
   generateFinalReport,
-  deleteReport
+  deleteReport,
+  updateDiagnosis,
+  deleteDiagnosis
 } = require('../controllers/medicalController');
 
 const router = express.Router();
@@ -52,6 +54,10 @@ router.put('/patients/:id/lifestyle', updateLifestyle);
 router.route('/diagnosis')
   .post(addDiagnosis)
   .get(getAllDiagnoses);
+
+router.route('/diagnosis/:id')
+  .put(updateDiagnosis)
+  .delete(deleteDiagnosis);
 
 router.route('/lab-recommendations')
   .post(addLabRecommendation)

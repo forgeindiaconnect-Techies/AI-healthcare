@@ -57,9 +57,13 @@ exports.addDiagnosis = asyncHandler(async (req, res, next) => {
   req.body.doctor = doctor._id;
 
   // The frontend sends user ID for patient, so we need to find the Patient profile
-  let patientProfile = await Patient.findOne({ user: req.body.patient });
+  let patientProfile = await Patient.findOne({ user: req.body.patient }).populate('user');
   if (!patientProfile) return next(new ErrorResponse('Patient profile not found', 404));
   req.body.patient = patientProfile._id;
+  req.body.patientName = patientProfile.user.name;
+  req.body.patientEmail = patientProfile.user.email;
+  
+  if (req.body.treatmentAdvice) req.body.description = req.body.treatmentAdvice;
 
   if (!req.body.confidence) req.body.confidence = 100;
   if (!req.body.riskLevel) req.body.riskLevel = 'Medium';
@@ -67,6 +71,49 @@ exports.addDiagnosis = asyncHandler(async (req, res, next) => {
   const diagnosis = await Diagnosis.create(req.body);
   
   res.status(201).json({ success: true, data: diagnosis });
+});
+
+// @desc    Update diagnosis
+// @route   PUT /api/medical/diagnosis/:id
+// @access  Private/Doctor
+exports.updateDiagnosis = asyncHandler(async (req, res, next) => {
+  let diagnosis = await Diagnosis.findById(req.params.id);
+
+  if (!diagnosis) {
+    return next(new ErrorResponse(`Diagnosis not found with id of ${req.params.id}`, 404));
+  }
+
+  const doctor = await Doctor.findOne({ user: req.user._id });
+  if (diagnosis.doctor.toString() !== doctor._id.toString()) {
+    return next(new ErrorResponse(`User not authorized to update this diagnosis`, 401));
+  }
+
+  diagnosis = await Diagnosis.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
+  });
+
+  res.status(200).json({ success: true, data: diagnosis });
+});
+
+// @desc    Delete diagnosis
+// @route   DELETE /api/medical/diagnosis/:id
+// @access  Private/Doctor
+exports.deleteDiagnosis = asyncHandler(async (req, res, next) => {
+  const diagnosis = await Diagnosis.findById(req.params.id);
+
+  if (!diagnosis) {
+    return next(new ErrorResponse(`Diagnosis not found with id of ${req.params.id}`, 404));
+  }
+
+  const doctor = await Doctor.findOne({ user: req.user._id });
+  if (diagnosis.doctor.toString() !== doctor._id.toString()) {
+    return next(new ErrorResponse(`User not authorized to delete this diagnosis`, 401));
+  }
+
+  await diagnosis.deleteOne();
+
+  res.status(200).json({ success: true, data: {} });
 });
 
 // @desc    Add lab recommendation
