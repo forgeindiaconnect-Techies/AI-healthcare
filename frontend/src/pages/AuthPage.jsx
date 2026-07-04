@@ -96,7 +96,7 @@ const AuthPage = () => {
         <Input label="Email Address" type="email" value={form.email} onChange={e => set("email", e.target.value)} placeholder="you@example.com" icon="📧" />
         <Input label="Password" type="password" value={form.password} onChange={e => set("password", e.target.value)} placeholder="••••••••" icon="🔒" />
         {mode === "register" && (
-          <Select label="Register As" value={form.role} onChange={e => set("role", e.target.value)} options={[{ value: "patient", label: "Patient" }, { value: "doctor", label: "Doctor" }]} />
+          <Select label="Register As" value={form.role} onChange={e => set("role", e.target.value)} options={[{ value: "patient", label: "Patient" }]} disabled />
         )}
         {error && <div style={{ background: `${colors.danger}15`, color: colors.danger, borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>⚠️ {error}</div>}
         <Button variant="primary" onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "13px", fontSize: 15 }}>
