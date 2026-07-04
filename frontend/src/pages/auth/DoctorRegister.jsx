@@ -28,7 +28,10 @@ const DoctorRegister = () => {
   // We'll call API directly if context register doesn't support complex objects out of box, or just adapt it.
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    if (name === 'healthai_doctor_register_email') name = 'email';
+    if (name === 'healthai_doctor_register_password') name = 'password';
+
     if (['street', 'city', 'state', 'zipCode', 'country'].includes(name)) {
       setFormData((prev) => ({
         ...prev,
@@ -91,23 +94,23 @@ const DoctorRegister = () => {
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} autoComplete="off">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Personal Details */}
             <div className="space-y-4">
               <h3 className="font-semibold text-lg text-gray-800 border-b pb-2">Personal Details</h3>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input name="name" type="text" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.name} />
+                <input name="name" type="text" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.name} autoComplete="off" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input name="email" type="email" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.email} />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input name="healthai_doctor_register_email" type="email" autoComplete="off" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.email} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <div className="relative">
-                  <input name="password" type={showPassword ? "text" : "password"} required minLength={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg pr-10" onChange={handleChange} value={formData.password} />
+                  <input name="healthai_doctor_register_password" type={showPassword ? "text" : "password"} autoComplete="new-password" required minLength={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg pr-10" onChange={handleChange} value={formData.password} />
                   <button 
                     type="button" 
                     onClick={() => setShowPassword(!showPassword)}

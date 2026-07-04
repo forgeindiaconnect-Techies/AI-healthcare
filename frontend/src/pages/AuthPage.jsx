@@ -22,7 +22,8 @@ const AuthPage = () => {
 
 
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
     if (!form.email || !form.password || (mode === 'register' && !form.name)) { 
       setError("Please fill all fields"); 
       return; 
@@ -76,16 +77,18 @@ const AuthPage = () => {
 
 
 
-        {mode === "register" && <Input label="Full Name" value={form.name} onChange={e => set("name", e.target.value)} placeholder="John Doe" icon="👤" />}
-        <Input label="Email Address" type="email" value={form.email} onChange={e => set("email", e.target.value)} placeholder="you@example.com" icon="📧" />
-        <Input label="Password" type="password" value={form.password} onChange={e => set("password", e.target.value)} placeholder="••••••••" icon="🔒" />
-        {mode === "register" && (
-          <Select label="Register As" value={form.role} onChange={e => set("role", e.target.value)} options={[{ value: "patient", label: "Patient" }]} disabled />
-        )}
-        {error && <div style={{ background: `${colors.danger}15`, color: colors.danger, borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>⚠️ {error}</div>}
-        <Button variant="primary" onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "13px", fontSize: 15 }}>
-          {loading ? "Please wait..." : mode === "login" ? "Sign In →" : "Create Account →"}
-        </Button>
+        <form autoComplete="off" onSubmit={handleSubmit}>
+          {mode === "register" && <Input label="Full Name" name="healthai_login_name" autoComplete="off" value={form.name} onChange={e => set("name", e.target.value)} placeholder="John Doe" icon="👤" />}
+          <Input label="Email Address" type="email" name="healthai_login_email" autoComplete="off" value={form.email} onChange={e => set("email", e.target.value)} placeholder="you@example.com" icon="📧" />
+          <Input label="Password" type="password" name="healthai_login_password" autoComplete="new-password" value={form.password} onChange={e => set("password", e.target.value)} placeholder="••••••••" icon="🔒" />
+          {mode === "register" && (
+            <Select label="Register As" value={form.role} onChange={e => set("role", e.target.value)} options={[{ value: "patient", label: "Patient" }]} disabled />
+          )}
+          {error && <div style={{ background: `${colors.danger}15`, color: colors.danger, borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>⚠️ {error}</div>}
+          <Button variant="primary" onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "13px", fontSize: 15 }}>
+            {loading ? "Please wait..." : mode === "login" ? "Sign In →" : "Create Account →"}
+          </Button>
+        </form>
         <div style={{ textAlign: "center", marginTop: 20, fontSize: 14, color: colors.textMuted }}>
           {mode === "login" ? "Don't have an account? " : "Already have an account? "}
           <button onClick={switchMode} style={{ background: "none", border: "none", color: colors.primary, cursor: "pointer", fontWeight: 600 }}>

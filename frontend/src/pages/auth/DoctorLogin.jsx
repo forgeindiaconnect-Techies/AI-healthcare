@@ -14,7 +14,8 @@ const DoctorLogin = () => {
   
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
     if (!form.email || !form.password) { 
       setError("Please fill all fields"); 
       return; 
@@ -52,14 +53,16 @@ const DoctorLogin = () => {
 
 
 
-        <Input label="Email Address" type="email" value={form.email} onChange={e => set("email", e.target.value)} placeholder="doctor@healthsys.com" icon="📧" />
-        <Input label="Password" type="password" value={form.password} onChange={e => set("password", e.target.value)} placeholder="••••••••" icon="🔒" />
-        
-        {error && <div style={{ background: `${colors.danger}15`, color: colors.danger, borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>⚠️ {error}</div>}
-        
-        <Button variant="primary" onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "13px", fontSize: 15 }}>
-          {loading ? "Authenticating..." : "Login to Portal →"}
-        </Button>
+        <form autoComplete="off" onSubmit={handleSubmit}>
+          <Input label="Email Address" type="email" name="healthai_doctor_email" autoComplete="off" value={form.email} onChange={e => set("email", e.target.value)} placeholder="doctor@healthsys.com" icon="📧" />
+          <Input label="Password" type="password" name="healthai_doctor_password" autoComplete="new-password" value={form.password} onChange={e => set("password", e.target.value)} placeholder="••••••••" icon="🔒" />
+          
+          {error && <div style={{ background: `${colors.danger}15`, color: colors.danger, borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>⚠️ {error}</div>}
+          
+          <Button variant="primary" onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "13px", fontSize: 15 }}>
+            {loading ? "Authenticating..." : "Login to Portal →"}
+          </Button>
+        </form>
       </div>
     </div>
   );
