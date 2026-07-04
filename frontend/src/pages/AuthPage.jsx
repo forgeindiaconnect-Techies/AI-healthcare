@@ -20,11 +20,7 @@ const AuthPage = () => {
 
   // Removed auto-redirect useEffect so that navigating to /login stays on the login page as requested.
 
-  const quickLogins = [
-    { label: "Patient", email: "james@email.com", password: "Patient@123", icon: "🧑" },
-    { label: "Doctor", email: "sarah@healthsys.com", password: "Doctor@123", icon: "🩺" },
-    { label: "Admin", email: "admin@healthsys.com", password: "Admin@123", icon: "👨‍💼" },
-  ];
+
 
   const handleSubmit = async () => {
     if (!form.email || !form.password || (mode === 'register' && !form.name)) { 
@@ -78,19 +74,7 @@ const AuthPage = () => {
           <p style={{ fontSize: 14, color: colors.textMuted, margin: 0 }}>HealthAI Healthcare Platform</p>
         </div>
 
-        {mode === "login" && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 10, textAlign: "center" }}>Quick Demo Login</div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {quickLogins.map(q => (
-                <button key={q.label} onClick={() => {}} style={{ flex: 1, padding: "8px 4px", borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.surfaceAlt, cursor: "pointer", fontSize: 12, color: colors.text, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <span style={{ fontSize: 20 }}>{q.icon}</span>
-                  <span style={{ fontWeight: 600 }}>{q.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {mode === "register" && <Input label="Full Name" value={form.name} onChange={e => set("name", e.target.value)} placeholder="John Doe" icon="👤" />}
         <Input label="Email Address" type="email" value={form.email} onChange={e => set("email", e.target.value)} placeholder="you@example.com" icon="📧" />
