@@ -49,10 +49,14 @@ export const AuthProvider = ({ children }) => {
       const { data } = await API.post('/api/auth/register', { 
         name, email, password, role 
       });
-      const userPayload = { ...data.data, token: data.token };
-      setUser(userPayload);
-      localStorage.setItem('userInfo', JSON.stringify(userPayload));
-      return { success: true, user: userPayload };
+      if (data.token) {
+        const userPayload = { ...data.data, token: data.token };
+        setUser(userPayload);
+        localStorage.setItem('userInfo', JSON.stringify(userPayload));
+        return { success: true, user: userPayload };
+      } else {
+        return { success: true, message: data.message };
+      }
     } catch (error) {
       let message = error.message;
       if (error.response && error.response.data) {

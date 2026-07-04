@@ -112,6 +112,14 @@ exports.register = asyncHandler(async (req, res, next) => {
   }
 
   logger.info(`New user registered: ${email} (${role})`);
+  
+  if (role === 'doctor') {
+    return res.status(201).json({
+      success: true,
+      message: 'Registration successful. Please wait for admin approval before logging in.'
+    });
+  }
+
   sendTokenResponse(user, 201, res, 'Registration successful. Please verify your email.');
 });
 

@@ -27,7 +27,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
     }
 
     if (!user.isActive) {
-      return next(new ErrorResponse('Your account has been suspended. Contact admin.', 403));
+      return next(new ErrorResponse('Your account has been suspended. Contact admin.', 401));
     }
 
     if (user.isLocked) {
