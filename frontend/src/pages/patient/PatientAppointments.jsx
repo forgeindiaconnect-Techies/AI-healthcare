@@ -260,19 +260,17 @@ const PatientAppointments = () => {
       return { isActive: false, label: apt.status === 'completed' ? 'Meeting Ended' : (apt.status === 'no-show' ? 'Expired - You did not join' : 'Cancelled') };
     }
     
-    if (!apt.meetingLink) return { isActive: false, label: 'Waiting for creation...' };
+    if (!apt.meetingLink) return { isActive: false, label: 'Meeting link not available' };
 
     const dateStr = new Date(apt.appointmentDate).toISOString().split('T')[0];
     const aptStart = new Date(`${dateStr}T${apt.appointmentTime}:00`);
-    const aptEnd = new Date(aptStart.getTime() + 5 * 60000);
+    const aptEnd = new Date(aptStart.getTime() + 60 * 60000);
 
-    if (currentTime < aptStart) {
-      return { isActive: false, label: 'Meeting Scheduled' };
-    } else if (currentTime >= aptStart && currentTime <= aptEnd) {
-      return { isActive: true, label: 'Join Call Here' };
-    } else {
+    if (currentTime > aptEnd && apt.status !== 'completed') {
       return { isActive: false, label: 'Expired - Waiting for status update' };
     }
+
+    return { isActive: true, label: 'Join Meeting' };
   };
 
   const filteredAppointments = appointments.filter(apt => {

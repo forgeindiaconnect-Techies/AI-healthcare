@@ -178,7 +178,7 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
 
   const queueNumber = mode !== 'video' ? Math.floor(Math.random() * 50) + 1 : undefined;
 
-  const appointment = await Appointment.create({
+  const appointment = new Appointment({
     patient: patientId,
     doctor: doctorId,
     patientProfile: patientProfile?._id,
@@ -196,6 +196,12 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
     queueNumber,
     roomNumber: roomNumber || (mode !== 'video' ? 'Room 101' : undefined)
   });
+
+  if (appointment.mode === 'video') {
+    appointment.meetingLink = `https://meet.jit.si/healthai-${appointment._id}`;
+  }
+
+  await appointment.save();
 
   // Update counters
   if (patientProfile) await Patient.findByIdAndUpdate(patientProfile._id, { $inc: { totalAppointments: 1 } });
@@ -340,7 +346,12 @@ exports.updateAppointment = asyncHandler(async (req, res, next) => {
   const updates = {};
   if (appointmentDate) updates.appointmentDate = new Date(appointmentDate);
   if (appointmentTime) updates.appointmentTime = appointmentTime;
-  if (mode) updates.mode = mode;
+  if (mode) {
+    updates.mode = mode;
+    if (mode === 'video' && !appointment.meetingLink) {
+      updates.meetingLink = `https://meet.jit.si/healthai-${appointment._id}`;
+    }
+  }
   if (priority) updates.priority = priority;
   if (reason) updates.reason = reason;
   if (notes) {
