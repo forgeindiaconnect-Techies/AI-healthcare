@@ -467,11 +467,11 @@ exports.removeAppointment = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Not authorized to remove this appointment', 403));
   }
 
-  appointment.isDeleted = true;
-  appointment.deletedAt = new Date();
-  appointment.deletedBy = req.user.id;
-  
-  await appointment.save();
+  await Appointment.findByIdAndUpdate(req.params.id, {
+    isDeleted: true,
+    deletedAt: new Date(),
+    deletedBy: req.user.id
+  });
 
   res.status(200).json({
     success: true,
