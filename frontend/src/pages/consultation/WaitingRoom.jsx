@@ -129,6 +129,24 @@ const WaitingRoom = ({ appointment, isDoctor, onJoin, localStream, setLocalStrea
             </div>
           </div>
 
+          {isDoctor && appointment.preConsultationIntake && (
+            <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-700/50 mb-8 max-h-[250px] overflow-y-auto">
+              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Patient Intake Information</h3>
+              <div className="space-y-4 text-sm">
+                <div><span className="text-gray-400">Problem:</span> <span className="text-white font-medium">{appointment.preConsultationIntake.healthProblem}</span></div>
+                <div><span className="text-gray-400">Symptoms:</span> <span className="text-white font-medium">{appointment.preConsultationIntake.symptoms?.join(', ') || 'N/A'}</span></div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div><span className="text-gray-400">Duration:</span> <span className="text-white font-medium">{appointment.preConsultationIntake.duration}</span></div>
+                  <div><span className="text-gray-400">Pain Level:</span> <span className="text-white font-medium">{appointment.preConsultationIntake.painLevel}/10</span></div>
+                  <div><span className="text-gray-400">Age:</span> <span className="text-white font-medium">{appointment.preConsultationIntake.age || 'N/A'}</span></div>
+                  <div><span className="text-gray-400">Gender:</span> <span className="text-white font-medium">{appointment.preConsultationIntake.gender || 'N/A'}</span></div>
+                </div>
+                <div><span className="text-gray-400">Allergies:</span> <span className="text-white font-medium">{appointment.preConsultationIntake.allergies?.join(', ') || 'None'}</span></div>
+                <div><span className="text-gray-400">Medicines:</span> <span className="text-white font-medium">{appointment.preConsultationIntake.currentMedicines?.join(', ') || 'None'}</span></div>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-4 mt-auto">
             <button 
               onClick={handleLeave}

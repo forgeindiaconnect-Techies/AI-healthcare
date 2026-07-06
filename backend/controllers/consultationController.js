@@ -8,7 +8,7 @@ const aiService = require('../services/aiService');
 // @route   POST /api/consultations/end
 // @access  Private (doctor)
 exports.endConsultation = asyncHandler(async (req, res, next) => {
-  const { appointmentId, doctorNotes, diagnosis, duration } = req.body;
+  const { appointmentId, doctorNotes, diagnosis, duration, simpleExplanation, treatmentAdvice, testsNeeded, followUpDate, emergencySigns } = req.body;
 
   if (req.user.role !== 'doctor') {
     return next(new ErrorResponse('Only doctors can end consultations', 403));
@@ -34,6 +34,11 @@ exports.endConsultation = asyncHandler(async (req, res, next) => {
     consultation.diagnosis = diagnosis;
     consultation.duration = duration;
     consultation.summary = summary;
+    if (simpleExplanation !== undefined) consultation.simpleExplanation = simpleExplanation;
+    if (treatmentAdvice !== undefined) consultation.treatmentAdvice = treatmentAdvice;
+    if (testsNeeded !== undefined) consultation.testsNeeded = testsNeeded;
+    if (followUpDate !== undefined) consultation.followUpDate = followUpDate;
+    if (emergencySigns !== undefined) consultation.emergencySigns = emergencySigns;
     await consultation.save();
   } else {
     consultation = await Consultation.create({
@@ -43,7 +48,12 @@ exports.endConsultation = asyncHandler(async (req, res, next) => {
       doctorNotes,
       diagnosis,
       duration,
-      summary
+      summary,
+      simpleExplanation,
+      treatmentAdvice,
+      testsNeeded,
+      followUpDate,
+      emergencySigns
     });
   }
 

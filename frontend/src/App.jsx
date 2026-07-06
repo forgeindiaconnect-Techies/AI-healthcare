@@ -64,6 +64,7 @@ import AdminVideoConsults from './pages/admin/AdminVideoConsults';
 
 // Shared
 import VideoConsultation from './pages/consultation/VideoConsultation';
+import ConsultationSummary from './pages/patient/ConsultationSummary';
 
 const AppointmentsRouter = () => {
   const { user } = useAuth();
@@ -181,6 +182,7 @@ function App() {
               <Route path="doctor-recommendations" element={<RoleRoute role="patient"><DoctorRecommendations /></RoleRoute>} />
               <Route path="payment-history" element={<RoleRoute role="patient"><PaymentHistory /></RoleRoute>} />
               <Route path="patient-follow-ups" element={<RoleRoute role="patient"><PatientFollowUps /></RoleRoute>} />
+              <Route path="consultation-summary/:appointmentId" element={<RoleRoute role="patient"><ConsultationSummary /></RoleRoute>} />
 
               {/* Doctor Routes */}
               <Route path="doctor-dashboard" element={<RoleRoute role="doctor"><DoctorDashboard /></RoleRoute>} />

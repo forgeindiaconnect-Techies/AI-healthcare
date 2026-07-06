@@ -489,3 +489,26 @@ exports.removeAppointment = asyncHandler(async (req, res, next) => {
     message: 'Appointment removed successfully'
   });
 });
+
+// @desc    Save pre-consultation intake
+// @route   PUT /api/appointments/:id/intake
+// @access  Private (Patient)
+exports.saveIntake = asyncHandler(async (req, res, next) => {
+  let appointment = await Appointment.findById(req.params.id);
+
+  if (!appointment) {
+    return next(new ErrorResponse(`Appointment not found with id of ${req.params.id}`, 404));
+  }
+
+  if (appointment.patient.toString() !== req.user.id) {
+    return next(new ErrorResponse(`Not authorized to update this appointment`, 403));
+  }
+
+  appointment.preConsultationIntake = req.body;
+  await appointment.save();
+
+  res.status(200).json({
+    success: true,
+    data: appointment
+  });
+});

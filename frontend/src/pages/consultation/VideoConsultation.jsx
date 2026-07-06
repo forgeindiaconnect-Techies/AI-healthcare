@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import WaitingRoom from './WaitingRoom';
 import VideoRoom from './VideoRoom';
 import ConsultationPanel from './ConsultationPanel';
+import PreConsultationIntake from './PreConsultationIntake';
 import Header from '../../components/layout/Header';
 
 const VideoConsultation = () => {
@@ -24,8 +25,17 @@ const VideoConsultation = () => {
   // Doctor Consultation State
   const [doctorNotes, setDoctorNotes] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
+  const [simpleExplanation, setSimpleExplanation] = useState('');
+  const [treatmentAdvice, setTreatmentAdvice] = useState('');
+  const [testsNeeded, setTestsNeeded] = useState('');
+  const [followUpDate, setFollowUpDate] = useState('');
+  const [emergencySigns, setEmergencySigns] = useState('');
 
   const isDoctor = user?.role === 'doctor';
+  
+  // Intake Flow State
+  const [intakeCompleted, setIntakeCompleted] = useState(false);
+  const [savingIntake, setSavingIntake] = useState(false);
 
   useEffect(() => {
     const fetchAppointment = async () => {
@@ -72,6 +82,10 @@ const VideoConsultation = () => {
           return;
         }
 
+        if (!isDoctor && currentApt.preConsultationIntake) {
+          setIntakeCompleted(true);
+        }
+
         setAppointment(currentApt);
       } catch (err) {
         console.error("Error fetching appointment", err);
@@ -103,7 +117,12 @@ const VideoConsultation = () => {
           appointmentId: appointment._id,
           doctorNotes,
           diagnosis,
-          duration
+          duration,
+          simpleExplanation,
+          treatmentAdvice,
+          testsNeeded,
+          followUpDate,
+          emergencySigns
         }, config);
         toast.success("Consultation saved and completed.");
       } catch (err) {
@@ -114,7 +133,22 @@ const VideoConsultation = () => {
       toast.success("Consultation ended.");
     }
     
-    navigate('/dashboard');
+    navigate(`/dashboard/consultation-summary/${appointment._id}`);
+  };
+
+  const handleIntakeSubmit = async (data) => {
+    setSavingIntake(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.put(`/api/appointments/${appointment._id}/intake`, data, config);
+      setIntakeCompleted(true);
+      toast.success('Intake information saved successfully!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to save intake information.');
+    } finally {
+      setSavingIntake(false);
+    }
   };
 
   if (loading) {
@@ -145,7 +179,9 @@ const VideoConsultation = () => {
       <div className="flex-1 flex overflow-hidden">
         {/* Main Video Area */}
         <div className="flex-1 relative">
-          {!isInCall ? (
+          {!isDoctor && !intakeCompleted ? (
+            <PreConsultationIntake onSubmit={handleIntakeSubmit} loading={savingIntake} />
+          ) : !isInCall ? (
             <WaitingRoom 
               appointment={appointment} 
               isDoctor={isDoctor} 
@@ -172,6 +208,14 @@ const VideoConsultation = () => {
               appointment={appointment}
               onNotesUpdate={setDoctorNotes}
               onDiagnosisUpdate={setDiagnosis}
+              onSimpleExplanationUpdate={setSimpleExplanation}
+              onTreatmentAdviceUpdate={setTreatmentAdvice}
+              onTestsNeededUpdate={setTestsNeeded}
+              onFollowUpDateUpdate={setFollowUpDate}
+              onEmergencySignsUpdate={setEmergencySigns}
+              values={{
+                doctorNotes, diagnosis, simpleExplanation, treatmentAdvice, testsNeeded, followUpDate, emergencySigns
+              }}
             />
           </div>
         )}

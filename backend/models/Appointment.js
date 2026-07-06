@@ -32,6 +32,16 @@ const mongoose = require('mongoose');
       },
       reason: { type: String, required: true },
       symptoms: [String],
+      preConsultationIntake: {
+        healthProblem: String,
+        symptoms: [String],
+        duration: String,
+        painLevel: Number,
+        age: Number,
+        gender: String,
+        allergies: [String],
+        currentMedicines: [String],
+      },
       notes: {
         patient: String,
         doctor: String,

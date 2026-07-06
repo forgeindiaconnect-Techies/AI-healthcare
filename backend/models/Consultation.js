@@ -10,6 +10,11 @@ const consultationSchema = new mongoose.Schema(
     diagnosis: { type: String, default: '' },
     duration: { type: Number, default: 0 }, // in seconds or minutes
     summary: { type: String, default: '' },
+    simpleExplanation: { type: String, default: '' },
+    treatmentAdvice: { type: String, default: '' },
+    testsNeeded: { type: String, default: '' },
+    followUpDate: { type: Date },
+    emergencySigns: { type: String, default: '' },
     callHistory: [{
       joinedAt: Date,
       leftAt: Date
