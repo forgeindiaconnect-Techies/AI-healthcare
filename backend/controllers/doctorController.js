@@ -12,7 +12,7 @@ exports.getDoctors = asyncHandler(async (req, res) => {
   const { page = 1, limit = 12, specialization, search, minRating, isAcceptingPatients } = req.query;
 
   // Build doctor profile query
-  const profileQuery = {};
+  const profileQuery = { status: 'Approved' };
   if (specialization) profileQuery.specialization = { $regex: specialization, $options: 'i' };
   if (minRating) profileQuery.rating = { $gte: Number(minRating) };
   if (isAcceptingPatients !== undefined) profileQuery.isAcceptingPatients = isAcceptingPatients === 'true';
@@ -60,6 +60,10 @@ exports.getDoctor = asyncHandler(async (req, res, next) => {
 
   const doctorProfile = await Doctor.findOne({ user: req.params.id })
     .populate('user', 'name email avatar phone dateOfBirth gender');
+
+  if (doctorProfile && doctorProfile.status !== 'Approved') {
+    return next(new ErrorResponse('Doctor is not approved to accept patients', 403));
+  }
 
   res.status(200).json({ success: true, data: { user, profile: doctorProfile } });
 });

@@ -170,6 +170,10 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
   const doctorProfile = await Doctor.findOne({ user: doctorId });
   const patientProfile = await Patient.findOne({ user: patientId });
 
+  if (doctorProfile && doctorProfile.status !== 'Approved') {
+    return next(new ErrorResponse('Doctor is not approved to accept appointments', 403));
+  }
+
   // Check availability
   const available = await isSlotAvailable(doctorId, appointmentDate, appointmentTime);
   if (!available) {
