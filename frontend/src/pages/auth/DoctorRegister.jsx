@@ -20,6 +20,7 @@ const DoctorRegister = () => {
     },
     consultationFee: '',
     licenseNumber: '',
+    registeredNumber: '',
     docClinicUrl: ''
   });
 
@@ -178,6 +179,10 @@ const DoctorRegister = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Medical License Number</label>
                 <input name="licenseNumber" type="text" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.licenseNumber} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Registered Number *</label>
+                <input name="registeredNumber" type="text" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.registeredNumber} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>

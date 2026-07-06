@@ -6,6 +6,7 @@ const doctorSchema = new mongoose.Schema(
     specialization: { type: String, required: true },
     subSpecialties: [String],
     licenseNumber: { type: String, required: true, unique: true },
+    registeredNumber: { type: String },
     licenseExpiry: Date,
     experience: { type: Number, default: 0 }, // years
     qualification: { type: String }, // e.g., MBBS, MD

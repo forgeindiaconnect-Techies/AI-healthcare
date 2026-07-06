@@ -525,6 +525,10 @@ const DoctorManagement = () => {
                 <p className="font-medium">{selectedDoctor.licenseNumber}</p>
               </div>
               <div>
+                <p className="text-gray-500">Registered Number</p>
+                <p className="font-medium">{selectedDoctor.registeredNumber || 'N/A'}</p>
+              </div>
+              <div>
                 <p className="text-gray-500">Qualification</p>
                 <p className="font-medium">{selectedDoctor.education?.[0]?.degree || 'N/A'}</p>
               </div>

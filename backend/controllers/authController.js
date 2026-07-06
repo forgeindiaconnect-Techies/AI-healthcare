@@ -40,7 +40,7 @@ const sendTokenResponse = (user, statusCode, res, message = 'Success') => {
 exports.register = asyncHandler(async (req, res, next) => {
   const {
     name, email, password, role = 'patient', phone,
-    specialization, licenseNumber, qualification, experience,
+    specialization, licenseNumber, registeredNumber, qualification, experience,
     hospitalName, facilityType, consultationFee,
     docLicenseUrl, docDegreeUrl, docIdUrl, docClinicUrl
   } = req.body;
@@ -107,14 +107,15 @@ exports.register = asyncHandler(async (req, res, next) => {
     if (role === 'patient') {
       await Patient.create({ user: user._id });
     } else if (role === 'doctor') {
-      if (!specialization || !licenseNumber) {
+      if (!specialization || !licenseNumber || !registeredNumber) {
         await User.findByIdAndDelete(user._id);
-        return next(new ErrorResponse('Doctors require specialization and license number', 400));
+        return next(new ErrorResponse('Doctors require specialization, license number, and registered number', 400));
       }
       await Doctor.create({
         user: user._id,
         specialization,
         licenseNumber,
+        registeredNumber,
         experience: experience || 0,
         education: qualification ? [{ degree: qualification }] : [],
         hospital: { name: hospitalName || '' },
