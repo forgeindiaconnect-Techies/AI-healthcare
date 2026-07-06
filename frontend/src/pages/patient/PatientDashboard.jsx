@@ -107,7 +107,7 @@ const PatientDashboard = () => {
   );
 
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in duration-500">
+    <div className="space-y-6 pb-28 animate-in fade-in duration-500">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
@@ -126,16 +126,16 @@ const PatientDashboard = () => {
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Describe Your Health Problem</h2>
         <p className="text-gray-500 dark:text-gray-400 mb-4">Let our AI match you with the right specialist.</p>
         
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row gap-2 mb-4">
           <input 
             type="text" 
             value={symptomQuery}
             onChange={(e) => setSymptomQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && searchDoctors(symptomQuery)}
             placeholder="e.g. Heart pain, Skin rash, Fever..." 
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
           />
-          <Button variant="primary" onClick={() => searchDoctors(symptomQuery)}>
+          <Button variant="primary" className="w-full sm:w-auto" onClick={() => searchDoctors(symptomQuery)}>
             {isSearchingDoctors ? 'Searching...' : 'Find Doctor'}
           </Button>
         </div>

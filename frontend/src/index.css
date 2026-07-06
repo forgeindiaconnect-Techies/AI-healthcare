@@ -182,7 +182,7 @@
     overflow-x: auto !important;
     overflow-y: hidden !important;
     padding: 0 8px !important;
-    gap: 16px !important;
+    gap: 8px !important;
     height: 100% !important;
     align-items: center !important;
     -webkit-overflow-scrolling: touch;
@@ -194,8 +194,8 @@
     justify-content: center !important;
     align-items: center !important;
     width: auto !important;
-    min-width: 70px !important;
-    padding: 6px !important;
+    min-width: 68px !important;
+    padding: 6px 4px !important;
     border-radius: 12px !important;
     height: 60px !important;
     scroll-snap-align: start;
@@ -206,10 +206,11 @@
     font-size: 10px !important;
     margin-top: 4px !important;
     display: block !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    max-width: 60px;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-align: center !important;
+    line-height: 1.1 !important;
+    max-width: 68px !important;
   }
 }
 
