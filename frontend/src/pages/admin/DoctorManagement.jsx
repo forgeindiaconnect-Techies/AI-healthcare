@@ -19,6 +19,10 @@ const DoctorManagement = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  // Verification State
+  const [verificationReport, setVerificationReport] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Form State for Add Doctor
   const [formData, setFormData] = useState({
@@ -104,32 +108,39 @@ const DoctorManagement = () => {
     }
   };
 
-  const handleApprove = async (id) => {
+  const handleStatusChange = async (id, status) => {
+    let reason = '';
+    if (['Rejected', 'Suspended', 'Request More Documents'].includes(status)) {
+      reason = prompt(`Please enter a reason for ${status}:`);
+      if (reason === null) return; // User cancelled
+    }
+
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await API.put(`/api/admin/doctors/${id}/approve`, { approve: true }, config);
-      toast.success("Doctor approved!");
+      await API.put(`/api/admin/doctors/${id}/approve`, { status, reason }, config);
+      toast.success(`Doctor status updated to ${status}`);
       if (activeTab === 'pending') fetchPendingDoctors();
       else fetchDoctors();
+      setIsViewModalOpen(false); // Close modal if open
     } catch (error) {
-      console.error("Error updating approval:", error);
-      toast.error("Failed to approve doctor");
+      console.error(`Error updating status:`, error);
+      toast.error(`Failed to update status`);
     }
   };
 
-  const handleReject = async (id) => {
-    const reason = prompt("Please enter a reason for rejection (optional):");
-    if (reason === null) return; // User cancelled prompt
-
+  const handleRunVerification = async (id) => {
+    setIsVerifying(true);
+    setVerificationReport(null);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await API.put(`/api/admin/doctors/${id}/approve`, { approve: false, reason }, config);
-      toast.success("Doctor rejected!");
-      if (activeTab === 'pending') fetchPendingDoctors();
-      else fetchDoctors();
+      const { data } = await API.post(`/api/admin/doctors/${id}/verify`, {}, config);
+      setVerificationReport(data.data);
+      toast.success('Verification complete');
     } catch (error) {
-      console.error("Error rejecting doctor:", error);
-      toast.error("Failed to reject doctor");
+      console.error("Error running verification:", error);
+      toast.error("Failed to run verification checks");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -145,6 +156,12 @@ const DoctorManagement = () => {
         toast.error("Failed to delete doctor");
       }
     }
+  };
+
+  const openViewModal = (doc) => {
+    setSelectedDoctor(doc);
+    setVerificationReport(null);
+    setIsViewModalOpen(true);
   };
 
   const openEditModal = (doc) => {
@@ -268,7 +285,11 @@ const DoctorManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        doc.status === 'Approved' ? 'bg-green-100 text-green-800' : (doc.status === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800')
+                        doc.status === 'Approved' ? 'bg-green-100 text-green-800' 
+                        : doc.status === 'Rejected' ? 'bg-red-100 text-red-800'
+                        : doc.status === 'Suspended' ? 'bg-red-100 text-red-800'
+                        : doc.status === 'Request More Documents' ? 'bg-blue-100 text-blue-800'
+                        : 'bg-yellow-100 text-yellow-800'
                       }`}>
                         {doc.status || (doc.isVerified ? 'Active' : 'Pending Approval')}
                       </span>
@@ -278,7 +299,7 @@ const DoctorManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                       <button 
-                        onClick={() => { setSelectedDoctor(doc); setIsViewModalOpen(true); }}
+                        onClick={() => openViewModal(doc)}
                         className="p-1.5 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-md transition-colors" title="View Profile"
                       >
                         <Eye className="w-4 h-4" />
@@ -287,13 +308,13 @@ const DoctorManagement = () => {
                       {activeTab === 'pending' && (
                         <>
                           <button 
-                            onClick={() => handleApprove(doc._id)}
+                            onClick={() => handleStatusChange(doc._id, 'Approved')}
                             className="p-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-md transition-colors" title="Approve"
                           >
                             <CheckCircle className="w-4 h-4" />
                           </button>
                           <button 
-                            onClick={() => handleReject(doc._id)}
+                            onClick={() => handleStatusChange(doc._id, 'Rejected')}
                             className="p-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-md transition-colors" title="Reject"
                           >
                             <XCircle className="w-4 h-4" />
@@ -521,13 +542,53 @@ const DoctorManagement = () => {
                   <p className="text-gray-500 font-bold mb-2">Uploaded Documents</p>
                   <div className="flex gap-2 flex-wrap">
                     {selectedDoctor.documents.map((d, idx) => (
-                       <a key={idx} href={d.fileUrl} target="_blank" rel="noreferrer" className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg flex items-center gap-2 font-medium">
+                       <a key={idx} href={d.fileUrl} target="_blank" rel="noreferrer" className="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm rounded-lg flex items-center gap-2 font-medium border border-blue-200">
                          📄 {d.title || 'Document'}
                        </a>
                     ))}
                   </div>
                 </div>
               )}
+            </div>
+            
+            <div className="border-t pt-6 mt-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg">Verification Checks</h3>
+                <button 
+                  onClick={() => handleRunVerification(selectedDoctor._id)}
+                  disabled={isVerifying}
+                  className={`px-4 py-2 rounded font-medium text-sm transition-colors ${isVerifying ? 'bg-gray-100 text-gray-400' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}`}
+                >
+                  {isVerifying ? 'Running Checks...' : 'Run Automated Checks'}
+                </button>
+              </div>
+
+              {verificationReport && (
+                <div className={`p-4 rounded-xl border ${verificationReport.overallRisk === 'High' ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
+                  <p className="font-bold mb-3">Overall Risk: <span className={verificationReport.overallRisk === 'High' ? 'text-red-600' : 'text-green-600'}>{verificationReport.overallRisk}</span></p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    {Object.entries(verificationReport.report).map(([key, value]) => (
+                      <div key={key} className="bg-white p-3 rounded shadow-sm border border-gray-50 flex items-start justify-between">
+                        <div>
+                          <p className="font-semibold capitalize text-gray-700">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                          <p className="text-xs text-gray-500">{value.message}</p>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${value.status === 'Pass' ? 'bg-green-100 text-green-700' : value.status === 'Warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                          {value.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-4 border-t justify-end">
+               <button onClick={() => handleStatusChange(selectedDoctor._id, 'Approved')} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium text-sm">Approve</button>
+               <button onClick={() => handleStatusChange(selectedDoctor._id, 'Request More Documents')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-sm">Request More Docs</button>
+               <button onClick={() => handleStatusChange(selectedDoctor._id, 'Suspended')} className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded font-medium text-sm">Suspend</button>
+               <button onClick={() => handleStatusChange(selectedDoctor._id, 'Rejected')} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium text-sm">Reject</button>
             </div>
           </div>
         )}

@@ -9,7 +9,7 @@ const doctorSchema = new mongoose.Schema(
     licenseExpiry: Date,
     experience: { type: Number, default: 0 }, // years
     qualification: { type: String }, // e.g., MBBS, MD
-    status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+    status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Suspended', 'Request More Documents'], default: 'Pending' },
     rejectionReason: { type: String },
     documents: [{
         title: String, // e.g., 'Medical License', 'Degree Certificate', 'Government ID'

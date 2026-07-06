@@ -19,7 +19,11 @@ const DoctorRegister = () => {
       street: '', city: '', state: '', zipCode: '', country: ''
     },
     consultationFee: '',
-    licenseNumber: ''
+    licenseNumber: '',
+    docLicense: '',
+    docDegree: '',
+    docId: '',
+    docClinic: ''
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -47,10 +51,22 @@ const DoctorRegister = () => {
     setIsLoading(true);
 
     try {
+      const documents = [];
+      if (formData.docLicense) documents.push({ title: 'Medical License', fileUrl: formData.docLicense, fileType: 'url' });
+      if (formData.docDegree) documents.push({ title: 'Degree Certificate', fileUrl: formData.docDegree, fileType: 'url' });
+      if (formData.docId) documents.push({ title: 'Government ID', fileUrl: formData.docId, fileType: 'url' });
+      if (formData.docClinic) documents.push({ title: 'Clinic Registration Proof', fileUrl: formData.docClinic, fileType: 'url' });
+
+      const payload = { ...formData, documents, role: 'doctor' };
+      delete payload.docLicense;
+      delete payload.docDegree;
+      delete payload.docId;
+      delete payload.docClinic;
+
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, role: 'doctor' })
+        body: JSON.stringify(payload)
       });
       const data = await response.json();
       
@@ -179,6 +195,30 @@ const DoctorRegister = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
                   <input name="zipCode" type="text" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.location.zipCode} />
+                </div>
+              </div>
+            </div>
+
+            {/* Document Uploads */}
+            <div className="space-y-4 md:col-span-2">
+              <h3 className="font-semibold text-lg text-gray-800 border-b pb-2">Verification Documents (URLs)</h3>
+              <p className="text-sm text-gray-500 mb-2">Please provide links to your documents (e.g., Google Drive, Dropbox) for verification purposes.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Medical License Certificate URL *</label>
+                  <input name="docLicense" type="url" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.docLicense} placeholder="https://..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Degree/Qualification Proof URL *</label>
+                  <input name="docDegree" type="url" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.docDegree} placeholder="https://..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Government ID Proof URL *</label>
+                  <input name="docId" type="url" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.docId} placeholder="https://..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Clinic/Hospital Registration URL</label>
+                  <input name="docClinic" type="url" className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.docClinic} placeholder="https://..." />
                 </div>
               </div>
             </div>

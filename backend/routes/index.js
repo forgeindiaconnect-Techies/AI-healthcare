@@ -49,6 +49,7 @@ adminRouter.get('/analytics', protect, authorize('admin'), patientController.get
 adminRouter.post('/doctors', protect, authorize('admin'), adminDoctorController.createDoctor);
 adminRouter.get('/doctors', protect, authorize('admin'), adminDoctorController.getAllDoctors);
 adminRouter.put('/doctors/:id/approve', protect, authorize('admin'), adminDoctorController.approveDoctor);
+adminRouter.post('/doctors/:id/verify', protect, authorize('admin'), adminDoctorController.verifyDoctor);
 adminRouter.put('/doctors/:id', protect, authorize('admin'), adminDoctorController.updateDoctor);
 adminRouter.delete('/doctors/:id', protect, authorize('admin'), adminDoctorController.deleteDoctor);
 

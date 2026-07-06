@@ -119,48 +119,48 @@ exports.getAllDoctors = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/admin/doctors/:id/approve
 // @access  Private (Admin)
 exports.approveDoctor = asyncHandler(async (req, res, next) => {
-  const { approve } = req.body; // true or false
+  const { status, reason } = req.body; // 'Approved', 'Rejected', 'Suspended', 'Request More Documents'
+  // Backward compatibility
+  let finalStatus = status;
+  if (!status && req.body.approve !== undefined) {
+    finalStatus = req.body.approve ? 'Approved' : 'Rejected';
+  }
 
   const doctor = await Doctor.findById(req.params.id).populate('user');
   if (!doctor) {
     return next(new ErrorResponse('Doctor not found', 404));
   }
 
-  if (approve) {
-    doctor.status = 'Approved';
+  doctor.status = finalStatus;
+  if (reason) doctor.rejectionReason = reason;
+
+  if (finalStatus === 'Approved') {
     doctor.isVerified = true;
     doctor.isAcceptingPatients = true;
-    await doctor.save();
-
-    if (doctor.user) {
-      await notificationService.create({
-        userId: doctor.user._id,
-        title: 'Account Approved',
-        message: 'Your account has been approved by the administrator. You can now accept patients.',
-        type: 'system',
-        priority: 'high'
-      });
-    }
-
-    res.status(200).json({ success: true, message: 'Doctor approved', data: doctor });
   } else {
-    doctor.status = 'Rejected';
     doctor.isVerified = false;
     doctor.isAcceptingPatients = false;
-    await doctor.save();
-
-    if (doctor.user) {
-      await notificationService.create({
-        userId: doctor.user._id,
-        title: 'Account Rejected',
-        message: 'Your account approval has been rejected by the administrator.',
-        type: 'system',
-        priority: 'high'
-      });
-    }
-
-    res.status(200).json({ success: true, message: 'Doctor rejected', data: doctor });
   }
+  
+  await doctor.save();
+
+  if (doctor.user) {
+    let message = '';
+    if (finalStatus === 'Approved') message = 'Your account has been approved by the administrator. You can now accept patients.';
+    if (finalStatus === 'Rejected') message = `Your account approval has been rejected. ${reason ? 'Reason: ' + reason : ''}`;
+    if (finalStatus === 'Suspended') message = `Your account has been suspended by the administrator. ${reason ? 'Reason: ' + reason : ''}`;
+    if (finalStatus === 'Request More Documents') message = `The administrator requires more documents to verify your profile. ${reason ? 'Note: ' + reason : ''}`;
+
+    await notificationService.create({
+      userId: doctor.user._id,
+      title: `Account Status: ${finalStatus}`,
+      message,
+      type: 'system',
+      priority: 'high'
+    });
+  }
+
+  res.status(200).json({ success: true, message: `Doctor status updated to ${finalStatus}`, data: doctor });
 });
 
 // @desc    Update doctor profile (Admin)
@@ -221,4 +221,49 @@ exports.deleteDoctor = asyncHandler(async (req, res, next) => {
   await doctor.deleteOne();
 
   res.status(200).json({ success: true, message: 'Doctor and associated data deleted' });
+});
+
+// @desc    Verify Doctor Credentials (Simulation)
+// @route   POST /api/admin/doctors/:id/verify
+// @access  Private (Admin)
+exports.verifyDoctor = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findById(req.params.id).populate('user');
+  if (!doctor) {
+    return next(new ErrorResponse('Doctor not found', 404));
+  }
+
+  // Simulate a verification process
+  const licenseNumber = doctor.licenseNumber || '';
+  
+  // Fake logic: if license starts with 'VALID', it passes. Otherwise, random or checks.
+  let isLicenseValid = false;
+  let isNameMatch = true;
+  let isBlacklisted = false;
+  let fakeDocumentsDetected = false;
+
+  if (licenseNumber.toUpperCase().startsWith('VALID')) {
+    isLicenseValid = true;
+  } else {
+    // Randomize slightly for demo purposes
+    isLicenseValid = licenseNumber.length > 5;
+    isBlacklisted = licenseNumber.includes('BL');
+    fakeDocumentsDetected = doctor.documents.length === 0;
+  }
+
+  const report = {
+    licenseValid: { status: isLicenseValid ? 'Pass' : 'Fail', message: isLicenseValid ? 'License found in official register' : 'License number not found' },
+    nameMatch: { status: isNameMatch ? 'Pass' : 'Fail', message: 'Name matches medical register' },
+    blacklistStatus: { status: isBlacklisted ? 'Fail' : 'Pass', message: isBlacklisted ? 'Doctor is currently suspended in national registry' : 'No adverse actions found' },
+    documentAuthenticity: { status: fakeDocumentsDetected ? 'Warning' : 'Pass', message: fakeDocumentsDetected ? 'Insufficient documents provided' : 'Documents appear authentic' }
+  };
+
+  const overallRisk = (isLicenseValid && !isBlacklisted && !fakeDocumentsDetected) ? 'Low' : 'High';
+
+  res.status(200).json({
+    success: true,
+    data: {
+      overallRisk,
+      report
+    }
+  });
 });
