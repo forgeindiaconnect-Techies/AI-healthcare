@@ -481,7 +481,7 @@ const DoctorManagement = () => {
       )}
 
       {/* View Doctor Profile Modal */}
-      <Modal open={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} title="Doctor Profile" width={600}>
+      <Modal open={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} title="Doctor Profile & Verification" width={750}>
         {selectedDoctor && (
           <div className="space-y-6">
             <div className="flex items-center space-x-4 border-b pb-4">
@@ -538,12 +538,13 @@ const DoctorManagement = () => {
               </div>
 
               {selectedDoctor.documents && selectedDoctor.documents.length > 0 && (
-                <div className="col-span-2 mt-4 pt-4 border-t">
-                  <p className="text-gray-500 font-bold mb-2">Uploaded Documents</p>
-                  <div className="flex gap-2 flex-wrap">
+                <div className="col-span-2 mt-6 pt-6 border-t border-gray-100">
+                  <p className="text-gray-700 font-semibold mb-3">Uploaded Documents</p>
+                  <div className="flex gap-3 flex-wrap">
                     {selectedDoctor.documents.map((d, idx) => (
-                       <a key={idx} href={d.fileUrl} target="_blank" rel="noreferrer" className="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm rounded-lg flex items-center gap-2 font-medium border border-blue-200">
-                         📄 {d.title || 'Document'}
+                       <a key={idx} href={d.fileUrl} target="_blank" rel="noreferrer" className="px-4 py-2.5 bg-white hover:bg-teal-50 text-teal-700 text-sm rounded-xl flex items-center gap-2 font-medium border border-teal-100 shadow-sm transition-all hover:shadow-md">
+                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                         {d.title || 'Document'}
                        </a>
                     ))}
                   </div>
@@ -551,15 +552,22 @@ const DoctorManagement = () => {
               )}
             </div>
             
-            <div className="border-t pt-6 mt-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg">Verification Checks</h3>
+            <div className="border-t border-gray-100 pt-6 mt-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
+                <div>
+                  <h3 className="font-bold text-lg text-gray-800">Verification Checks</h3>
+                  <p className="text-xs text-gray-500">Run automated checks against medical registers</p>
+                </div>
                 <button 
                   onClick={() => handleRunVerification(selectedDoctor._id)}
                   disabled={isVerifying}
-                  className={`px-4 py-2 rounded font-medium text-sm transition-colors ${isVerifying ? 'bg-gray-100 text-gray-400' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}`}
+                  className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm flex items-center gap-2 ${isVerifying ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:shadow-md'}`}
                 >
-                  {isVerifying ? 'Running Checks...' : 'Run Automated Checks'}
+                  {isVerifying ? (
+                    <><svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Running...</>
+                  ) : (
+                    <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg> Run Automated Checks</>
+                  )}
                 </button>
               </div>
 
@@ -584,11 +592,16 @@ const DoctorManagement = () => {
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2 pt-4 border-t justify-end">
-               <button onClick={() => handleStatusChange(selectedDoctor._id, 'Approved')} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium text-sm">Approve</button>
-               <button onClick={() => handleStatusChange(selectedDoctor._id, 'Request More Documents')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-sm">Request More Docs</button>
-               <button onClick={() => handleStatusChange(selectedDoctor._id, 'Suspended')} className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded font-medium text-sm">Suspend</button>
-               <button onClick={() => handleStatusChange(selectedDoctor._id, 'Rejected')} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium text-sm">Reject</button>
+            <div className="flex flex-col sm:flex-row gap-3 pt-6 mt-6 border-t border-gray-100 bg-gray-50 -mx-6 -mb-6 p-6 rounded-b-2xl items-center justify-between">
+               <div className="text-sm text-gray-500 font-medium">Take Action:</div>
+               <div className="flex flex-wrap gap-3 justify-end w-full sm:w-auto">
+                 <button onClick={() => handleStatusChange(selectedDoctor._id, 'Rejected')} className="px-5 py-2.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 rounded-lg font-semibold text-sm transition-colors flex-1 sm:flex-none text-center">Reject</button>
+                 <button onClick={() => handleStatusChange(selectedDoctor._id, 'Suspended')} className="px-5 py-2.5 bg-white border border-yellow-300 hover:bg-yellow-50 text-yellow-700 rounded-lg font-semibold text-sm transition-colors flex-1 sm:flex-none text-center">Suspend</button>
+                 <button onClick={() => handleStatusChange(selectedDoctor._id, 'Request More Documents')} className="px-5 py-2.5 bg-white border border-blue-200 hover:bg-blue-50 text-blue-700 rounded-lg font-semibold text-sm transition-colors flex-1 sm:flex-none text-center">Request Docs</button>
+                 <button onClick={() => handleStatusChange(selectedDoctor._id, 'Approved')} className="px-6 py-2.5 bg-green-600 hover:bg-green-700 shadow-md shadow-green-200 text-white rounded-lg font-bold text-sm transition-all flex-1 sm:flex-none text-center flex items-center justify-center gap-2">
+                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Approve
+                 </button>
+               </div>
             </div>
           </div>
         )}
