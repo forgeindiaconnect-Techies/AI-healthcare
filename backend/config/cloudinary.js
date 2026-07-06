@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 let cloudinary = null;
-let uploadReport, uploadProfile, deleteFile, getFileUrl;
+let uploadReport, uploadProfile, uploadDocument, deleteFile, getFileUrl;
 
 // Check if Cloudinary is configured
 if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
@@ -45,6 +45,11 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
     limits: { fileSize: 5 * 1024 * 1024 },
   });
 
+  uploadDocument = multer({
+    storage: reportStorage, // Reuse report storage for docs (it goes to healthcare/medical-reports or similar)
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  });
+
   deleteFile = async (publicId) => {
     try {
       return await cloudinary.uploader.destroy(publicId);
@@ -69,6 +74,7 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
     
     uploadReport = multer({ storage: errorStorage });
     uploadProfile = multer({ storage: errorStorage });
+    uploadDocument = multer({ storage: errorStorage });
     
     deleteFile = async () => {};
     getFileUrl = () => null;
@@ -103,6 +109,7 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
 
   uploadReport = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 }, fileFilter });
   uploadProfile = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter });
+  uploadDocument = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter });
 
   deleteFile = async (publicId) => {
     const filePath = path.join(__dirname, '../uploads', publicId);
@@ -117,4 +124,4 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
 }
 }
 
-module.exports = { cloudinary, uploadReport, uploadProfile, deleteFile, getFileUrl };
+module.exports = { cloudinary, uploadReport, uploadProfile, uploadDocument, deleteFile, getFileUrl };

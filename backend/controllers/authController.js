@@ -41,9 +41,49 @@ exports.register = asyncHandler(async (req, res, next) => {
   const {
     name, email, password, role = 'patient', phone,
     specialization, licenseNumber, qualification, experience,
-    hospitalName, facilityType, location, consultationFee,
-    availability, documents
+    hospitalName, facilityType, consultationFee,
+    docLicenseUrl, docDegreeUrl, docIdUrl, docClinicUrl
   } = req.body;
+
+  let location = req.body.location;
+  if (typeof location === 'string') {
+    try { location = JSON.parse(location); } catch(e) { /* keep as string if not JSON */ }
+  }
+
+  let availability = req.body.availability;
+  if (typeof availability === 'string') {
+    try { availability = JSON.parse(availability); } catch(e) { }
+  }
+
+  let parsedDocuments = [];
+  if (req.body.documents) {
+    if (typeof req.body.documents === 'string') {
+      try { parsedDocuments = JSON.parse(req.body.documents); } catch(e) {}
+    } else {
+      parsedDocuments = req.body.documents;
+    }
+  }
+
+  if (req.files) {
+    const { docLicenseFile, docDegreeFile, docIdFile, docClinicFile } = req.files;
+    
+    if (docLicenseFile?.[0]) parsedDocuments.push({ title: 'Medical License', fileUrl: docLicenseFile[0].path || `/uploads/${docLicenseFile[0].filename}`, fileType: 'file' });
+    else if (docLicenseUrl) parsedDocuments.push({ title: 'Medical License', fileUrl: docLicenseUrl, fileType: 'url' });
+    
+    if (docDegreeFile?.[0]) parsedDocuments.push({ title: 'Degree Certificate', fileUrl: docDegreeFile[0].path || `/uploads/${docDegreeFile[0].filename}`, fileType: 'file' });
+    else if (docDegreeUrl) parsedDocuments.push({ title: 'Degree Certificate', fileUrl: docDegreeUrl, fileType: 'url' });
+    
+    if (docIdFile?.[0]) parsedDocuments.push({ title: 'Government ID', fileUrl: docIdFile[0].path || `/uploads/${docIdFile[0].filename}`, fileType: 'file' });
+    else if (docIdUrl) parsedDocuments.push({ title: 'Government ID', fileUrl: docIdUrl, fileType: 'url' });
+    
+    if (docClinicFile?.[0]) parsedDocuments.push({ title: 'Clinic Registration Proof', fileUrl: docClinicFile[0].path || `/uploads/${docClinicFile[0].filename}`, fileType: 'file' });
+    else if (docClinicUrl) parsedDocuments.push({ title: 'Clinic Registration Proof', fileUrl: docClinicUrl, fileType: 'url' });
+  } else if (parsedDocuments.length === 0) {
+    if (docLicenseUrl) parsedDocuments.push({ title: 'Medical License', fileUrl: docLicenseUrl, fileType: 'url' });
+    if (docDegreeUrl) parsedDocuments.push({ title: 'Degree Certificate', fileUrl: docDegreeUrl, fileType: 'url' });
+    if (docIdUrl) parsedDocuments.push({ title: 'Government ID', fileUrl: docIdUrl, fileType: 'url' });
+    if (docClinicUrl) parsedDocuments.push({ title: 'Clinic Registration Proof', fileUrl: docClinicUrl, fileType: 'url' });
+  }
 
   // Check existing user
   const existingUser = await User.findOne({ email });
@@ -82,7 +122,7 @@ exports.register = asyncHandler(async (req, res, next) => {
         clinicAddress: addressObj || {},
         consultationFee: consultationFee || 0,
         availability: availability || [],
-        documents: documents || [],
+        documents: parsedDocuments,
         status: 'Pending',
         isVerified: false
       });

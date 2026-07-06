@@ -3,12 +3,17 @@ const express = require('express');
 const router = express.Router();
 const { register, login, logout, getMe, updateProfile, updatePassword, uploadAvatar, forgotPassword, resetPassword, verifyEmail } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
-const { uploadProfile } = require('../config/cloudinary');
+const { uploadProfile, uploadDocument } = require('../config/cloudinary');
 const { registerValidator, loginValidator, forgotPasswordValidator, resetPasswordValidator } = require('../middleware/validator');
 
 const { seedDatabase } = require('../controllers/seedController');
 
-router.post('/register', registerValidator, register);
+router.post('/register', uploadDocument.fields([
+  { name: 'docLicenseFile', maxCount: 1 },
+  { name: 'docDegreeFile', maxCount: 1 },
+  { name: 'docIdFile', maxCount: 1 },
+  { name: 'docClinicFile', maxCount: 1 }
+]), registerValidator, register);
 router.post('/login', loginValidator, login);
 router.get('/seed-db', seedDatabase);
 router.post('/logout', protect, logout);

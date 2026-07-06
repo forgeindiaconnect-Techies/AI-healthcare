@@ -20,10 +20,14 @@ const DoctorRegister = () => {
     },
     consultationFee: '',
     licenseNumber: '',
-    docLicense: '',
-    docDegree: '',
-    docId: '',
-    docClinic: ''
+    docClinicUrl: ''
+  });
+
+  const [files, setFiles] = useState({
+    docLicenseFile: null,
+    docDegreeFile: null,
+    docIdFile: null,
+    docClinicFile: null
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -46,27 +50,53 @@ const DoctorRegister = () => {
     }
   };
 
+  const handleFileChange = (e) => {
+    const { name, files: selectedFiles } = e.target;
+    if (selectedFiles && selectedFiles.length > 0) {
+      const file = selectedFiles[0];
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        e.target.value = '';
+        return;
+      }
+      setFiles((prev) => ({ ...prev, [name]: file }));
+    } else {
+      setFiles((prev) => ({ ...prev, [name]: null }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const documents = [];
-      if (formData.docLicense) documents.push({ title: 'Medical License', fileUrl: formData.docLicense, fileType: 'url' });
-      if (formData.docDegree) documents.push({ title: 'Degree Certificate', fileUrl: formData.docDegree, fileType: 'url' });
-      if (formData.docId) documents.push({ title: 'Government ID', fileUrl: formData.docId, fileType: 'url' });
-      if (formData.docClinic) documents.push({ title: 'Clinic Registration Proof', fileUrl: formData.docClinic, fileType: 'url' });
+      // Validate required documents
+      if (!files.docLicenseFile && !formData.docLicenseUrl) return toast.error("Medical License is required");
+      if (!files.docDegreeFile && !formData.docDegreeUrl) return toast.error("Degree Certificate is required");
+      if (!files.docIdFile && !formData.docIdUrl) return toast.error("Government ID is required");
 
-      const payload = { ...formData, documents, role: 'doctor' };
-      delete payload.docLicense;
-      delete payload.docDegree;
-      delete payload.docId;
-      delete payload.docClinic;
+      const payload = new FormData();
+      
+      // Append text fields
+      Object.keys(formData).forEach(key => {
+        if (key === 'location') {
+          payload.append(key, JSON.stringify(formData[key]));
+        } else {
+          payload.append(key, formData[key]);
+        }
+      });
+      payload.append('role', 'doctor');
+
+      // Append files
+      if (files.docLicenseFile) payload.append('docLicenseFile', files.docLicenseFile);
+      if (files.docDegreeFile) payload.append('docDegreeFile', files.docDegreeFile);
+      if (files.docIdFile) payload.append('docIdFile', files.docIdFile);
+      if (files.docClinicFile) payload.append('docClinicFile', files.docClinicFile);
 
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        // FormData sets Content-Type automatically with boundaries
+        body: payload
       });
       const data = await response.json();
       
@@ -201,24 +231,36 @@ const DoctorRegister = () => {
 
             {/* Document Uploads */}
             <div className="space-y-4 md:col-span-2">
-              <h3 className="font-semibold text-lg text-gray-800 border-b pb-2">Verification Documents (URLs)</h3>
-              <p className="text-sm text-gray-500 mb-2">Please provide links to your documents (e.g., Google Drive, Dropbox) for verification purposes.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Medical License Certificate URL *</label>
-                  <input name="docLicense" type="url" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.docLicense} placeholder="https://..." />
+              <h3 className="font-semibold text-lg text-gray-800 border-b pb-2">Verification Documents</h3>
+              <p className="text-sm text-gray-500 mb-2">Upload files (PDF/Images up to 5MB) or provide URLs for verification purposes.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-4 border rounded-lg bg-gray-50 space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">Medical License Certificate *</label>
+                  <input name="docLicenseFile" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100" />
+                  <div className="flex items-center space-x-2"><hr className="flex-grow border-gray-300" /><span className="text-xs text-gray-400 font-medium">OR URL</span><hr className="flex-grow border-gray-300" /></div>
+                  <input name="docLicenseUrl" type="url" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" onChange={handleChange} value={formData.docLicenseUrl} placeholder="https://..." disabled={!!files.docLicenseFile} />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Degree/Qualification Proof URL *</label>
-                  <input name="docDegree" type="url" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.docDegree} placeholder="https://..." />
+                
+                <div className="p-4 border rounded-lg bg-gray-50 space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">Degree/Qualification Proof *</label>
+                  <input name="docDegreeFile" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100" />
+                  <div className="flex items-center space-x-2"><hr className="flex-grow border-gray-300" /><span className="text-xs text-gray-400 font-medium">OR URL</span><hr className="flex-grow border-gray-300" /></div>
+                  <input name="docDegreeUrl" type="url" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" onChange={handleChange} value={formData.docDegreeUrl} placeholder="https://..." disabled={!!files.docDegreeFile} />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Government ID Proof URL *</label>
-                  <input name="docId" type="url" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.docId} placeholder="https://..." />
+                
+                <div className="p-4 border rounded-lg bg-gray-50 space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">Government ID Proof *</label>
+                  <input name="docIdFile" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100" />
+                  <div className="flex items-center space-x-2"><hr className="flex-grow border-gray-300" /><span className="text-xs text-gray-400 font-medium">OR URL</span><hr className="flex-grow border-gray-300" /></div>
+                  <input name="docIdUrl" type="url" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" onChange={handleChange} value={formData.docIdUrl} placeholder="https://..." disabled={!!files.docIdFile} />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Clinic/Hospital Registration URL</label>
-                  <input name="docClinic" type="url" className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.docClinic} placeholder="https://..." />
+                
+                <div className="p-4 border rounded-lg bg-gray-50 space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">Clinic/Hospital Registration Proof</label>
+                  <input name="docClinicFile" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100" />
+                  <div className="flex items-center space-x-2"><hr className="flex-grow border-gray-300" /><span className="text-xs text-gray-400 font-medium">OR URL</span><hr className="flex-grow border-gray-300" /></div>
+                  <input name="docClinicUrl" type="url" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" onChange={handleChange} value={formData.docClinicUrl} placeholder="https://..." disabled={!!files.docClinicFile} />
                 </div>
               </div>
             </div>
