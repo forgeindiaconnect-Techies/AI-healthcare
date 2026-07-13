@@ -86,7 +86,7 @@ const AdminPayments = () => {
 
   // Metrics Calculation
   const totalRevenue = payments
-    .filter(p => p.status === 'completed')
+    .filter(p => p.status === 'successful')
     .reduce((sum, p) => sum + (p.amount || 0), 0);
 
   const formatCurrency = (amount) => {
@@ -98,7 +98,7 @@ const AdminPayments = () => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'completed':
+      case 'successful':
         return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-100 text-emerald-700 capitalize">Successful</span>;
       case 'pending':
         return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-100 text-amber-700 capitalize">Pending</span>;
@@ -183,7 +183,7 @@ const AdminPayments = () => {
               className="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none font-medium text-gray-700"
             >
               <option value="all">All Statuses</option>
-              <option value="completed">Successful</option>
+              <option value="successful">Successful</option>
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
               <option value="refunded">Refunded</option>
@@ -272,7 +272,7 @@ const AdminPayments = () => {
                     {/* Actions Column */}
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {payment.status === 'completed' ? (
+                        {payment.status === 'successful' ? (
                           <button 
                             onClick={() => handleDownload(payment.transactionId)}
                             className="p-2 text-sky-600 hover:bg-sky-50 rounded-xl transition-colors tooltip-trigger inline-flex items-center gap-2 font-bold text-sm border border-transparent hover:border-sky-100"
