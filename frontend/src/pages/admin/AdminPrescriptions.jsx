@@ -3,10 +3,11 @@ import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Pill, Search, Eye, Filter, ChevronLeft, ChevronRight, 
-  User, Calendar, Stethoscope, FileText, ShieldCheck, Download
+  User, Calendar, Stethoscope, FileText, ShieldCheck, Download, Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Modal } from '../../components/ui/SharedUI';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
 const AdminPrescriptions = () => {
   const { user } = useAuth();
@@ -15,6 +16,7 @@ const AdminPrescriptions = () => {
   
   // Modal State
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState(null);
 
   // Pagination & Filtering
@@ -53,6 +55,24 @@ const AdminPrescriptions = () => {
   const handleView = (prescription) => {
     setSelectedPrescription(prescription);
     setIsViewModalOpen(true);
+  };
+
+  const handleVoid = async ({ reason }) => {
+    if (!selectedPrescription) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/prescriptions/${selectedPrescription._id}/void`, { reason }, config);
+      toast.success("Prescription voided successfully");
+      fetchPrescriptions(currentPage);
+    } catch (error) {
+      console.error("Error voiding prescription:", error);
+      toast.error("Failed to void prescription");
+    }
+  };
+
+  const openDeleteModal = (prescription) => {
+    setSelectedPrescription(prescription);
+    setIsDeleteModalOpen(true);
   };
 
   // Client-side search filtering
@@ -221,12 +241,22 @@ const AdminPrescriptions = () => {
 
                     {/* Actions Column */}
                     <td className="py-4 px-6 text-right">
-                      <button 
-                        onClick={() => handleView(prescription)}
-                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors tooltip-trigger inline-flex items-center gap-2 font-bold text-sm"
-                      >
-                        <Eye className="w-4 h-4" /> View
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => handleView(prescription)}
+                          className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors tooltip-trigger"
+                          title="View Details"
+                        >
+                          <Eye className="w-5 h-5" />
+                        </button>
+                        <button 
+                          onClick={() => openDeleteModal(prescription)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors tooltip-trigger" 
+                          title="Remove (Void)"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -334,6 +364,14 @@ const AdminPrescriptions = () => {
         )}
       </Modal>
 
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleVoid}
+        recordName={`Prescription for ${selectedPrescription?.patient?.name || 'patient'}`}
+        description={`This will void and soft-delete the prescription issued by ${selectedPrescription?.doctor?.name}.`}
+        requireReason={true}
+      />
     </div>
   );
 };

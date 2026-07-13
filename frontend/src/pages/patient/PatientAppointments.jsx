@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import PaymentModal from '../../components/dashboard/patient/PaymentModal';
 import PatientChat from './PatientChat';
 import ReviewModal from '../../components/dashboard/patient/ReviewModal';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
 const CountdownTimer = ({ targetDate }) => {
   const [timeLeft, setTimeLeft] = useState('');
@@ -51,6 +52,9 @@ const PatientAppointments = () => {
 
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedAppointmentForReview, setSelectedAppointmentForReview] = useState(null);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [aptToCancel, setAptToCancel] = useState(null);
 
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -217,6 +221,23 @@ const PatientAppointments = () => {
     } catch (error) {
       console.error('Error updating appointment', error);
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleCancelAppointment = async ({ reason }) => {
+    if (!aptToCancel) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/appointments/${aptToCancel._id}/cancel`, { reason }, config);
+      toast.success('Appointment cancelled successfully.');
+      setAppointments(prev => prev.filter(a => a._id !== aptToCancel._id));
+      setIsDeleteModalOpen(false);
+      setAptToCancel(null);
+    } catch (error) {
+      console.error('Error cancelling appointment', error);
+      toast.error('Unable to cancel appointment. Please try again.');
+      setIsDeleteModalOpen(false);
+      setAptToCancel(null);
     }
   };
 
@@ -483,7 +504,7 @@ const PatientAppointments = () => {
                       Reschedule
                     </button>
                     <button 
-                      onClick={() => updateStatus(apt._id, 'cancelled')}
+                      onClick={() => { setAptToCancel(apt); setIsDeleteModalOpen(true); }}
                       className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-100 rounded-xl text-sm font-bold transition-all"
                     >
                       Cancel Visit
@@ -704,6 +725,15 @@ const PatientAppointments = () => {
         />
       )}
 
+      {/* Cancel Confirmation Modal */}
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setAptToCancel(null); }}
+        onConfirm={handleCancelAppointment}
+        recordName={`Appointment with ${aptToCancel?.doctor?.name || 'doctor'}`}
+        description={`This will cancel the appointment.`}
+        requireReason={true}
+      />
     </div>
   );
 };

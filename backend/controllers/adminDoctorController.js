@@ -68,9 +68,13 @@ exports.createDoctor = asyncHandler(async (req, res, next) => {
 // @route   GET /api/admin/doctors
 // @access  Private (Admin)
 exports.getAllDoctors = asyncHandler(async (req, res, next) => {
-  const { search, status, isVerified } = req.query;
+  const { search, status, isVerified, includeDeleted } = req.query;
 
   let profileQuery = {};
+  if (includeDeleted !== 'true') {
+    profileQuery.isDeleted = { $ne: true };
+  }
+
   if (status) {
     profileQuery.status = status;
   } else if (isVerified !== undefined) {
@@ -146,20 +150,102 @@ exports.updateDoctor = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: { user, profile: doctor } });
 });
 
-// @desc    Delete doctor (Admin)
-// @route   DELETE /api/admin/doctors/:id
+// @desc    Soft delete doctor (Admin)
+// @route   PATCH /api/admin/doctors/:id/remove
 // @access  Private (Admin)
-exports.deleteDoctor = asyncHandler(async (req, res, next) => {
+exports.removeDoctor = asyncHandler(async (req, res, next) => {
+  const { reason, remarks } = req.body;
   const doctor = await Doctor.findById(req.params.id);
   if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
-  await User.findByIdAndDelete(doctor.user);
-  await Appointment.deleteMany({ doctor: doctor.user });
-  await DoctorDocument.deleteMany({ doctor: doctor._id });
-  await DoctorVerificationHistory.deleteMany({ doctor: doctor._id });
-  await MedicalLicenceVerification.deleteMany({ doctor: doctor._id });
-  await doctor.deleteOne();
 
-  res.status(200).json({ success: true, message: 'Doctor and associated data deleted' });
+  // Dependency checks
+  const activeAppointments = await Appointment.countDocuments({
+    doctor: doctor.user,
+    status: { $in: ['Scheduled', 'Confirmed', 'Pending Doctor Approval', 'Approved - Payment Pending', 'Payment Completed', 'Meeting Scheduled', 'pending', 'confirmed'] },
+    isDeleted: { $ne: true }
+  });
+
+  if (activeAppointments > 0) {
+    return next(new ErrorResponse(`Cannot remove doctor because ${activeAppointments} active appointments are scheduled.`, 400));
+  }
+
+  const previousStatus = doctor.status;
+  doctor.isDeleted = true;
+  doctor.status = 'INACTIVE';
+  doctor.isAcceptingPatients = false;
+  doctor.deletedAt = new Date();
+  doctor.deletedBy = req.user.id;
+  doctor.deletionReason = reason || 'Not specified';
+  await doctor.save();
+
+  const user = await User.findById(doctor.user);
+  if (user) {
+    user.isDeleted = true;
+    user.isActive = false;
+    user.deletedAt = new Date();
+    user.deletedBy = req.user.id;
+    user.deletionReason = reason || 'Not specified';
+    await user.save();
+  }
+
+  const AuditLog = require('../models/AuditLog');
+  await AuditLog.create({
+    action: 'REMOVE',
+    resourceType: 'Doctor',
+    resourceId: doctor._id,
+    previousStatus,
+    newStatus: 'INACTIVE',
+    performedBy: req.user.id,
+    performedByRole: 'ADMIN',
+    reason: reason || 'Not specified',
+    remarks
+  });
+
+  res.status(200).json({ success: true, message: 'Doctor removed successfully' });
+});
+
+// @desc    Restore a soft-deleted doctor
+// @route   PATCH /api/admin/doctors/:id/restore
+// @access  Private (Admin)
+exports.restoreDoctor = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findById(req.params.id);
+  if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
+
+  if (!doctor.isDeleted) {
+    return next(new ErrorResponse('Doctor is not removed', 400));
+  }
+
+  const previousStatus = doctor.status;
+  doctor.isDeleted = false;
+  doctor.status = 'APPROVED'; // Or previous status if we tracked it, but typically APPROVED
+  doctor.deletedAt = null;
+  doctor.deletedBy = null;
+  doctor.deletionReason = null;
+  await doctor.save();
+
+  const user = await User.findById(doctor.user);
+  if (user) {
+    user.isDeleted = false;
+    user.isActive = true;
+    user.deletedAt = null;
+    user.deletedBy = null;
+    user.deletionReason = null;
+    await user.save();
+  }
+
+  const AuditLog = require('../models/AuditLog');
+  await AuditLog.create({
+    action: 'RESTORE',
+    resourceType: 'Doctor',
+    resourceId: doctor._id,
+    previousStatus,
+    newStatus: 'APPROVED',
+    performedBy: req.user.id,
+    performedByRole: 'ADMIN',
+    reason: 'Restored from archived',
+  });
+
+  res.status(200).json({ success: true, message: 'Doctor restored successfully' });
 });
 
 // @desc    Start review

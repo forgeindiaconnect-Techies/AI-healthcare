@@ -4,11 +4,14 @@ import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Spinner } from '../../components/ui/SharedUI';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
 const UserManagement = () => {
   const { user } = useAuth();
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const fetchUsers = async () => {
     try {
@@ -45,22 +48,30 @@ const UserManagement = () => {
     }
   };
 
-  const handleDelete = async (id, currentRole) => {
-    if (currentRole === 'admin') {
+  const handleRemove = async ({ reason }) => {
+    if (!selectedUser) return;
+    if (selectedUser.role === 'admin') {
       toast.error("Cannot delete admin accounts");
       return;
     }
-    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
-      try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await API.delete(`/api/admin/users/${id}`, config);
-        toast.success("User deleted successfully");
-        fetchUsers(); // Refresh the list
-      } catch (error) {
-        console.error("Error deleting user:", error);
-        toast.error(error.response?.data?.message || "Failed to delete user");
-      }
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/admin/users/${selectedUser._id}/remove`, { reason }, config);
+      toast.success("User removed successfully");
+      fetchUsers(); // Refresh the list
+    } catch (error) {
+      console.error("Error removing user:", error);
+      toast.error(error.response?.data?.message || "Failed to remove user");
     }
+  };
+
+  const openDeleteModal = (u) => {
+    if (u.role === 'admin') {
+      toast.error("Cannot delete admin accounts");
+      return;
+    }
+    setSelectedUser(u);
+    setIsDeleteModalOpen(true);
   };
 
   if (loading) {
@@ -125,8 +136,8 @@ const UserManagement = () => {
                     <Power className="w-4 h-4" />
                   </button>
                   <button 
-                    onClick={() => handleDelete(u._id, u.role)}
-                    title="Delete User"
+                    onClick={() => openDeleteModal(u)}
+                    title="Remove User"
                     disabled={u.role === 'admin'}
                     className={`p-1.5 rounded ${u.role === 'admin' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
                   >
@@ -145,6 +156,15 @@ const UserManagement = () => {
           </tbody>
         </table>
       </div>
+
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleRemove}
+        recordName={selectedUser?.name || 'User'}
+        description={`This will soft-delete the user profile for ${selectedUser?.name}.`}
+        requireReason={true}
+      />
     </div>
   );
 };

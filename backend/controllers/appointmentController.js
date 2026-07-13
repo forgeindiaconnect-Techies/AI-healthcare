@@ -453,45 +453,60 @@ exports.getTodayAppointments = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, count: appointments.length, data: appointments });
 });
 
-// @desc    Delete appointment
-// @route   DELETE /api/appointments/:id
-// @access  Private (admin)
-exports.deleteAppointment = asyncHandler(async (req, res, next) => {
-  const appointment = await Appointment.findById(req.params.id);
+// @desc    Cancel/Soft delete an appointment
+// @route   PATCH /api/appointments/:id/cancel
+// @access  Private (Admin, Doctor, Patient)
+exports.cancelAppointment = asyncHandler(async (req, res, next) => {
+  const { reason, remarks } = req.body;
+  const appointment = await Appointment.findById(req.params.id)
+    .populate('patient', 'name email')
+    .populate('doctor', 'name email');
+
   if (!appointment) return next(new ErrorResponse('Appointment not found', 404));
-  await appointment.deleteOne();
-  res.status(200).json({ success: true, message: 'Appointment deleted' });
-});
 
-// @desc    Soft delete (remove) an appointment (Doctor only)
-// @route   PATCH /api/appointments/:id/remove
-// @access  Private/Doctor
-exports.removeAppointment = asyncHandler(async (req, res, next) => {
-  const appointment = await Appointment.findById(req.params.id);
+  // Authorization check
+  const isDoctor = req.user.role === 'doctor' && appointment.doctor._id.toString() === req.user.id;
+  const isPatient = req.user.role === 'patient' && appointment.patient._id.toString() === req.user.id;
+  const isAdmin = req.user.role === 'admin';
 
-  if (!appointment) {
-    return next(new ErrorResponse('Appointment not found', 404));
+  if (!isDoctor && !isPatient && !isAdmin) {
+    return next(new ErrorResponse('Not authorized to cancel this appointment', 403));
   }
 
-  // Ensure user is doctor and owns the appointment
-  if (req.user.role !== 'doctor') {
-    return next(new ErrorResponse('Not authorized to remove appointments', 403));
+  if (appointment.status === 'Completed' || appointment.status === 'completed') {
+    return next(new ErrorResponse('Completed appointments cannot be cancelled or removed', 400));
   }
 
-  if (appointment.doctor.toString() !== req.user.id) {
-    return next(new ErrorResponse('Not authorized to remove this appointment', 403));
-  }
+  const previousStatus = appointment.status;
+  
+  appointment.status = 'Cancelled';
+  appointment.isDeleted = true;
+  appointment.deletedAt = new Date();
+  appointment.deletedBy = req.user.id;
+  appointment.deletionReason = reason || 'Not specified';
+  appointment.cancellationReason = reason || 'Not specified';
+  appointment.cancelledBy = req.user.id;
+  appointment.cancelledAt = new Date();
 
-  await Appointment.findByIdAndUpdate(req.params.id, {
-    isDeleted: true,
-    deletedAt: new Date(),
-    deletedBy: req.user.id
+  await appointment.save();
+
+  const AuditLog = require('../models/AuditLog');
+  await AuditLog.create({
+    action: 'CANCEL_APPOINTMENT',
+    resourceType: 'Appointment',
+    resourceId: appointment._id,
+    previousStatus,
+    newStatus: 'Cancelled',
+    performedBy: req.user.id,
+    performedByRole: req.user.role.toUpperCase(),
+    reason: reason || 'Not specified',
+    remarks
   });
 
-  res.status(200).json({
-    success: true,
-    message: 'Appointment removed successfully'
-  });
+  // Notification
+  await notificationService.appointmentStatusChanged(appointment.patient, appointment.doctor, appointment, 'Cancelled', req.user.id);
+
+  res.status(200).json({ success: true, message: 'Appointment cancelled successfully' });
 });
 
 // @desc    Save pre-consultation intake

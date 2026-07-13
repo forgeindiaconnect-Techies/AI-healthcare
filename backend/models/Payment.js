@@ -21,7 +21,7 @@ const paymentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'successful', 'failed', 'refunded'],
+    enum: ['pending', 'successful', 'failed', 'refunded', 'ARCHIVED'],
     default: 'pending'
   },
   transactionId: {
@@ -41,7 +41,11 @@ const paymentSchema = new mongoose.Schema({
   },
   description: {
     type: String
-  }
+  },
+  isDeleted: { type: Boolean, default: false },
+  deletedAt: { type: Date, default: null },
+  deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  deletionReason: { type: String, default: null },
 }, {
   timestamps: true
 });

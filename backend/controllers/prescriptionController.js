@@ -109,6 +109,45 @@ exports.updatePrescription = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: prescription });
 });
 
+// @desc    Void (remove) prescription
+// @route   PATCH /api/prescriptions/:id/void
+// @access  Private (Doctor, Admin)
+exports.voidPrescription = asyncHandler(async (req, res, next) => {
+  const { reason, remarks } = req.body;
+  const prescription = await Prescription.findById(req.params.id);
+  
+  if (!prescription) return next(new ErrorResponse('Prescription not found', 404));
+
+  if (req.user.role === 'doctor' && prescription.doctor.toString() !== req.user.id) {
+    return next(new ErrorResponse('Not authorized to void this prescription', 403));
+  }
+
+  const previousStatus = prescription.status;
+
+  prescription.status = 'VOID';
+  prescription.isDeleted = true;
+  prescription.deletedAt = new Date();
+  prescription.deletedBy = req.user.id;
+  prescription.deletionReason = reason || 'Not specified';
+  
+  await prescription.save();
+
+  const AuditLog = require('../models/AuditLog');
+  await AuditLog.create({
+    action: 'VOID_PRESCRIPTION',
+    resourceType: 'Prescription',
+    resourceId: prescription._id,
+    previousStatus,
+    newStatus: 'VOID',
+    performedBy: req.user.id,
+    performedByRole: req.user.role.toUpperCase(),
+    reason: reason || 'Not specified',
+    remarks
+  });
+
+  res.status(200).json({ success: true, message: 'Prescription voided successfully' });
+});
+
 // ============================
 // MEDICINE REMINDER CONTROLLER
 // ============================

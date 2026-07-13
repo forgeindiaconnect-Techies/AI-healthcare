@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FileText, UploadCloud, File, Trash2, Eye, Download, AlertCircle, Loader, Activity, Filter } from 'lucide-react';
 import { Badge, Button, Card, Modal } from '../../components/ui/SharedUI';
 import toast from 'react-hot-toast';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
 const MedicalReports = () => {
   const { user } = useAuth();
@@ -18,6 +19,9 @@ const MedicalReports = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [previewReport, setPreviewReport] = useState(null);
   const fileInputRef = useRef(null);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState(null);
 
   const categories = ['Blood Test', 'X-Ray', 'MRI', 'CT Scan', 'Prescription', 'Other'];
 
@@ -131,21 +135,27 @@ const MedicalReports = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
-      try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        // Removing mock report check since mock data is cleared
-        await API.delete(`/api/reports/${id}`, config);
-        setReports(reports.filter(r => r._id !== id));
-        toast.success('Report deleted successfully');
-      } catch (error) {
-        console.error('Error deleting report:', error);
-        toast.error('Failed to delete report.');
-      }
+  const handleDelete = async ({ reason }) => {
+    if (!reportToDelete) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/reports/${reportToDelete._id}/remove`, { reason }, config);
+      setReports(reports.filter(r => r._id !== reportToDelete._id));
+      toast.success('Report removed successfully');
+      setIsDeleteModalOpen(false);
+      setReportToDelete(null);
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      toast.error('Failed to remove report.');
+      setIsDeleteModalOpen(false);
+      setReportToDelete(null);
     }
   };
 
+  const openDeleteModal = (report) => {
+    setReportToDelete(report);
+    setIsDeleteModalOpen(true);
+  };
 
   const [fileMissing, setFileMissing] = useState(false);
 
@@ -308,7 +318,7 @@ const MedicalReports = () => {
                         <button onClick={() => handleDownload(report.fileUrl)} className="p-2 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-lg transition-colors" title="Download">
                           <Download className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(report._id)} className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Delete">
+                        <button onClick={() => openDeleteModal(report)} className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Remove">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -369,6 +379,15 @@ const MedicalReports = () => {
           </div>
         )}
       </Modal>
+
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setReportToDelete(null); }}
+        onConfirm={handleDelete}
+        recordName={reportToDelete?.title || 'Report'}
+        description={`This will remove the medical report.`}
+        requireReason={true}
+      />
     </div>
   );
 };

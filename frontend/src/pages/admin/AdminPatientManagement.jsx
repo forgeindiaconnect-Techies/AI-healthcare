@@ -1,10 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Search, Edit2, Trash2, Eye } from 'lucide-react';
+import API from '../../api/api';
+import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
+import { Spinner } from '../../components/ui/SharedUI';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
 const AdminPatientManagement = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState(null);
 
-  const mockPatients = [];
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await API.get('/api/admin/patients', config);
+      setPatients(data.data || []);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+      toast.error("Failed to load patients");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchPatients();
+    }
+  }, [user]);
+
+  const handleRemove = async ({ reason }) => {
+    if (!selectedPatient) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/admin/patients/${selectedPatient._id}/remove`, { reason }, config);
+      toast.success("Patient removed successfully");
+      fetchPatients();
+    } catch (error) {
+      console.error("Error removing patient:", error);
+      toast.error("Failed to remove patient");
+    }
+  };
+
+  const openDeleteModal = (patient) => {
+    setSelectedPatient(patient);
+    setIsDeleteModalOpen(true);
+  };
+
+  const filteredPatients = patients.filter(p => 
+    (p.user?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.user?.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -42,7 +94,13 @@ const AdminPatientManagement = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {mockPatients.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="5" className="py-12 text-center text-gray-500">
+                  <div className="flex justify-center"><Spinner size={40} /></div>
+                </td>
+              </tr>
+            ) : filteredPatients.length === 0 ? (
               <tr>
                 <td colSpan="5" className="py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center justify-center">
@@ -53,31 +111,31 @@ const AdminPatientManagement = () => {
                 </td>
               </tr>
             ) : (
-              mockPatients.map((patient) => (
-                <tr key={patient.id} className="hover:bg-gray-50 transition-colors">
+              filteredPatients.map((patient) => (
+                <tr key={patient._id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm mr-3">
-                        {patient.name.split(' ').map(n => n[0]).join('').substring(0,2)}
+                        {patient.user?.name ? patient.user.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'PT'}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-gray-900">{patient.name}</p>
-                        <p className="text-xs text-gray-500">ID: PAT-{patient.id}4920</p>
+                        <p className="text-sm font-bold text-gray-900">{patient.user?.name}</p>
+                        <p className="text-xs text-gray-500">ID: {patient._id.substring(0, 8)}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <p className="text-sm text-gray-900">{patient.email}</p>
-                    <p className="text-xs text-gray-500">{patient.phone}</p>
+                    <p className="text-sm text-gray-900">{patient.user?.email}</p>
+                    <p className="text-xs text-gray-500">{patient.user?.phone}</p>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {patient.registered}
+                    {new Date(patient.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      patient.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                      patient.isDeleted ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
                     }`}>
-                      {patient.status}
+                      {patient.isDeleted ? 'Removed' : 'Active'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
@@ -87,7 +145,7 @@ const AdminPatientManagement = () => {
                     <button className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors" title="Edit">
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-colors" title="Delete">
+                    <button onClick={() => openDeleteModal(patient)} className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-colors" title="Remove">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
@@ -97,6 +155,15 @@ const AdminPatientManagement = () => {
           </tbody>
         </table>
       </div>
+
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleRemove}
+        recordName={selectedPatient?.user?.name || 'Patient'}
+        description={`This will soft-delete the patient profile for ${selectedPatient?.user?.name}.`}
+        requireReason={true}
+      />
     </div>
   );
 };

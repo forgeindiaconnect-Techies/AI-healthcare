@@ -5,6 +5,7 @@ import API, { getCorrectUrl } from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { FileText, CheckCircle, Clock, X, ExternalLink, Send, Download, ZoomIn, ZoomOut, AlertTriangle, MessageSquare, Trash2 } from 'lucide-react';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
 const ReviewReports = () => {
   const { user } = useAuth();
@@ -13,6 +14,9 @@ const ReviewReports = () => {
   
   const [viewFileUrl, setViewFileUrl] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [reportToRemove, setReportToRemove] = useState(null);
   
   const [reviewNotes, setReviewNotes] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
@@ -139,18 +143,27 @@ const ReviewReports = () => {
     }
   };
 
-  const handleDeleteReport = async (reportId) => {
-    if (!window.confirm("Are you sure you want to remove this report?")) return;
+  const handleRemoveReport = async ({ reason }) => {
+    if (!reportToRemove) return;
     
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await API.delete(`/api/medical/reports/${reportId}`, config);
+      await API.patch(`/api/medical/reports/${reportToRemove._id}/remove`, { reason }, config);
       toast.success('Report removed successfully');
-      setReports(reports.filter(r => r._id !== reportId));
+      setReports(reports.filter(r => r._id !== reportToRemove._id));
+      setIsDeleteModalOpen(false);
+      setReportToRemove(null);
     } catch (error) {
       console.error(error);
       toast.error('Failed to remove report');
+      setIsDeleteModalOpen(false);
+      setReportToRemove(null);
     }
+  };
+
+  const openDeleteModal = (report) => {
+    setReportToRemove(report);
+    setIsDeleteModalOpen(true);
   };
 
   const handleChatSubmit = async (e) => {
@@ -382,7 +395,7 @@ const ReviewReports = () => {
                   {report.status?.toLowerCase() === 'reviewed' ? 'Edit Review' : 'Review'}
                 </Button>
                 <button
-                  onClick={() => handleDeleteReport(report._id)}
+                  onClick={() => openDeleteModal(report)}
                   style={{
                     background: 'none',
                     border: `1px solid ${colors.border}`,
@@ -582,6 +595,15 @@ const ReviewReports = () => {
           </div>
         </div>
       )}
+
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setReportToRemove(null); }}
+        onConfirm={handleRemoveReport}
+        recordName={reportToRemove?.title || 'Report'}
+        description={`This will remove the medical report.`}
+        requireReason={true}
+      />
     </div>
   );
 };

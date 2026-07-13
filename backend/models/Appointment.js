@@ -66,8 +66,9 @@ const mongoose = require('mongoose');
       queueNumber: Number,
       roomNumber: String,
       isDeleted: { type: Boolean, default: false },
-      deletedAt: Date,
-      deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      deletedAt: { type: Date, default: null },
+      deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+      deletionReason: { type: String, default: null },
     },
     { timestamps: true }
   );

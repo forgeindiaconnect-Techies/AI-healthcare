@@ -63,6 +63,7 @@ import AdminPrescriptions from './pages/admin/AdminPrescriptions';
 import AdminPayments from './pages/admin/AdminPayments';
 import AdminVideoConsults from './pages/admin/AdminVideoConsults';
 import DoctorReview from './pages/admin/DoctorReview';
+import ArchivedRecords from './pages/admin/ArchivedRecords';
 
 // Shared
 import VideoConsultation from './pages/consultation/VideoConsultation';
@@ -212,6 +213,7 @@ function App() {
               <Route path="admin-prescriptions" element={<RoleRoute role="admin"><AdminPrescriptions /></RoleRoute>} />
               <Route path="admin-payments" element={<RoleRoute role="admin"><AdminPayments /></RoleRoute>} />
               <Route path="admin-video-consults" element={<RoleRoute role="admin"><AdminVideoConsults /></RoleRoute>} />
+              <Route path="archived-records" element={<RoleRoute role="admin"><ArchivedRecords /></RoleRoute>} />
 
               {/* Shared Routes based on role */}
               <Route path="notifications" element={<NotificationsRouter />} />

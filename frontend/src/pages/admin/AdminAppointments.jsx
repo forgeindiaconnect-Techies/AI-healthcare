@@ -4,6 +4,7 @@ import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Spinner, Modal, Badge } from '../../components/ui/SharedUI';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import { colors } from '../../theme/colors';
 
 const AdminAppointments = () => {
@@ -16,6 +17,7 @@ const AdminAppointments = () => {
   const [selectedApt, setSelectedApt] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editStatus, setEditStatus] = useState('');
 
   const fetchAppointments = async () => {
@@ -38,18 +40,22 @@ const AdminAppointments = () => {
     }
   }, [user]);
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this appointment?")) {
-      try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await API.delete(`/api/appointments/${id}`, config);
-        toast.success("Appointment deleted successfully");
-        fetchAppointments();
-      } catch (error) {
-        console.error("Error deleting appointment:", error);
-        toast.error(error.response?.data?.message || "Failed to delete appointment");
-      }
+  const handleCancel = async ({ reason }) => {
+    if (!selectedApt) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/appointments/${selectedApt._id}/cancel`, { reason }, config);
+      toast.success("Appointment cancelled/removed successfully");
+      fetchAppointments();
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      toast.error(error.response?.data?.message || "Failed to remove appointment");
     }
+  };
+
+  const openDeleteModal = (apt) => {
+    setSelectedApt(apt);
+    setIsDeleteModalOpen(true);
   };
 
   const handleUpdateStatus = async () => {
@@ -172,9 +178,9 @@ const AdminAppointments = () => {
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button 
-                    onClick={() => handleDelete(apt._id)}
+                    onClick={() => openDeleteModal(apt)}
                     className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-colors" 
-                    title="Delete"
+                    title="Remove"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -249,6 +255,15 @@ const AdminAppointments = () => {
         </div>
       </Modal>
 
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleCancel}
+        recordName={`Appointment on ${selectedApt ? new Date(selectedApt.appointmentDate).toLocaleDateString() : ''}`}
+        description={`This will soft-delete or cancel the appointment with ${selectedApt?.doctor?.name}.`}
+        requireReason={true}
+      />
     </div>
   );
 };

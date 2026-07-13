@@ -110,7 +110,14 @@ exports.processPayment = asyncHandler(async (req, res, next) => {
 // @route   GET /api/payments/history
 // @access  Private
 exports.getPaymentHistory = asyncHandler(async (req, res, next) => {
-  const payments = await Payment.find({ patient: req.user.id })
+  const { includeDeleted } = req.query;
+  const query = { patient: req.user.id };
+  
+  if (includeDeleted !== 'true') {
+    query.isDeleted = { $ne: true };
+  }
+
+  const payments = await Payment.find(query)
     .sort('-createdAt')
     .populate('relatedAppointment', 'appointmentDate type');
 
@@ -125,7 +132,14 @@ exports.getPaymentHistory = asyncHandler(async (req, res, next) => {
 // @route   GET /api/payments
 // @access  Private/Admin
 exports.getAllPayments = asyncHandler(async (req, res, next) => {
-  const payments = await Payment.find()
+  const { includeDeleted } = req.query;
+  const query = {};
+  
+  if (includeDeleted !== 'true') {
+    query.isDeleted = { $ne: true };
+  }
+
+  const payments = await Payment.find(query)
     .populate('patient', 'name email')
     .sort('-createdAt');
 
@@ -134,4 +148,39 @@ exports.getAllPayments = asyncHandler(async (req, res, next) => {
     count: payments.length,
     data: payments
   });
+});
+
+// @desc    Archive (remove) payment
+// @route   PATCH /api/payments/:id/archive
+// @access  Private (Admin)
+exports.removePayment = asyncHandler(async (req, res, next) => {
+  const { reason, remarks } = req.body;
+  const payment = await Payment.findById(req.params.id);
+  
+  if (!payment) return next(new ErrorResponse('Payment not found', 404));
+
+  const previousStatus = payment.status;
+
+  payment.status = 'ARCHIVED';
+  payment.isDeleted = true;
+  payment.deletedAt = new Date();
+  payment.deletedBy = req.user.id;
+  payment.deletionReason = reason || 'Not specified';
+  
+  await payment.save();
+
+  const AuditLog = require('../models/AuditLog');
+  await AuditLog.create({
+    action: 'ARCHIVE_PAYMENT',
+    resourceType: 'Payment',
+    resourceId: payment._id,
+    previousStatus,
+    newStatus: 'ARCHIVED',
+    performedBy: req.user.id,
+    performedByRole: req.user.role.toUpperCase(),
+    reason: reason || 'Not specified',
+    remarks
+  });
+
+  res.status(200).json({ success: true, message: 'Payment archived successfully' });
 });

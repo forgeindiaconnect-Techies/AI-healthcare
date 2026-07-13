@@ -32,7 +32,7 @@ const prescriptionSchema = new mongoose.Schema(
     validUntil: Date,
     status: {
       type: String,
-      enum: ['active', 'completed', 'cancelled', 'expired'],
+      enum: ['active', 'completed', 'cancelled', 'expired', 'VOID'],
       default: 'active',
     },
     dispensedAt: Date,
@@ -43,6 +43,10 @@ const prescriptionSchema = new mongoose.Schema(
     pdfUrl: String,
     refillCount: { type: Number, default: 0 },
     maxRefills: { type: Number, default: 0 },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    deletionReason: { type: String, default: null },
   },
   { timestamps: true }
 );

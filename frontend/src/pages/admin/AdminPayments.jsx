@@ -3,14 +3,17 @@ import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
   CreditCard, Search, Download, Filter, ChevronLeft, ChevronRight, 
-  User, DollarSign, Activity, FileText
+  User, DollarSign, Activity, FileText, Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
 const AdminPayments = () => {
   const { user } = useAuth();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState(null);
   
   // Pagination & Filtering
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,6 +42,24 @@ const AdminPayments = () => {
 
   const handleDownload = (id) => {
     toast.success(`Downloading receipt for Transaction ID: ${id}`);
+  };
+
+  const handleArchive = async ({ reason }) => {
+    if (!selectedPayment) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/payments/${selectedPayment._id}/archive`, { reason }, config);
+      toast.success("Payment archived successfully");
+      fetchPayments();
+    } catch (error) {
+      console.error("Error archiving payment:", error);
+      toast.error("Failed to archive payment");
+    }
+  };
+
+  const openDeleteModal = (payment) => {
+    setSelectedPayment(payment);
+    setIsDeleteModalOpen(true);
   };
 
   // Client-side filtering and pagination
@@ -250,16 +271,25 @@ const AdminPayments = () => {
 
                     {/* Actions Column */}
                     <td className="py-4 px-6 text-right">
-                      {payment.status === 'completed' ? (
+                      <div className="flex items-center justify-end gap-2">
+                        {payment.status === 'completed' ? (
+                          <button 
+                            onClick={() => handleDownload(payment.transactionId)}
+                            className="p-2 text-sky-600 hover:bg-sky-50 rounded-xl transition-colors tooltip-trigger inline-flex items-center gap-2 font-bold text-sm border border-transparent hover:border-sky-100"
+                          >
+                            <Download className="w-4 h-4" /> Receipt
+                          </button>
+                        ) : (
+                          <span className="text-xs font-bold text-gray-400 px-3">Unavailable</span>
+                        )}
                         <button 
-                          onClick={() => handleDownload(payment.transactionId)}
-                          className="p-2 text-sky-600 hover:bg-sky-50 rounded-xl transition-colors tooltip-trigger inline-flex items-center gap-2 font-bold text-sm border border-transparent hover:border-sky-100"
+                          onClick={() => openDeleteModal(payment)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors tooltip-trigger" 
+                          title="Archive Payment"
                         >
-                          <Download className="w-4 h-4" /> Receipt
+                          <Trash2 className="w-5 h-5" />
                         </button>
-                      ) : (
-                        <span className="text-xs font-bold text-gray-400 px-3">Unavailable</span>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -294,6 +324,14 @@ const AdminPayments = () => {
         )}
       </div>
 
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleArchive}
+        recordName={`Transaction ${selectedPayment?.transactionId || 'Payment'}`}
+        description={`This will soft-delete and archive the payment record.`}
+        requireReason={true}
+      />
     </div>
   );
 };

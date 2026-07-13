@@ -4,15 +4,19 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   CreditCard, Smartphone, Building, ShieldCheck, 
   Receipt, Download, CheckCircle2, XCircle, Clock,
-  Search, ArrowDownToLine, FileText
+  Search, ArrowDownToLine, FileText, Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
 const PaymentHistory = () => {
   const { user } = useAuth();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [paymentToRemove, setPaymentToRemove] = useState(null);
 
   useEffect(() => {
     fetchPayments();
@@ -37,6 +41,23 @@ const PaymentHistory = () => {
     setTimeout(() => {
       toast.success('Receipt downloaded successfully!');
     }, 1500);
+  };
+
+  const handleArchivePayment = async ({ reason }) => {
+    if (!paymentToRemove) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/payments/${paymentToRemove._id}/archive`, { reason }, config);
+      toast.success('Transaction removed successfully');
+      setPayments(payments.filter(p => p._id !== paymentToRemove._id));
+      setIsDeleteModalOpen(false);
+      setPaymentToRemove(null);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to remove transaction');
+      setIsDeleteModalOpen(false);
+      setPaymentToRemove(null);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -291,6 +312,13 @@ const PaymentHistory = () => {
                       >
                         <Download className="w-5 h-5" />
                       </button>
+                      <button
+                        onClick={() => { setPaymentToRemove(payment); setIsDeleteModalOpen(true); }}
+                        className="inline-flex items-center justify-center p-2 rounded-lg transition-all text-gray-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 ml-2"
+                        title="Remove Transaction"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
                     </td>
 
                   </tr>
@@ -300,6 +328,15 @@ const PaymentHistory = () => {
           </div>
         )}
       </div>
+
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setPaymentToRemove(null); }}
+        onConfirm={handleArchivePayment}
+        recordName={`Transaction ${paymentToRemove?.transactionId || ''}`}
+        description={`This will remove the transaction record from your view.`}
+        requireReason={true}
+      />
     </div>
   );
 };

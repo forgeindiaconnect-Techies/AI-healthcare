@@ -308,7 +308,7 @@ exports.getAllReportsForDoctor = asyncHandler(async (req, res, next) => {
   const doctor = await Doctor.findOne({ user: req.user._id });
   if (!doctor) return next(new ErrorResponse('Doctor profile not found', 404));
 
-  const reports = await MedicalReport.find() // Should ideally be filtered by patients assigned to the doctor, but for demo we will fetch all or mock
+  const reports = await MedicalReport.find({ isDeleted: { $ne: true } }) // Should ideally be filtered by patients assigned to the doctor, but for demo we will fetch all or mock
     .populate('patient', 'name email avatar')
     .sort('-reportDate');
 
@@ -638,17 +638,38 @@ exports.deleteDoctorNote = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: {} });
 });
 
-// @desc    Delete medical report
-// @route   DELETE /api/medical/reports/:id
+// @desc    Remove (soft delete) medical report
+// @route   PATCH /api/medical/reports/:id/remove
 // @access  Private/Doctor
-exports.deleteReport = asyncHandler(async (req, res, next) => {
+exports.removeReport = asyncHandler(async (req, res, next) => {
+  const { reason, remarks } = req.body;
   const report = await MedicalReport.findById(req.params.id);
   
   if (!report) {
     return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
   }
 
-  await report.deleteOne();
+  const previousStatus = report.status || 'pending';
+  
+  report.isDeleted = true;
+  report.deletedAt = new Date();
+  report.deletedBy = req.user.id;
+  report.deletionReason = reason || 'Not specified';
+  
+  await report.save();
+
+  const AuditLog = require('../models/AuditLog');
+  await AuditLog.create({
+    action: 'REMOVE_MEDICAL_REPORT',
+    resourceType: 'MedicalReport',
+    resourceId: report._id,
+    previousStatus,
+    newStatus: 'Removed',
+    performedBy: req.user.id,
+    performedByRole: req.user.role.toUpperCase(),
+    reason: reason || 'Not specified',
+    remarks
+  });
 
   res.status(200).json({ success: true, data: {} });
 });

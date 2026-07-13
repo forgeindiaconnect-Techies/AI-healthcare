@@ -2,11 +2,18 @@ import React, { useState } from 'react';
 import { Pill, Calendar, Clock, Download, AlertCircle, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
 import { Card, Button, Badge } from '../../components/ui/SharedUI';
 import toast from 'react-hot-toast';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
+import API from '../../api/api';
+import { useAuth } from '../../context/AuthContext';
 
 const PatientPrescriptions = () => {
   const [activeTab, setActiveTab] = useState('tracker');
 
+  const { user } = useAuth();
   const [medications, setMedications] = useState([]);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [prescriptionToRemove, setPrescriptionToRemove] = useState(null);
 
   const mockPrescriptions = [];
 
@@ -24,6 +31,22 @@ const PatientPrescriptions = () => {
   };
 
   const adherence = Math.round((medications.filter(m => m.status === 'taken').length / medications.length) * 100) || 0;
+
+  const handleRemovePrescription = async ({ reason }) => {
+    if (!prescriptionToRemove) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/prescriptions/${prescriptionToRemove.id || prescriptionToRemove._id}/void`, { reason }, config);
+      toast.success('Prescription removed successfully');
+      setIsDeleteModalOpen(false);
+      setPrescriptionToRemove(null);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to remove prescription');
+      setIsDeleteModalOpen(false);
+      setPrescriptionToRemove(null);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -130,6 +153,9 @@ const PatientPrescriptions = () => {
                         <Button variant="outline" size="sm" className="flex items-center">
                           <Download className="w-4 h-4 mr-1.5" /> PDF
                         </Button>
+                        <Button variant="outline" size="sm" onClick={() => { setPrescriptionToRemove(prescription); setIsDeleteModalOpen(true); }} className="flex items-center text-red-600 border-red-200 hover:bg-red-50">
+                          <XCircle className="w-4 h-4 mr-1.5" /> Remove
+                        </Button>
                       </div>
                     </div>
                     <div className="p-0 overflow-x-auto">
@@ -174,6 +200,16 @@ const PatientPrescriptions = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setPrescriptionToRemove(null); }}
+        onConfirm={handleRemovePrescription}
+        recordName={`Prescription from ${prescriptionToRemove?.doctor || 'Doctor'}`}
+        description={`This will remove the prescription from your view.`}
+        requireReason={true}
+      />
     </div>
   );
 };

@@ -192,24 +192,46 @@ exports.updateReport = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: updated });
 });
 
-// @desc    Delete report
-// @route   DELETE /api/reports/:id
+// @desc    Soft delete (Archive) report
+// @route   PATCH /api/reports/:id/remove
 // @access  Private
-exports.deleteReport = asyncHandler(async (req, res, next) => {
+exports.removeReport = asyncHandler(async (req, res, next) => {
+  const { reason, remarks } = req.body;
   const report = await MedicalReport.findById(req.params.id);
   if (!report) return next(new ErrorResponse('Report not found', 404));
 
   if (req.user.role === 'patient' && report.patient.toString() !== req.user.id) {
     return next(new ErrorResponse('Not authorized', 403));
   }
-
-  // Delete from Cloudinary
-  if (report.filePublicId) {
-    try { await deleteFile(report.filePublicId); } catch (e) { /* non-blocking */ }
+  
+  if (req.user.role === 'doctor' && report.uploadedBy.toString() !== req.user.id) {
+    return next(new ErrorResponse('Not authorized to remove this report', 403));
   }
 
-  await report.deleteOne();
-  await Patient.findOneAndUpdate({ user: report.patient }, { $inc: { totalReports: -1 } });
+  const previousStatus = report.isArchived ? 'Archived' : 'Active';
 
-  res.status(200).json({ success: true, message: 'Report deleted' });
+  report.isArchived = true;
+  report.isDeleted = true;
+  report.deletedAt = new Date();
+  report.deletedBy = req.user.id;
+  report.deletionReason = reason || 'Not specified';
+  
+  await report.save();
+
+  const AuditLog = require('../models/AuditLog');
+  await AuditLog.create({
+    action: 'REMOVE_REPORT',
+    resourceType: 'MedicalReport',
+    resourceId: report._id,
+    previousStatus,
+    newStatus: 'Archived',
+    performedBy: req.user.id,
+    performedByRole: req.user.role.toUpperCase(),
+    reason: reason || 'Not specified',
+    remarks
+  });
+
+  // We do not decrement totalReports because it's only soft-deleted, but can do if we want. Let's decrement for consistency with active reports count if needed, but usually soft-delete implies it's still there.
+
+  res.status(200).json({ success: true, message: 'Report removed successfully' });
 });

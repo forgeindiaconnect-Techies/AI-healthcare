@@ -110,6 +110,10 @@ const doctorSchema = new mongoose.Schema(
     isAcceptingPatients: { type: Boolean, default: false }, // Should default to false until approved
     totalPatients: { type: Number, default: 0 },
     totalAppointments: { type: Number, default: 0 },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    deletionReason: { type: String, default: null },
   },
   { timestamps: true }
 );

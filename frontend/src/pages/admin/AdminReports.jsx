@@ -3,10 +3,11 @@ import API, { getCorrectUrl } from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
   FileText, Search, Download, Eye, ShieldCheck, 
-  Filter, ChevronLeft, ChevronRight, User, AlertCircle
+  Filter, ChevronLeft, ChevronRight, User, AlertCircle, Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Modal } from '../../components/ui/SharedUI';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import { colors } from '../../theme/colors';
 
 const AdminReports = () => {
@@ -14,8 +15,8 @@ const AdminReports = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // View Modal state
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
 
   // Pagination & Filtering
@@ -102,6 +103,24 @@ const AdminReports = () => {
           window.open(fixedUrl, '_blank');
         });
     }
+  };
+
+  const handleRemove = async ({ reason }) => {
+    if (!selectedReport) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/reports/${selectedReport._id}/remove`, { reason }, config);
+      toast.success("Report archived successfully");
+      fetchReports(currentPage);
+    } catch (error) {
+      console.error("Error archiving report:", error);
+      toast.error("Failed to remove report");
+    }
+  };
+
+  const openDeleteModal = (report) => {
+    setSelectedReport(report);
+    setIsDeleteModalOpen(true);
   };
 
   // Client-side search filtering (since the API might not support native text search)
@@ -281,6 +300,13 @@ const AdminReports = () => {
                         >
                           <Download className="w-5 h-5" />
                         </button>
+                        <button 
+                          onClick={() => openDeleteModal(report)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors tooltip-trigger" 
+                          title="Remove Report"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -364,6 +390,14 @@ const AdminReports = () => {
         )}
       </Modal>
 
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleRemove}
+        recordName={selectedReport?.title || 'Report'}
+        description={`This will archive the report from ${selectedReport?.patient?.name || 'the patient'}.`}
+        requireReason={true}
+      />
     </div>
   );
 };

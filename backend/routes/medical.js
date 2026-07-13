@@ -27,7 +27,7 @@ const {
   editDoctorNote,
   deleteDoctorNote,
   generateFinalReport,
-  deleteReport,
+  removeReport,
   updateDiagnosis,
   deleteDiagnosis
 } = require('../controllers/medicalController');
@@ -84,8 +84,7 @@ router.get('/report/:patientId', getPatientReport);
 // Reports Review
 router.route('/reports')
   .get(getAllReportsForDoctor);
-router.route('/reports/:id')
-  .delete(deleteReport);
+router.patch('/reports/:id/remove', removeReport);
 router.route('/reports/:id/review')
   .put(reviewReport);
 router.post('/reports/:id/chat', askReportAI);

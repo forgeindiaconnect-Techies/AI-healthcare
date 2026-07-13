@@ -3,15 +3,18 @@ import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Video, Search, Filter, ChevronLeft, ChevronRight, 
-  User, Stethoscope, Calendar, Clock, MonitorPlay
+  User, Stethoscope, Calendar, Clock, MonitorPlay, Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
 const AdminVideoConsults = () => {
   const { user } = useAuth();
   const [consults, setConsults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedConsult, setSelectedConsult] = useState(null);
   const navigate = useNavigate();
 
   // Mock Data
@@ -59,6 +62,24 @@ const AdminVideoConsults = () => {
 
   const handleAction = (roomId) => {
     navigate(`/consultation/${roomId}`);
+  };
+
+  const handleCancel = async ({ reason }) => {
+    if (!selectedConsult) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/appointments/${selectedConsult._id}/cancel`, { reason }, config);
+      toast.success("Consultation cancelled successfully");
+      fetchConsults(currentPage);
+    } catch (error) {
+      console.error("Error cancelling consult:", error);
+      toast.error("Failed to cancel consultation");
+    }
+  };
+
+  const openDeleteModal = (consult) => {
+    setSelectedConsult(consult);
+    setIsDeleteModalOpen(true);
   };
 
   // Client-side search filtering
@@ -243,19 +264,28 @@ const AdminVideoConsults = () => {
 
                     {/* Actions Column */}
                     <td className="py-4 px-6 text-right">
-                      {['confirmed', 'in-progress'].includes(consult.status) ? (
+                      <div className="flex items-center justify-end gap-2">
+                        {['confirmed', 'in-progress'].includes(consult.status) ? (
+                          <button 
+                            onClick={() => {
+                              const roomId = consult.meetingLink ? consult.meetingLink.split('/').pop() : consult._id.slice(-8);
+                              handleAction(roomId);
+                            }}
+                            className="px-3 py-1.5 text-teal-600 hover:bg-teal-50 hover:border-teal-200 border border-transparent rounded-xl transition-all inline-flex items-center gap-2 font-bold text-sm"
+                          >
+                            <MonitorPlay className="w-4 h-4" /> Monitor
+                          </button>
+                        ) : (
+                          <span className="text-xs font-bold text-gray-400 px-3">Unavailable</span>
+                        )}
                         <button 
-                          onClick={() => {
-                            const roomId = consult.meetingLink ? consult.meetingLink.split('/').pop() : consult._id.slice(-8);
-                            handleAction(roomId);
-                          }}
-                          className="px-3 py-1.5 text-teal-600 hover:bg-teal-50 hover:border-teal-200 border border-transparent rounded-xl transition-all inline-flex items-center gap-2 font-bold text-sm"
+                          onClick={() => openDeleteModal(consult)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors tooltip-trigger" 
+                          title="Remove (Cancel)"
                         >
-                          <MonitorPlay className="w-4 h-4" /> Monitor
+                          <Trash2 className="w-5 h-5" />
                         </button>
-                      ) : (
-                        <span className="text-xs font-bold text-gray-400 px-3">Unavailable</span>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -290,6 +320,14 @@ const AdminVideoConsults = () => {
         )}
       </div>
 
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleCancel}
+        recordName={`Consultation with ${selectedConsult?.doctor?.name || 'doctor'}`}
+        description={`This will soft-delete and cancel the video consultation.`}
+        requireReason={true}
+      />
     </div>
   );
 };

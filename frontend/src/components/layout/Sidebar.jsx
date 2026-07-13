@@ -7,7 +7,7 @@ import {
   Home, Calendar, Stethoscope, Bot, Search, UserCheck, 
   Clipboard, Microscope, Pill, FileText, BarChart, 
   Utensils, Dna, CreditCard, Receipt, Bell, User, 
-  Users, File, Video, TrendingUp, Settings, LogOut, Activity 
+  Users, File, Video, TrendingUp, Settings, LogOut, Activity, Archive
 } from 'lucide-react';
 
 const navItems = {
@@ -53,6 +53,7 @@ const navItems = {
     { id: "dashboard/admin-prescriptions", label: "Manage Prescriptions", icon: <Pill size={20} /> },
     { id: "dashboard/admin-payments", label: "Manage Payments", icon: <CreditCard size={20} /> },
     { id: "dashboard/admin-video-consults", label: "Manage Video Consultations", icon: <Video size={20} /> },
+    { id: "dashboard/archived-records", label: "Archived Records", icon: <Archive size={20} /> },
     { id: "dashboard/analytics", label: "Reports & Analytics", icon: <TrendingUp size={20} /> },
     { id: "dashboard/notifications", label: "Notifications", icon: <Bell size={20} /> },
     { id: "dashboard/settings", label: "Settings", icon: <Settings size={20} /> },

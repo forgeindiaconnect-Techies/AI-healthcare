@@ -156,8 +156,12 @@ exports.getPatientTreatmentPlans = asyncHandler(async (req, res, next) => {
 // @route   GET /api/patients
 // @access  Private (doctor, admin)
 exports.getAllPatients = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, search } = req.query;
+  const { page = 1, limit = 10, search, includeDeleted } = req.query;
   const query = { role: 'patient', isActive: true };
+  if (includeDeleted !== 'true') {
+    query.isDeleted = { $ne: true };
+  }
+
   if (search) {
     query.$or = [
       { name: { $regex: search, $options: 'i' } },
@@ -228,8 +232,13 @@ exports.getAdminDashboard = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/users
 // @access  Private (admin)
 exports.getAllUsers = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 15, role, search, isActive } = req.query;
+  const { page = 1, limit = 15, role, search, isActive, includeDeleted } = req.query;
   const query = {};
+  
+  if (includeDeleted !== 'true') {
+    query.isDeleted = { $ne: true };
+  }
+
   if (role) query.role = role;
   if (isActive !== undefined) query.isActive = isActive === 'true';
   if (search) query.$or = [{ name: { $regex: search, $options: 'i' } }, { email: { $regex: search, $options: 'i' } }];
@@ -259,20 +268,106 @@ exports.toggleUserStatus = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Delete user (admin)
-// @route   DELETE /api/admin/users/:id
+// @desc    Soft delete user (admin)
+// @route   PATCH /api/admin/users/:id/remove
 // @access  Private (admin)
-exports.deleteUser = asyncHandler(async (req, res, next) => {
+exports.removeUser = asyncHandler(async (req, res, next) => {
+  const { reason, remarks } = req.body;
   const user = await User.findById(req.params.id);
   if (!user) return next(new ErrorResponse('User not found', 404));
-  if (user.role === 'admin') return next(new ErrorResponse('Cannot delete admin accounts', 403));
+  if (user.role === 'admin') return next(new ErrorResponse('Cannot remove admin accounts', 403));
 
-  // Clean up related data
-  if (user.role === 'patient') await Patient.findOneAndDelete({ user: user._id });
-  if (user.role === 'doctor') await Doctor.findOneAndDelete({ user: user._id });
+  let previousStatus = user.isActive ? 'ACTIVE' : 'INACTIVE';
 
-  await user.deleteOne();
-  res.status(200).json({ success: true, message: 'User deleted' });
+  if (user.role === 'patient') {
+    // Check for active appointments
+    const activeAppointments = await Appointment.countDocuments({
+      patient: user._id,
+      status: { $in: ['Scheduled', 'Confirmed', 'Pending Doctor Approval', 'Approved - Payment Pending', 'Meeting Scheduled', 'pending', 'confirmed'] },
+      isDeleted: { $ne: true }
+    });
+
+    if (activeAppointments > 0) {
+      return next(new ErrorResponse(`Cannot remove patient because ${activeAppointments} active appointments exist.`, 400));
+    }
+
+    const patient = await Patient.findOne({ user: user._id });
+    if (patient) {
+      patient.isDeleted = true;
+      patient.deletedAt = new Date();
+      patient.deletedBy = req.user.id;
+      patient.deletionReason = reason || 'Not specified';
+      await patient.save();
+    }
+  }
+
+  if (user.role === 'doctor') {
+    return next(new ErrorResponse('Please use the Doctor Management page to remove doctors', 400));
+  }
+
+  user.isDeleted = true;
+  user.isActive = false;
+  user.deletedAt = new Date();
+  user.deletedBy = req.user.id;
+  user.deletionReason = reason || 'Not specified';
+  await user.save();
+
+  const AuditLog = require('../models/AuditLog');
+  await AuditLog.create({
+    action: 'REMOVE',
+    resourceType: 'User',
+    resourceId: user._id,
+    previousStatus,
+    newStatus: 'INACTIVE',
+    performedBy: req.user.id,
+    performedByRole: 'ADMIN',
+    reason: reason || 'Not specified',
+    remarks
+  });
+
+  res.status(200).json({ success: true, message: 'User removed successfully' });
+});
+
+// @desc    Restore user (admin)
+// @route   PATCH /api/admin/users/:id/restore
+// @access  Private (admin)
+exports.restoreUser = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) return next(new ErrorResponse('User not found', 404));
+  if (!user.isDeleted) return next(new ErrorResponse('User is not removed', 400));
+
+  let previousStatus = 'INACTIVE';
+  user.isDeleted = false;
+  user.isActive = true;
+  user.deletedAt = null;
+  user.deletedBy = null;
+  user.deletionReason = null;
+  await user.save();
+
+  if (user.role === 'patient') {
+    const patient = await Patient.findOne({ user: user._id });
+    if (patient) {
+      patient.isDeleted = false;
+      patient.deletedAt = null;
+      patient.deletedBy = null;
+      patient.deletionReason = null;
+      await patient.save();
+    }
+  }
+
+  const AuditLog = require('../models/AuditLog');
+  await AuditLog.create({
+    action: 'RESTORE',
+    resourceType: 'User',
+    resourceId: user._id,
+    previousStatus,
+    newStatus: 'ACTIVE',
+    performedBy: req.user.id,
+    performedByRole: 'ADMIN',
+    reason: 'Restored from archived'
+  });
+
+  res.status(200).json({ success: true, message: 'User restored successfully' });
 });
 
 // @desc    Get activity logs
@@ -287,6 +382,30 @@ exports.getActivityLogs = asyncHandler(async (req, res) => {
   const total = await ActivityLog.countDocuments(query);
   const logs = await ActivityLog.find(query)
     .populate('user', 'name email role')
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(Number(limit));
+
+  res.status(200).json({ success: true, total, data: logs });
+});
+
+// @desc    Get all archived/soft-deleted records (AuditLogs)
+// @route   GET /api/admin/archived
+// @access  Private (admin)
+exports.getArchivedRecords = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+
+  const AuditLog = require('../models/AuditLog');
+  
+  const query = {};
+  if (req.query.resourceType) query.resourceType = req.query.resourceType;
+  if (req.query.action) query.action = req.query.action;
+  else query.action = { $in: ['REMOVE', 'REMOVE_REPORT', 'VOID_PRESCRIPTION', 'ARCHIVE_PAYMENT', 'CANCEL_APPOINTMENT', 'REMOVE_MEDICAL_REPORT', 'REMOVE_USER', 'REMOVE_NOTIFICATION'] };
+
+  const total = await AuditLog.countDocuments(query);
+  const logs = await AuditLog.find(query)
+    .populate('performedBy', 'name email role')
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(Number(limit));

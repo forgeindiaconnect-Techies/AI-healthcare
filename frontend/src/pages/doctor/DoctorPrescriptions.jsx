@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { FileText, Plus, Search, Download, Edit, X, Eye, Activity, Filter, FileSignature, Stethoscope, CheckCircle, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PrescriptionBuilder from '../../components/dashboard/doctor/PrescriptionBuilder';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
+import API from '../../api/api';
+import { useAuth } from '../../context/AuthContext';
 
 const DoctorPrescriptions = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -9,6 +12,10 @@ const DoctorPrescriptions = () => {
   const [viewPrescription, setViewPrescription] = useState(null);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
+  
+  const { user } = useAuth();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [prescriptionToVoid, setPrescriptionToVoid] = useState(null);
 
   const mockPrescriptions = [];
 
@@ -31,6 +38,22 @@ const DoctorPrescriptions = () => {
     const matchesStatus = statusFilter === 'All' || rx.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const handleVoidPrescription = async ({ reason }) => {
+    if (!prescriptionToVoid) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/prescriptions/${prescriptionToVoid.id || prescriptionToVoid._id}/void`, { reason }, config);
+      toast.success('Prescription voided successfully');
+      setIsDeleteModalOpen(false);
+      setPrescriptionToVoid(null);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to void prescription');
+      setIsDeleteModalOpen(false);
+      setPrescriptionToVoid(null);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
@@ -156,6 +179,13 @@ const DoctorPrescriptions = () => {
                 >
                   <Download className="w-4 h-4"/>
                 </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setPrescriptionToVoid(rx); setIsDeleteModalOpen(true); }}
+                  className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 flex items-center justify-center transition-all shadow-sm"
+                  title="Remove"
+                >
+                  <X className="w-4 h-4"/>
+                </button>
               </div>
             </div>
           </div>
@@ -267,6 +297,16 @@ const DoctorPrescriptions = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setPrescriptionToVoid(null); }}
+        onConfirm={handleVoidPrescription}
+        recordName={`Prescription for ${prescriptionToVoid?.patient || 'Patient'}`}
+        description={`This will void and remove the prescription.`}
+        requireReason={true}
+      />
     </div>
   );
 };

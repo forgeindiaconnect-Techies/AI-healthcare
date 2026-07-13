@@ -15,6 +15,7 @@ notificationRouter.use(protect);
 notificationRouter.get('/', notificationController.getNotifications);
 notificationRouter.put('/read-all', notificationController.markAllAsRead);
 notificationRouter.put('/:id/read', notificationController.markAsRead);
+notificationRouter.patch('/:id/remove', notificationController.removeNotification);
 
 // ---------------- DOCTOR ROUTES ----------------
 const doctorController = require('../controllers/doctorController');
@@ -37,6 +38,7 @@ doctorRouter.get('/:id', doctorController.getDoctor);
 
 // ---------------- PATIENT ROUTES ----------------
 const patientController = require('../controllers/patientController');
+const paymentController = require('../controllers/paymentController');
 patientRouter.get('/profile/me', protect, authorize('patient'), patientController.getPatientProfile);
 patientRouter.put('/profile', protect, authorize('patient'), patientController.updatePatientProfile);
 patientRouter.post('/vitals', protect, authorize('patient', 'doctor'), patientController.addVitals);
@@ -50,8 +52,10 @@ const adminDoctorController = require('../controllers/adminDoctorController');
 adminRouter.get('/dashboard', protect, authorize('admin'), patientController.getAdminDashboard);
 adminRouter.get('/users', protect, authorize('admin'), patientController.getAllUsers);
 adminRouter.put('/users/:id/status', protect, authorize('admin'), patientController.toggleUserStatus);
-adminRouter.delete('/users/:id', protect, authorize('admin'), patientController.deleteUser);
+adminRouter.patch('/users/:id/remove', protect, authorize('admin'), patientController.removeUser);
+adminRouter.patch('/users/:id/restore', protect, authorize('admin'), patientController.restoreUser);
 adminRouter.get('/logs', protect, authorize('admin'), patientController.getActivityLogs);
+adminRouter.get('/archived', protect, authorize('admin'), patientController.getArchivedRecords);
 adminRouter.get('/analytics', protect, authorize('admin'), patientController.getAnalytics);
 
 // Admin Doctor Management Routes
@@ -66,7 +70,8 @@ adminRouter.post('/doctors/:id/verify-medical-license', protect, authorize('admi
 adminRouter.post('/doctors/:id/:action', protect, authorize('admin'), adminDoctorController.updateDoctorStatus); // approve, reject, suspend, request-changes
 
 adminRouter.put('/doctors/:id', protect, authorize('admin'), adminDoctorController.updateDoctor);
-adminRouter.delete('/doctors/:id', protect, authorize('admin'), adminDoctorController.deleteDoctor);
+adminRouter.patch('/doctors/:id/remove', protect, authorize('admin'), adminDoctorController.removeDoctor);
+adminRouter.patch('/doctors/:id/restore', protect, authorize('admin'), adminDoctorController.restoreDoctor);
 
 // ---------------- REPORT ROUTES ----------------
 const reportController = require('../controllers/reportController');
@@ -78,7 +83,7 @@ reportRouter.post('/upload', uploadReportMiddleware.single('file'), reportContro
 reportRouter.post('/:id/analyze', reportController.analyzeReport);
 reportRouter.put('/:id/share', reportController.shareReport);
 reportRouter.put('/:id', reportController.updateReport);
-reportRouter.delete('/:id', reportController.deleteReport);
+reportRouter.patch('/:id/remove', reportController.removeReport);
 
 // ---------------- PRESCRIPTION ROUTES ----------------
 const prescriptionController = require('../controllers/prescriptionController');
@@ -88,6 +93,7 @@ prescriptionRouter.get('/reminders', prescriptionController.getReminders);
 prescriptionRouter.get('/:id', prescriptionController.getPrescription);
 prescriptionRouter.post('/', authorize('doctor'), prescriptionController.createPrescription);
 prescriptionRouter.put('/:id', authorize('doctor'), prescriptionController.updatePrescription);
+prescriptionRouter.patch('/:id/void', authorize('doctor', 'admin'), prescriptionController.voidPrescription);
 
 // ---------------- AI ROUTES ----------------
 const aiController = require('../controllers/aiController');

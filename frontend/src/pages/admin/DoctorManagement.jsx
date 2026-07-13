@@ -4,6 +4,7 @@ import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Spinner, Modal, Badge } from '../../components/ui/SharedUI';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import { colors } from '../../theme/colors';
 
 const DoctorManagement = () => {
@@ -19,6 +20,7 @@ const DoctorManagement = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   // Verification State
   const [verificationReport, setVerificationReport] = useState(null);
@@ -152,18 +154,22 @@ const DoctorManagement = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to permanently delete this doctor account?")) {
-      try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await API.delete(`/api/admin/doctors/${id}`, config);
-        toast.success("Doctor deleted successfully");
-        fetchDoctors();
-      } catch (error) {
-        console.error("Error deleting doctor:", error);
-        toast.error("Failed to delete doctor");
-      }
+  const handleDelete = async ({ reason }) => {
+    if (!selectedDoctor) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/admin/doctors/${selectedDoctor._id}/remove`, { reason }, config);
+      toast.success("Doctor removed successfully");
+      fetchDoctors();
+    } catch (error) {
+      console.error("Error removing doctor:", error);
+      toast.error("Failed to remove doctor");
     }
+  };
+
+  const openDeleteModal = (doc) => {
+    setSelectedDoctor(doc);
+    setIsDeleteModalOpen(true);
   };
 
   const openViewModal = (doc) => {
@@ -330,8 +336,8 @@ const DoctorManagement = () => {
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button 
-                            onClick={() => handleDelete(doc._id)}
-                            className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-colors" title="Delete"
+                            onClick={() => openDeleteModal(doc)}
+                            className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-colors" title="Remove"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -709,6 +715,16 @@ const DoctorManagement = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        recordName={selectedDoctor?.user?.name || 'Doctor'}
+        description={`This will soft-delete the doctor profile for ${selectedDoctor?.user?.name}.`}
+        requireReason={true}
+      />
 
     </div>
   );

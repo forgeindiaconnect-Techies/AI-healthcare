@@ -3,14 +3,18 @@ import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Bell, CheckCircle2, Calendar, FileText, AlertCircle, 
-  CheckCheck, Info, X, HeartPulse, Activity
+  CheckCheck, Info, X, HeartPulse, Activity, Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
 const PatientNotifications = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [notificationToRemove, setNotificationToRemove] = useState(null);
 
   useEffect(() => {
     fetchNotifications();
@@ -49,6 +53,23 @@ const PatientNotifications = () => {
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
       toast.error('Failed to mark all as read');
+    }
+  };
+
+  const handleRemoveNotification = async ({ reason }) => {
+    if (!notificationToRemove) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      await API.patch(`/api/notifications/${notificationToRemove._id}/remove`, { reason }, config);
+      toast.success('Notification removed successfully');
+      setNotifications(notifications.filter(n => n._id !== notificationToRemove._id));
+      setIsDeleteModalOpen(false);
+      setNotificationToRemove(null);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to remove notification');
+      setIsDeleteModalOpen(false);
+      setNotificationToRemove(null);
     }
   };
 
@@ -176,25 +197,44 @@ const PatientNotifications = () => {
               </div>
 
               {/* Action */}
-              {!notification.isRead && (
-                <div className="shrink-0 flex items-center">
+                <div className="shrink-0 flex items-center gap-2">
+                  {!notification.isRead && (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        markAsRead(notification._id);
+                      }}
+                      className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-full transition-colors tooltip-trigger"
+                      title="Mark as read"
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                    </button>
+                  )}
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      markAsRead(notification._id);
+                      setNotificationToRemove(notification);
+                      setIsDeleteModalOpen(true);
                     }}
-                    className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-full transition-colors tooltip-trigger"
-                    title="Mark as read"
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors tooltip-trigger"
+                    title="Remove"
                   >
-                    <CheckCircle2 className="w-5 h-5" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
-              )}
             </div>
           ))
         )}
       </div>
 
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setNotificationToRemove(null); }}
+        onConfirm={handleRemoveNotification}
+        recordName={notificationToRemove?.title || 'Notification'}
+        description={`This will remove the notification.`}
+        requireReason={true}
+      />
     </div>
   );
 };
