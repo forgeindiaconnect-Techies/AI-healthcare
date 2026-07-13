@@ -149,11 +149,6 @@ const AdminPayments = () => {
     currentPage * itemsPerPage
   );
 
-  const paginatedPayments = filteredPayments.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   // Revenue is now calculated on backend
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
