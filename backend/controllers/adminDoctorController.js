@@ -1,9 +1,14 @@
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
+const DoctorDocument = require('../models/DoctorDocument');
+const DoctorVerificationHistory = require('../models/DoctorVerificationHistory');
+const MedicalLicenceVerification = require('../models/MedicalLicenceVerification');
 const Appointment = require('../models/Appointment');
 const asyncHandler = require('../middleware/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse');
 const notificationService = require('../services/notificationService');
+const medicalLicenseService = require('../services/medicalLicenseService');
+const mongoose = require('mongoose');
 
 // @desc    Create a new doctor (Admin)
 // @route   POST /api/admin/doctors
@@ -12,56 +17,38 @@ exports.createDoctor = asyncHandler(async (req, res, next) => {
   const {
     name, email, phone, password, gender, dateOfBirth, address,
     specialization, qualification, experience, registrationNumber,
-    hospitalName, consultationFee, status // Default 'Pending' or 'Active' based on admin choice
+    hospitalName, consultationFee, status // Default 'DRAFT' or 'APPROVED' based on admin choice
   } = req.body;
 
-  // Check if user exists
   let user = await User.findOne({ email });
-  if (user) {
-    return next(new ErrorResponse('User with this email already exists', 400));
-  }
+  if (user) return next(new ErrorResponse('User with this email already exists', 400));
 
-  // Check if license number exists
-  let existingDoctor = await Doctor.findOne({ licenseNumber: registrationNumber });
-  if (existingDoctor) {
-    return next(new ErrorResponse('Doctor with this Medical Registration Number already exists', 400));
-  }
+  let existingDoctor = await Doctor.findOne({ medicalLicenseNumber: registrationNumber });
+  if (existingDoctor) return next(new ErrorResponse('Doctor with this Medical Registration Number already exists', 400));
 
-  // Handle address casting (if it's a string, wrap it in an object)
   const addressObj = typeof address === 'string' ? (address ? { city: address } : undefined) : address;
 
-  // Create base User
   user = await User.create({
-    name,
-    email,
-    password, // Hash will be handled by pre-save hook in User model
-    role: 'doctor',
-    phone,
-    gender,
-    dateOfBirth,
-    address: addressObj,
-    isActive: true, // The user account is active, but doctor profile might not be verified
-    isEmailVerified: true // Auto verify since admin created it
+    name, email, password, role: 'doctor', phone, gender, dateOfBirth, address: addressObj,
+    isActive: true, isEmailVerified: true
   });
 
-  // Determine verification status
-  const isVerified = status === 'Active';
+  const isVerified = status === 'APPROVED';
 
   try {
-    // Create Doctor Profile
     const doctor = await Doctor.create({
       user: user._id,
       specialization,
-      licenseNumber: registrationNumber, // using licenseNumber field from model
+      medicalLicenseNumber: registrationNumber,
       experience: experience || 0,
-      education: qualification ? [{ degree: qualification }] : [],
+      qualification,
       hospital: { name: hospitalName },
       consultationFee: consultationFee || 0,
+      status: status || 'DRAFT',
       isVerified,
       isAcceptingPatients: isVerified
     });
 
-    // Notify Doctor (Simulation since real email depends on env vars)
     await notificationService.createNotification({
       user: user._id,
       title: 'Doctor Account Created',
@@ -70,26 +57,25 @@ exports.createDoctor = asyncHandler(async (req, res, next) => {
       priority: 'high'
     });
 
-    res.status(201).json({
-      success: true,
-      data: { user, profile: doctor }
-    });
+    res.status(201).json({ success: true, data: { user, profile: doctor } });
   } catch (error) {
-    // Rollback: delete the created user if doctor profile creation fails
     await User.findByIdAndDelete(user._id);
     return next(new ErrorResponse('Failed to create doctor profile: ' + error.message, 400));
   }
 });
 
-// @desc    Get all doctors for Admin (including unverified)
+// @desc    Get all doctors for Admin
 // @route   GET /api/admin/doctors
 // @access  Private (Admin)
 exports.getAllDoctors = asyncHandler(async (req, res, next) => {
-  const { search, isVerified } = req.query;
+  const { search, status, isVerified } = req.query;
 
   let profileQuery = {};
-  if (isVerified !== undefined) {
-    profileQuery.isVerified = isVerified === 'true';
+  if (status) {
+    profileQuery.status = status;
+  } else if (isVerified !== undefined) {
+    if (isVerified === 'true') profileQuery.status = 'APPROVED';
+    else profileQuery.status = { $ne: 'APPROVED' };
   }
 
   if (search) {
@@ -100,67 +86,29 @@ exports.getAllDoctors = asyncHandler(async (req, res, next) => {
         { email: { $regex: search, $options: 'i' } }
       ]
     }).select('_id');
-    const userIds = users.map(u => u._id);
-    profileQuery.user = { $in: userIds };
+    profileQuery.user = { $in: users.map(u => u._id) };
   }
 
   const doctors = await Doctor.find(profileQuery)
     .populate('user', '-password')
     .sort({ createdAt: -1 });
 
-  res.status(200).json({
-    success: true,
-    count: doctors.length,
-    data: doctors
-  });
+  res.status(200).json({ success: true, count: doctors.length, data: doctors });
 });
 
-// @desc    Approve or Reject doctor
-// @route   PUT /api/admin/doctors/:id/approve
+// @desc    Get single doctor details for review
+// @route   GET /api/admin/doctors/:id
 // @access  Private (Admin)
-exports.approveDoctor = asyncHandler(async (req, res, next) => {
-  const { status, reason } = req.body; // 'Approved', 'Rejected', 'Suspended', 'Request More Documents'
-  // Backward compatibility
-  let finalStatus = status;
-  if (!status && req.body.approve !== undefined) {
-    finalStatus = req.body.approve ? 'Approved' : 'Rejected';
-  }
+exports.getDoctorForReview = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findById(req.params.id).populate('user', '-password');
+  if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
 
-  const doctor = await Doctor.findById(req.params.id).populate('user');
-  if (!doctor) {
-    return next(new ErrorResponse('Doctor not found', 404));
-  }
+  const documents = await DoctorDocument.find({ doctor: doctor._id }).sort({ uploadedAt: -1 });
+  const verificationHistory = await DoctorVerificationHistory.find({ doctor: doctor._id })
+    .populate('performedBy', 'name')
+    .sort({ createdAt: -1 });
 
-  doctor.status = finalStatus;
-  if (reason) doctor.rejectionReason = reason;
-
-  if (finalStatus === 'Approved') {
-    doctor.isVerified = true;
-    doctor.isAcceptingPatients = true;
-  } else {
-    doctor.isVerified = false;
-    doctor.isAcceptingPatients = false;
-  }
-  
-  await doctor.save();
-
-  if (doctor.user) {
-    let message = '';
-    if (finalStatus === 'Approved') message = 'Your account has been approved by the administrator. You can now accept patients.';
-    if (finalStatus === 'Rejected') message = `Your account approval has been rejected. ${reason ? 'Reason: ' + reason : ''}`;
-    if (finalStatus === 'Suspended') message = `Your account has been suspended by the administrator. ${reason ? 'Reason: ' + reason : ''}`;
-    if (finalStatus === 'Request More Documents') message = `The administrator requires more documents to verify your profile. ${reason ? 'Note: ' + reason : ''}`;
-
-    await notificationService.create({
-      userId: doctor.user._id,
-      title: `Account Status: ${finalStatus}`,
-      message,
-      type: 'system',
-      priority: 'high'
-    });
-  }
-
-  res.status(200).json({ success: true, message: `Doctor status updated to ${finalStatus}`, data: doctor });
+  res.status(200).json({ success: true, data: { doctor, documents, verificationHistory } });
 });
 
 // @desc    Update doctor profile (Admin)
@@ -179,7 +127,6 @@ exports.updateDoctor = asyncHandler(async (req, res, next) => {
   const user = await User.findById(doctor.user);
   if (!user) return next(new ErrorResponse('User not found', 404));
 
-  // Update User
   if (name) user.name = name;
   if (email) user.email = email;
   if (phone) user.phone = phone;
@@ -187,17 +134,11 @@ exports.updateDoctor = asyncHandler(async (req, res, next) => {
   if (address) user.address = address;
   await user.save();
 
-  // Update Doctor Profile
   if (specialization) doctor.specialization = specialization;
-  if (registrationNumber) doctor.licenseNumber = registrationNumber;
+  if (registrationNumber) doctor.medicalLicenseNumber = registrationNumber;
   if (experience !== undefined) doctor.experience = experience;
-  if (qualification) {
-    // Basic array update, assuming admin only enters 1 string for simplification
-    doctor.education = [{ degree: qualification }];
-  }
-  if (hospitalName) {
-    doctor.hospital = { ...doctor.hospital, name: hospitalName };
-  }
+  if (qualification) doctor.qualification = qualification;
+  if (hospitalName) doctor.hospital = { ...doctor.hospital, name: hospitalName };
   if (consultationFee !== undefined) doctor.consultationFee = consultationFee;
 
   await doctor.save();
@@ -211,59 +152,186 @@ exports.updateDoctor = asyncHandler(async (req, res, next) => {
 exports.deleteDoctor = asyncHandler(async (req, res, next) => {
   const doctor = await Doctor.findById(req.params.id);
   if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
-
-  // Delete associated user
   await User.findByIdAndDelete(doctor.user);
-
-  // Optionally delete appointments (omitted to keep history if needed, or handle it here)
   await Appointment.deleteMany({ doctor: doctor.user });
-
+  await DoctorDocument.deleteMany({ doctor: doctor._id });
+  await DoctorVerificationHistory.deleteMany({ doctor: doctor._id });
+  await MedicalLicenceVerification.deleteMany({ doctor: doctor._id });
   await doctor.deleteOne();
 
   res.status(200).json({ success: true, message: 'Doctor and associated data deleted' });
 });
 
-// @desc    Verify Doctor Credentials (Simulation)
-// @route   POST /api/admin/doctors/:id/verify
+// @desc    Start review
+// @route   PATCH /api/admin/doctors/:id/start-review
 // @access  Private (Admin)
-exports.verifyDoctor = asyncHandler(async (req, res, next) => {
-  const doctor = await Doctor.findById(req.params.id).populate('user');
-  if (!doctor) {
-    return next(new ErrorResponse('Doctor not found', 404));
+exports.startReview = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findById(req.params.id);
+  if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
+
+  if (doctor.status === 'PENDING') {
+    const previousStatus = doctor.status;
+    doctor.status = 'UNDER_REVIEW';
+    doctor.reviewStartedAt = new Date();
+    await doctor.save();
+
+    await DoctorVerificationHistory.create({
+      doctor: doctor._id, action: 'REVIEW_STARTED', previousStatus, newStatus: 'UNDER_REVIEW',
+      performedBy: req.user.id, performedByRole: 'ADMIN'
+    });
   }
 
-  // Simulate a verification process
-  const licenseNumber = doctor.licenseNumber || '';
-  
-  // Fake logic: if license starts with 'VALID', it passes. Otherwise, random or checks.
-  let isLicenseValid = false;
-  let isNameMatch = true;
-  let isBlacklisted = false;
-  let fakeDocumentsDetected = false;
+  res.status(200).json({ success: true, data: doctor });
+});
 
-  if (licenseNumber.toUpperCase().startsWith('VALID')) {
-    isLicenseValid = true;
-  } else {
-    // Randomize slightly for demo purposes
-    isLicenseValid = licenseNumber.length > 5;
-    isBlacklisted = licenseNumber.includes('BL');
-    fakeDocumentsDetected = doctor.documents.length === 0;
+// @desc    Verify/Reject/RequestReupload a document
+// @route   PATCH /api/admin/doctors/:id/documents/:documentId/:action
+// @access  Private (Admin)
+exports.updateDocumentStatus = asyncHandler(async (req, res, next) => {
+  const { id, documentId, action } = req.params; // action: 'verify', 'reject', 'request-reupload'
+  const { remarks } = req.body;
+
+  const document = await DoctorDocument.findOne({ _id: documentId, doctor: id });
+  if (!document) return next(new ErrorResponse('Document not found', 404));
+
+  let status, historyAction;
+  if (action === 'verify') { status = 'VERIFIED'; historyAction = 'DOCUMENT_VERIFIED'; }
+  else if (action === 'reject') { status = 'REJECTED'; historyAction = 'DOCUMENT_REJECTED'; }
+  else if (action === 'request-reupload') { status = 'REUPLOAD_REQUIRED'; historyAction = 'DOCUMENT_REUPLOAD_REQUESTED'; }
+  else return next(new ErrorResponse('Invalid action', 400));
+
+  document.verificationStatus = status;
+  if (remarks) document.adminRemarks = remarks;
+  if (status === 'VERIFIED') {
+    document.verifiedBy = req.user.id;
+    document.verifiedAt = new Date();
+  } else if (status === 'REJECTED') {
+    document.rejectedAt = new Date();
   }
+  await document.save();
 
-  const report = {
-    licenseValid: { status: isLicenseValid ? 'Pass' : 'Fail', message: isLicenseValid ? 'License found in official register' : 'License number not found' },
-    nameMatch: { status: isNameMatch ? 'Pass' : 'Fail', message: 'Name matches medical register' },
-    blacklistStatus: { status: isBlacklisted ? 'Fail' : 'Pass', message: isBlacklisted ? 'Doctor is currently suspended in national registry' : 'No adverse actions found' },
-    documentAuthenticity: { status: fakeDocumentsDetected ? 'Warning' : 'Pass', message: fakeDocumentsDetected ? 'Insufficient documents provided' : 'Documents appear authentic' }
-  };
-
-  const overallRisk = (isLicenseValid && !isBlacklisted && !fakeDocumentsDetected) ? 'Low' : 'High';
-
-  res.status(200).json({
-    success: true,
-    data: {
-      overallRisk,
-      report
-    }
+  await DoctorVerificationHistory.create({
+    doctor: id, action: historyAction, documentId,
+    performedBy: req.user.id, performedByRole: 'ADMIN', remarks
   });
+
+  res.status(200).json({ success: true, data: document });
+});
+
+// @desc    Verify Medical License
+// @route   POST /api/admin/doctors/:id/verify-medical-license
+// @access  Private (Admin)
+exports.verifyMedicalLicense = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findById(req.params.id);
+  if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
+
+  const result = await medicalLicenseService.verifyLicense({
+    doctorId: doctor._id,
+    licenseNumber: doctor.medicalLicenseNumber,
+    medicalCouncil: doctor.medicalCouncil,
+    state: doctor.licenseState,
+    country: doctor.licenseCountry
+  });
+
+  const record = await medicalLicenseService.saveVerificationResult(doctor._id, req.user.id, result, req.body.notes);
+
+  doctor.medicalLicenseVerificationStatus = result.status;
+  doctor.medicalLicenseVerificationMethod = 'API';
+  doctor.medicalLicenseVerifiedName = result.registeredName;
+  doctor.medicalLicenseVerifiedAt = new Date();
+  doctor.medicalLicenseVerifiedBy = req.user.id;
+  await doctor.save();
+
+  await DoctorVerificationHistory.create({
+    doctor: doctor._id, action: 'LICENSE_CHECKED', 
+    performedBy: req.user.id, performedByRole: 'ADMIN',
+    metadata: { licenseStatus: result.status }
+  });
+
+  res.status(200).json({ success: true, data: { result, record, doctor } });
+});
+
+// @desc    Approve/Reject/Suspend/RequestChanges
+// @route   POST /api/admin/doctors/:id/:action
+// @access  Private (Admin)
+exports.updateDoctorStatus = asyncHandler(async (req, res, next) => {
+  const { id, action } = req.params; // action: 'approve', 'reject', 'suspend', 'request-changes'
+  const { reason, checklistChecked } = req.body;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const doctor = await Doctor.findById(id).populate('user').session(session);
+    if (!doctor) throw new ErrorResponse('Doctor not found', 404);
+
+    const previousStatus = doctor.status;
+    let newStatus, historyAction, isAcceptingPatients = false;
+
+    if (action === 'approve') {
+      if (!checklistChecked) throw new ErrorResponse('Checklist must be completed before approval', 400);
+      
+      const docs = await DoctorDocument.find({ doctor: id }).session(session);
+      const required = ['IDENTITY_PROOF', 'MEDICAL_LICENSE', 'MEDICAL_DEGREE', 'SPECIALIZATION_CERTIFICATE'];
+      const verifiedTypes = docs.filter(d => d.verificationStatus === 'VERIFIED').map(d => d.documentType);
+      
+      const missing = required.filter(r => !verifiedTypes.includes(r));
+      if (missing.length > 0) throw new ErrorResponse(`Cannot approve. Missing verified documents: ${missing.join(', ')}`, 400);
+      
+      if (doctor.medicalLicenseVerificationStatus !== 'VERIFIED') throw new ErrorResponse('Medical license must be VERIFIED before approval', 400);
+
+      newStatus = 'APPROVED';
+      historyAction = 'APPROVED';
+      isAcceptingPatients = true;
+      doctor.approvedAt = new Date();
+      doctor.approvedBy = req.user.id;
+      doctor.isVerified = true;
+    } else if (action === 'reject') {
+      if (!reason) throw new ErrorResponse('Rejection reason is required', 400);
+      newStatus = 'REJECTED';
+      historyAction = 'REJECTED';
+      doctor.rejectedAt = new Date();
+      doctor.rejectedBy = req.user.id;
+      doctor.rejectionReason = reason;
+      doctor.isVerified = false;
+    } else if (action === 'suspend') {
+      if (!reason) throw new ErrorResponse('Suspension reason is required', 400);
+      newStatus = 'SUSPENDED';
+      historyAction = 'SUSPENDED';
+      doctor.isVerified = false;
+    } else if (action === 'request-changes') {
+      if (!reason) throw new ErrorResponse('Reason is required', 400);
+      newStatus = 'CHANGES_REQUESTED';
+      historyAction = 'CHANGES_REQUESTED';
+      doctor.isVerified = false;
+    } else {
+      throw new ErrorResponse('Invalid action', 400);
+    }
+
+    doctor.status = newStatus;
+    doctor.isAcceptingPatients = isAcceptingPatients;
+    await doctor.save({ session });
+
+    await DoctorVerificationHistory.create([{
+      doctor: doctor._id, action: historyAction, previousStatus, newStatus,
+      performedBy: req.user.id, performedByRole: 'ADMIN', remarks: reason
+    }], { session });
+
+    if (doctor.user) {
+      await notificationService.createNotification({
+        user: doctor.user._id,
+        title: `Doctor Application Status: ${newStatus}`,
+        message: `Your account status has been updated to ${newStatus}. ${reason ? 'Reason: ' + reason : ''}`,
+        type: 'system', priority: 'high'
+      });
+    }
+
+    await session.commitTransaction();
+    res.status(200).json({ success: true, data: doctor, message: `Doctor successfully updated to ${newStatus}` });
+  } catch (err) {
+    await session.abortTransaction();
+    return next(err);
+  } finally {
+    session.endSession();
+  }
 });

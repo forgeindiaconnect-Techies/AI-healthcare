@@ -55,12 +55,14 @@ import MyDiagnoses from './pages/patient/MyDiagnoses';
 import ReviewReports from './pages/doctor/ReviewReports';
 import DoctorTreatmentPlans from './pages/doctor/DoctorTreatmentPlans';
 import GenerateReport from './pages/doctor/GenerateReport';
+import VerificationStatus from './pages/doctor/VerificationStatus';
 
 // NEW ADMIN IMPORTS
 import AdminReports from './pages/admin/AdminReports';
 import AdminPrescriptions from './pages/admin/AdminPrescriptions';
 import AdminPayments from './pages/admin/AdminPayments';
 import AdminVideoConsults from './pages/admin/AdminVideoConsults';
+import DoctorReview from './pages/admin/DoctorReview';
 
 // Shared
 import VideoConsultation from './pages/consultation/VideoConsultation';
@@ -135,7 +137,7 @@ const RoleRoute = ({ role, children }) => {
 const DashboardIndex = () => {
   const { user } = useAuth();
   if (user?.role === 'admin') return <Navigate to="admin" replace />;
-  if (user?.role === 'doctor') return <Navigate to="doctor-dashboard" replace />;
+  if (user?.role === 'doctor') return <Navigate to="verification-status" replace />; // Default to verification status, it handles redirect to dashboard if approved
   return <Navigate to="patients" replace />;
 };
 
@@ -186,6 +188,7 @@ function App() {
 
               {/* Doctor Routes */}
               <Route path="doctor-dashboard" element={<RoleRoute role="doctor"><DoctorDashboard /></RoleRoute>} />
+              <Route path="verification-status" element={<RoleRoute role="doctor"><VerificationStatus /></RoleRoute>} />
               <Route path="doctor-patients" element={<RoleRoute role="doctor"><PatientManagement /></RoleRoute>} />
               <Route path="doctor-patients/:id" element={<RoleRoute role="doctor"><DoctorPatientProfile /></RoleRoute>} />
               <Route path="consultation/:appointmentId/:patientId" element={<RoleRoute role="doctor"><ConsultationWizard /></RoleRoute>} />
@@ -202,6 +205,7 @@ function App() {
               <Route path="admin" element={<RoleRoute role="admin"><AdminDashboard /></RoleRoute>} />
               <Route path="users" element={<RoleRoute role="admin"><UserManagement /></RoleRoute>} />
               <Route path="doctors" element={<RoleRoute role="admin"><DoctorManagement /></RoleRoute>} />
+              <Route path="doctors/:id/review" element={<RoleRoute role="admin"><DoctorReview /></RoleRoute>} />
               <Route path="analytics" element={<RoleRoute role="admin"><AnalyticsReports /></RoleRoute>} />
               <Route path="settings" element={<RoleRoute role="admin"><AdminSettings /></RoleRoute>} />
               <Route path="admin-reports" element={<RoleRoute role="admin"><AdminReports /></RoleRoute>} />

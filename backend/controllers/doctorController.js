@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
+const DoctorDocument = require('../models/DoctorDocument');
+const DoctorVerificationHistory = require('../models/DoctorVerificationHistory');
 const Appointment = require('../models/Appointment');
 const Patient = require('../models/Patient');
 const asyncHandler = require('../middleware/asyncHandler');
@@ -85,7 +87,9 @@ exports.updateDoctorProfile = asyncHandler(async (req, res, next) => {
   const allowedFields = [
     'specialization', 'subSpecialties', 'experience', 'education', 'certifications',
     'hospital', 'clinicAddress', 'consultationFee', 'consultationDuration',
-    'availability', 'bio', 'languages', 'isAcceptingPatients', 'offDays',
+    'availability', 'bio', 'languages', 'offDays', 
+    'qualification', 'medicalCollege', 'graduationYear', 'medicalLicenseNumber', 
+    'medicalCouncil', 'licenseState', 'licenseCountry', 'licenseIssueDate', 'licenseExpiryDate'
   ];
 
   const updates = {};
@@ -204,4 +208,105 @@ exports.rateDoctor = asyncHandler(async (req, res, next) => {
 exports.getSpecializations = asyncHandler(async (req, res) => {
   const specializations = await Doctor.distinct('specialization');
   res.status(200).json({ success: true, data: specializations });
+});
+
+// @desc    Get Doctor Verification Status and Documents
+// @route   GET /api/doctors/verification-status
+// @access  Private (doctor)
+exports.getVerificationStatus = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findOne({ user: req.user.id });
+  if (!doctor) return next(new ErrorResponse('Doctor profile not found', 404));
+
+  const documents = await DoctorDocument.find({ doctor: doctor._id }).sort({ uploadedAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      status: doctor.status,
+      medicalLicenseVerificationStatus: doctor.medicalLicenseVerificationStatus,
+      rejectionReason: doctor.rejectionReason,
+      documents
+    }
+  });
+});
+
+// @desc    Upload Doctor Document
+// @route   POST /api/doctors/documents
+// @access  Private (doctor)
+exports.uploadDocument = asyncHandler(async (req, res, next) => {
+  const { documentType } = req.body;
+  
+  if (!req.file) {
+    return next(new ErrorResponse('Please upload a file', 400));
+  }
+  if (!documentType) {
+    return next(new ErrorResponse('Please provide documentType', 400));
+  }
+
+  const doctor = await Doctor.findOne({ user: req.user.id });
+  if (!doctor) return next(new ErrorResponse('Doctor profile not found', 404));
+
+  // If there's an existing document of this type, we can mark it as REUPLOADED or just create a new one and delete old. 
+  // For simplicity, we keep history. 
+  
+  const fileUrl = `${req.protocol}://${req.get('host')}/uploads/documents/${req.file.filename}`;
+
+  const document = await DoctorDocument.create({
+    doctor: doctor._id,
+    documentType,
+    originalFileName: req.file.originalname,
+    storageKey: req.file.filename,
+    fileUrl,
+    mimeType: req.file.mimetype,
+    fileSize: req.file.size,
+    verificationStatus: 'PENDING'
+  });
+
+  res.status(201).json({
+    success: true,
+    data: document
+  });
+});
+
+// @desc    Submit Application for Verification
+// @route   POST /api/doctors/submit-verification
+// @access  Private (doctor)
+exports.submitVerification = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findOne({ user: req.user.id });
+  if (!doctor) return next(new ErrorResponse('Doctor profile not found', 404));
+
+  if (doctor.status === 'APPROVED') {
+    return next(new ErrorResponse('Account is already approved', 400));
+  }
+
+  // Check if mandatory documents exist
+  const requiredDocTypes = ['IDENTITY_PROOF', 'MEDICAL_LICENSE', 'MEDICAL_DEGREE', 'SPECIALIZATION_CERTIFICATE'];
+  const docs = await DoctorDocument.find({ doctor: doctor._id, verificationStatus: { $ne: 'REJECTED' } });
+  const uploadedTypes = docs.map(d => d.documentType);
+
+  const missingDocs = requiredDocTypes.filter(type => !uploadedTypes.includes(type));
+  if (missingDocs.length > 0) {
+    return next(new ErrorResponse(`Missing required documents: ${missingDocs.join(', ')}`, 400));
+  }
+
+  const previousStatus = doctor.status;
+  doctor.status = 'PENDING';
+  doctor.applicationSubmittedAt = new Date();
+  await doctor.save();
+
+  await DoctorVerificationHistory.create({
+    doctor: doctor._id,
+    action: 'SUBMITTED',
+    previousStatus,
+    newStatus: 'PENDING',
+    performedBy: req.user.id,
+    performedByRole: 'DOCTOR',
+    remarks: 'Application submitted for admin review.'
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Application submitted successfully',
+    data: { status: doctor.status }
+  });
 });

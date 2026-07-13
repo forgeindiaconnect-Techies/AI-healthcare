@@ -111,7 +111,7 @@ exports.register = asyncHandler(async (req, res, next) => {
         await User.findByIdAndDelete(user._id);
         return next(new ErrorResponse('Doctors require specialization, license number, and registered number', 400));
       }
-      await Doctor.create({
+      const doctor = await Doctor.create({
         user: user._id,
         specialization,
         licenseNumber,
@@ -123,10 +123,41 @@ exports.register = asyncHandler(async (req, res, next) => {
         clinicAddress: addressObj || {},
         consultationFee: consultationFee || 0,
         availability: availability || [],
-        documents: parsedDocuments,
-        status: 'Pending',
+        status: 'PENDING',
         isVerified: false
       });
+
+      // Create DoctorDocument entries
+      const DoctorDocument = require('../models/DoctorDocument');
+      if (req.files) {
+        const { docLicenseFile, docDegreeFile, docIdFile, docClinicFile } = req.files;
+        const uploadPromises = [];
+
+        if (docLicenseFile?.[0]) {
+          uploadPromises.push(DoctorDocument.create({ doctor: doctor._id, documentType: 'MEDICAL_LICENSE', originalFileName: docLicenseFile[0].originalname, storageKey: docLicenseFile[0].filename, fileUrl: docLicenseFile[0].path || `/uploads/${docLicenseFile[0].filename}`, mimeType: docLicenseFile[0].mimetype, fileSize: docLicenseFile[0].size, verificationStatus: 'PENDING' }));
+        } else if (docLicenseUrl) {
+          uploadPromises.push(DoctorDocument.create({ doctor: doctor._id, documentType: 'MEDICAL_LICENSE', originalFileName: 'URL', storageKey: 'URL', fileUrl: docLicenseUrl, verificationStatus: 'PENDING' }));
+        }
+
+        if (docDegreeFile?.[0]) {
+          uploadPromises.push(DoctorDocument.create({ doctor: doctor._id, documentType: 'MEDICAL_DEGREE', originalFileName: docDegreeFile[0].originalname, storageKey: docDegreeFile[0].filename, fileUrl: docDegreeFile[0].path || `/uploads/${docDegreeFile[0].filename}`, mimeType: docDegreeFile[0].mimetype, fileSize: docDegreeFile[0].size, verificationStatus: 'PENDING' }));
+        } else if (docDegreeUrl) {
+          uploadPromises.push(DoctorDocument.create({ doctor: doctor._id, documentType: 'MEDICAL_DEGREE', originalFileName: 'URL', storageKey: 'URL', fileUrl: docDegreeUrl, verificationStatus: 'PENDING' }));
+        }
+
+        if (docIdFile?.[0]) {
+          uploadPromises.push(DoctorDocument.create({ doctor: doctor._id, documentType: 'IDENTITY_PROOF', originalFileName: docIdFile[0].originalname, storageKey: docIdFile[0].filename, fileUrl: docIdFile[0].path || `/uploads/${docIdFile[0].filename}`, mimeType: docIdFile[0].mimetype, fileSize: docIdFile[0].size, verificationStatus: 'PENDING' }));
+        } else if (docIdUrl) {
+          uploadPromises.push(DoctorDocument.create({ doctor: doctor._id, documentType: 'IDENTITY_PROOF', originalFileName: 'URL', storageKey: 'URL', fileUrl: docIdUrl, verificationStatus: 'PENDING' }));
+        }
+
+        if (docClinicFile?.[0]) {
+          uploadPromises.push(DoctorDocument.create({ doctor: doctor._id, documentType: 'HOSPITAL_APPOINTMENT_LETTER', originalFileName: docClinicFile[0].originalname, storageKey: docClinicFile[0].filename, fileUrl: docClinicFile[0].path || `/uploads/${docClinicFile[0].filename}`, mimeType: docClinicFile[0].mimetype, fileSize: docClinicFile[0].size, verificationStatus: 'PENDING' }));
+        } else if (docClinicUrl) {
+          uploadPromises.push(DoctorDocument.create({ doctor: doctor._id, documentType: 'HOSPITAL_APPOINTMENT_LETTER', originalFileName: 'URL', storageKey: 'URL', fileUrl: docClinicUrl, verificationStatus: 'PENDING' }));
+        }
+        await Promise.all(uploadPromises);
+      }
     }
   } catch (error) {
     if (user && user._id) {
@@ -191,8 +222,8 @@ exports.login = asyncHandler(async (req, res, next) => {
 
   if (user.role === 'doctor') {
     const doctor = await Doctor.findOne({ user: user._id });
-    if (doctor && (!doctor.isVerified || doctor.status !== 'Approved')) {
-      return next(new ErrorResponse(`Account is ${doctor.status.toLowerCase()}. Please wait for admin approval.`, 403));
+    if (doctor && doctor.status === 'SUSPENDED') {
+      return next(new ErrorResponse(`Account is suspended. Please contact admin.`, 403));
     }
   }
 

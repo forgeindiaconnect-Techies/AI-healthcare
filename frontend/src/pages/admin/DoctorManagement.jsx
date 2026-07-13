@@ -315,28 +315,11 @@ const DoctorManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                       <button 
-                        onClick={() => openViewModal(doc)}
-                        className="p-1.5 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-md transition-colors" title="View Profile"
+                        onClick={() => window.location.href = `/dashboard/doctors/${doc._id}/review`}
+                        className="p-1.5 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-md transition-colors" title={activeTab === 'pending' ? 'Review Application' : 'View Profile'}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      
-                      {activeTab === 'pending' && (
-                        <>
-                          <button 
-                            onClick={() => handleStatusChange(doc._id, 'Approved')}
-                            className="p-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-md transition-colors" title="Approve"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleStatusChange(doc._id, 'Rejected')}
-                            className="p-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-md transition-colors" title="Reject"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
                       
                       {activeTab === 'list' && (
                         <>

@@ -1,5 +1,6 @@
 const express = require('express');
 const { protect, authorize } = require('../middleware/auth');
+const { uploadDoctorDocument } = require('../middleware/uploadMiddleware');
 
 const doctorRouter = express.Router();
 const patientRouter = express.Router();
@@ -17,12 +18,20 @@ notificationRouter.put('/:id/read', notificationController.markAsRead);
 
 // ---------------- DOCTOR ROUTES ----------------
 const doctorController = require('../controllers/doctorController');
+const { approvedDoctorOnly } = require('../middleware/auth');
+
 doctorRouter.get('/', doctorController.getDoctors);
 doctorRouter.get('/specializations', doctorController.getSpecializations);
 doctorRouter.get('/profile/me', protect, authorize('doctor'), doctorController.getDoctorProfile);
 doctorRouter.put('/profile', protect, authorize('doctor'), doctorController.updateDoctorProfile);
-doctorRouter.get('/dashboard', protect, authorize('doctor'), doctorController.getDoctorDashboard);
-doctorRouter.get('/patients', protect, authorize('doctor'), doctorController.getDoctorPatients);
+
+// New Verification Routes
+doctorRouter.get('/verification-status', protect, authorize('doctor'), doctorController.getVerificationStatus);
+doctorRouter.post('/documents', protect, authorize('doctor'), uploadDoctorDocument.single('file'), doctorController.uploadDocument);
+doctorRouter.post('/submit-verification', protect, authorize('doctor'), doctorController.submitVerification);
+
+doctorRouter.get('/dashboard', protect, approvedDoctorOnly, doctorController.getDoctorDashboard);
+doctorRouter.get('/patients', protect, approvedDoctorOnly, doctorController.getDoctorPatients);
 doctorRouter.post('/:id/rate', protect, authorize('patient'), doctorController.rateDoctor);
 doctorRouter.get('/:id', doctorController.getDoctor);
 
@@ -48,8 +57,14 @@ adminRouter.get('/analytics', protect, authorize('admin'), patientController.get
 // Admin Doctor Management Routes
 adminRouter.post('/doctors', protect, authorize('admin'), adminDoctorController.createDoctor);
 adminRouter.get('/doctors', protect, authorize('admin'), adminDoctorController.getAllDoctors);
-adminRouter.put('/doctors/:id/approve', protect, authorize('admin'), adminDoctorController.approveDoctor);
-adminRouter.post('/doctors/:id/verify', protect, authorize('admin'), adminDoctorController.verifyDoctor);
+
+// New Review & Verification Routes
+adminRouter.get('/doctors/:id/review', protect, authorize('admin'), adminDoctorController.getDoctorForReview);
+adminRouter.patch('/doctors/:id/start-review', protect, authorize('admin'), adminDoctorController.startReview);
+adminRouter.patch('/doctors/:id/documents/:documentId/:action', protect, authorize('admin'), adminDoctorController.updateDocumentStatus);
+adminRouter.post('/doctors/:id/verify-medical-license', protect, authorize('admin'), adminDoctorController.verifyMedicalLicense);
+adminRouter.post('/doctors/:id/:action', protect, authorize('admin'), adminDoctorController.updateDoctorStatus); // approve, reject, suspend, request-changes
+
 adminRouter.put('/doctors/:id', protect, authorize('admin'), adminDoctorController.updateDoctor);
 adminRouter.delete('/doctors/:id', protect, authorize('admin'), adminDoctorController.deleteDoctor);
 

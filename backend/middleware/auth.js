@@ -59,6 +59,18 @@ exports.authorize = (...roles) => {
   };
 };
 
+const Doctor = require('../models/Doctor');
+exports.approvedDoctorOnly = asyncHandler(async (req, res, next) => {
+  if (req.user.role !== 'doctor') {
+    return next(new ErrorResponse('Not authorized', 403));
+  }
+  const doctor = await Doctor.findOne({ user: req.user.id });
+  if (!doctor || doctor.status !== 'APPROVED') {
+    return next(new ErrorResponse('Doctor is not approved to access this resource', 403));
+  }
+  next();
+});
+
 // Optional auth - doesn't fail if no token
 exports.optionalAuth = asyncHandler(async (req, res, next) => {
   let token;
