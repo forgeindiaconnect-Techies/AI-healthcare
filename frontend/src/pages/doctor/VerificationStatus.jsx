@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../../../api/api';
+import API from '../../api/api';
 import { ShieldAlert, CheckCircle, Clock, XCircle, AlertTriangle, UploadCloud } from 'lucide-react';
 import toast from 'react-hot-toast';
 
