@@ -56,8 +56,9 @@ exports.processPayment = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Payment gateway declined the transaction', 402));
   }
 
-  // Generate a mock transaction ID
+  // Generate a mock transaction ID and receipt number
   const transactionId = 'TXN-' + crypto.randomBytes(8).toString('hex').toUpperCase();
+  const receiptNumber = 'HAI-RCP-' + new Date().getFullYear() + '-' + crypto.randomBytes(4).toString('hex').toUpperCase();
 
   const payment = await Payment.create({
     patient: req.user.id,
@@ -66,6 +67,7 @@ exports.processPayment = asyncHandler(async (req, res, next) => {
     method,
     status: 'successful',
     transactionId,
+    receiptNumber,
     paymentDetails,
     relatedAppointment,
     description
@@ -140,12 +142,25 @@ exports.getAllPayments = asyncHandler(async (req, res, next) => {
   }
 
   const payments = await Payment.find(query)
-    .populate('patient', 'name email')
+    .populate('patient', 'name email avatar')
+    .populate({
+      path: 'relatedAppointment',
+      select: 'appointmentDate type doctor',
+      populate: { path: 'doctor', select: 'name' }
+    })
     .sort('-createdAt');
+
+  // Calculate total revenue from all successful payments (including archived)
+  const revenueAgg = await Payment.aggregate([
+    { $match: { status: { $in: ['successful', 'ARCHIVED'] }, isDeleted: { $in: [true, false, null] } } },
+    { $group: { _id: null, total: { $sum: '$amount' } } }
+  ]);
+  const totalRevenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
 
   res.status(200).json({
     success: true,
     count: payments.length,
+    totalRevenue,
     data: payments
   });
 });
@@ -183,4 +198,250 @@ exports.removePayment = asyncHandler(async (req, res, next) => {
   });
 
   res.status(200).json({ success: true, message: 'Payment archived successfully' });
+});
+
+// @desc    Generate PDF Receipt
+// @route   GET /api/payments/:id/receipt
+// @access  Private
+exports.getPaymentReceipt = asyncHandler(async (req, res, next) => {
+  let payment = await Payment.findById(req.params.id)
+    .populate('patient', 'name email phone address')
+    .populate({
+      path: 'relatedAppointment',
+      select: 'appointmentDate type doctor clinic',
+      populate: { path: 'doctor', select: 'name specialization' }
+    });
+
+  if (!payment) return next(new ErrorResponse('Payment not found', 404));
+
+  // Migration: generate receipt number if missing
+  if (payment.status === 'successful' && !payment.receiptNumber) {
+    const crypto = require('crypto');
+    payment.receiptNumber = 'HAI-RCP-' + new Date().getFullYear() + '-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    await payment.save();
+  }
+
+  // Create PDF
+  const PDFDocument = require('pdfkit');
+  const doc = new PDFDocument({ margin: 50, size: 'A4' });
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="HealthAI-Receipt-${payment.transactionId}.pdf"`);
+
+  doc.pipe(res);
+
+  // Header
+  doc.fontSize(24).fillColor('#0f172a').text('HealthAI', { continued: true }).fillColor('#0ea5e9').text(' Healthcare System');
+  doc.fontSize(10).fillColor('#64748b').text('123 Health Ave, Medical City, HC 12345');
+  doc.text('Phone: (555) 123-4567 | Email: support@healthai.com');
+  doc.text('Web: www.healthai.com | Tax ID: 98-7654321');
+  doc.moveDown(2);
+
+  // Title
+  doc.fontSize(20).fillColor('#0f172a').text('PAYMENT RECEIPT', { align: 'right' });
+  if (payment.receiptNumber) {
+    doc.fontSize(10).fillColor('#64748b').text(`Receipt #: ${payment.receiptNumber}`, { align: 'right' });
+  }
+  doc.text(`Date: ${new Date(payment.createdAt).toLocaleDateString()}`, { align: 'right' });
+  doc.moveDown(2);
+
+  // Two columns for Patient and Doctor details
+  const startY = doc.y;
+  
+  // Left col: Patient
+  doc.fontSize(12).fillColor('#0f172a').text('Billed To:', 50, startY);
+  doc.fontSize(10).fillColor('#334155');
+  doc.text(payment.patient?.name || 'Patient details unavailable', 50, startY + 15);
+  if (payment.patient?.email) doc.text(payment.patient.email, 50, startY + 30);
+  if (payment.patient?.phone) doc.text(payment.patient.phone, 50, startY + 45);
+
+  // Right col: Service Details
+  doc.fontSize(12).fillColor('#0f172a').text('Service Details:', 300, startY);
+  doc.fontSize(10).fillColor('#334155');
+  const docName = payment.relatedAppointment?.doctor?.name ? `Dr. ${payment.relatedAppointment.doctor.name}` : 'N/A';
+  doc.text(`Consulting Doctor: ${docName}`, 300, startY + 15);
+  doc.text(`Type: ${payment.relatedAppointment?.type || 'Consultation'}`, 300, startY + 30);
+  doc.text(`Status: ${payment.status.toUpperCase()}`, 300, startY + 45);
+  
+  doc.moveDown(4);
+
+  // Table header
+  const tableTop = doc.y;
+  doc.rect(50, tableTop, 500, 25).fill('#f1f5f9');
+  doc.fillColor('#0f172a').fontSize(10).font('Helvetica-Bold');
+  doc.text('DESCRIPTION', 60, tableTop + 8);
+  doc.text('TRANSACTION ID', 250, tableTop + 8);
+  doc.text('METHOD', 400, tableTop + 8);
+  doc.text('AMOUNT', 480, tableTop + 8, { align: 'right' });
+
+  // Table row
+  const rowTop = tableTop + 25;
+  doc.font('Helvetica').fillColor('#334155');
+  doc.rect(50, rowTop, 500, 30).stroke('#e2e8f0');
+  doc.text(payment.description || 'Medical Services', 60, rowTop + 10);
+  doc.text(payment.transactionId, 250, rowTop + 10);
+  doc.text(payment.method.toUpperCase(), 400, rowTop + 10);
+  doc.text(`$${payment.amount.toFixed(2)}`, 480, rowTop + 10, { align: 'right' });
+
+  // Summary
+  doc.moveDown(3);
+  const summaryTop = doc.y;
+  doc.font('Helvetica-Bold').fillColor('#0f172a');
+  doc.text('Subtotal:', 380, summaryTop);
+  doc.text(`$${payment.amount.toFixed(2)}`, 480, summaryTop, { align: 'right' });
+  doc.text('Tax (0%):', 380, summaryTop + 20);
+  doc.text('$0.00', 480, summaryTop + 20, { align: 'right' });
+  
+  doc.rect(370, summaryTop + 35, 180, 2).fill('#0ea5e9');
+  
+  doc.fontSize(14).text('Total Paid:', 380, summaryTop + 45);
+  doc.text(`$${payment.amount.toFixed(2)}`, 480, summaryTop + 45, { align: 'right' });
+
+  // Footer
+  doc.fontSize(10).font('Helvetica').fillColor('#94a3b8');
+  doc.text('Thank you for using HealthAI.', 50, 700, { align: 'center' });
+  doc.text('This is a computer-generated receipt.', 50, 715, { align: 'center' });
+  doc.text(`Generated on: ${new Date().toLocaleString()}`, 50, 730, { align: 'center' });
+
+  doc.end();
+});
+
+// @desc    Archive multiple payments
+// @route   PATCH /api/payments/archive
+// @access  Private (Admin)
+exports.archiveSelectedPayments = asyncHandler(async (req, res, next) => {
+  const { paymentIds, reason, remarks } = req.body;
+  if (!paymentIds || !paymentIds.length) {
+    return next(new ErrorResponse("Please provide payment IDs to archive", 400));
+  }
+
+  const payments = await Payment.find({ _id: { $in: paymentIds }, isDeleted: { $ne: true } });
+  
+  let archivedCount = 0;
+  const AuditLog = require('../models/AuditLog');
+  const auditLogs = [];
+
+  for (let payment of payments) {
+    payment.isDeleted = true;
+    payment.deletedAt = new Date();
+    payment.deletedBy = req.user.id;
+    payment.deletionReason = reason || 'Bulk archive';
+    await payment.save();
+    
+    auditLogs.push({
+      action: 'ARCHIVE_PAYMENT',
+      resourceType: 'Payment',
+      resourceId: payment._id,
+      previousStatus: payment.status,
+      newStatus: payment.status, // Preserve original status
+      performedBy: req.user.id,
+      performedByRole: req.user.role.toUpperCase(),
+      reason: reason || 'Bulk archive',
+      remarks
+    });
+    archivedCount++;
+  }
+
+  if (auditLogs.length > 0) {
+    await AuditLog.insertMany(auditLogs);
+  }
+
+  res.status(200).json({ success: true, message: `${archivedCount} payment records archived successfully`, archivedCount });
+});
+
+// @desc    Archive filtered payments
+// @route   PATCH /api/payments/archive-all
+// @access  Private (Admin)
+exports.archiveFilteredPayments = asyncHandler(async (req, res, next) => {
+  const { filters, reason, remarks } = req.body;
+  const query = { isDeleted: { $ne: true } };
+
+  if (filters?.status && filters.status !== 'all') {
+    query.status = filters.status;
+  }
+  
+  const payments = await Payment.find(query).populate('patient', 'name');
+  
+  let matchIds = [];
+  if (filters?.search) {
+    const lowerSearch = filters.search.toLowerCase();
+    matchIds = payments.filter(p => {
+      const pName = p.patient?.name?.toLowerCase() || '';
+      const tId = p.transactionId?.toLowerCase() || '';
+      return pName.includes(lowerSearch) || tId.includes(lowerSearch);
+    }).map(p => p._id);
+  } else {
+    matchIds = payments.map(p => p._id);
+  }
+
+  if (!matchIds.length) {
+    return next(new ErrorResponse("No payments found matching the current filters", 404));
+  }
+
+  const targetPayments = await Payment.find({ _id: { $in: matchIds } });
+
+  let archivedCount = 0;
+  const AuditLog = require('../models/AuditLog');
+  const auditLogs = [];
+
+  for (let payment of targetPayments) {
+    payment.isDeleted = true;
+    payment.deletedAt = new Date();
+    payment.deletedBy = req.user.id;
+    payment.deletionReason = reason || 'Bulk filtered archive';
+    await payment.save();
+    
+    auditLogs.push({
+      action: 'ARCHIVE_PAYMENT',
+      resourceType: 'Payment',
+      resourceId: payment._id,
+      previousStatus: payment.status,
+      newStatus: payment.status, 
+      performedBy: req.user.id,
+      performedByRole: req.user.role.toUpperCase(),
+      reason: reason || 'Bulk filtered archive',
+      remarks
+    });
+    archivedCount++;
+  }
+
+  if (auditLogs.length > 0) {
+    await AuditLog.insertMany(auditLogs);
+  }
+
+  res.status(200).json({ success: true, message: `${archivedCount} payment records archived successfully`, archivedCount });
+});
+
+// @desc    Restore archived payment
+// @route   PATCH /api/payments/:id/restore
+// @access  Private (Admin)
+exports.restorePayment = asyncHandler(async (req, res, next) => {
+  const payment = await Payment.findById(req.params.id);
+  
+  if (!payment) return next(new ErrorResponse('Payment not found', 404));
+  if (!payment.isDeleted) return next(new ErrorResponse('Payment is not archived', 400));
+
+  payment.isDeleted = false;
+  payment.deletedAt = null;
+  payment.deletedBy = null;
+  payment.deletionReason = null;
+  if (payment.status === 'ARCHIVED') {
+    payment.status = 'successful';
+  }
+  
+  await payment.save();
+
+  const AuditLog = require('../models/AuditLog');
+  await AuditLog.create({
+    action: 'RESTORE_PAYMENT',
+    resourceType: 'Payment',
+    resourceId: payment._id,
+    previousStatus: 'ARCHIVED',
+    newStatus: payment.status,
+    performedBy: req.user.id,
+    performedByRole: req.user.role.toUpperCase(),
+    reason: 'Restored from archived records'
+  });
+
+  res.status(200).json({ success: true, message: 'Payment restored successfully' });
 });

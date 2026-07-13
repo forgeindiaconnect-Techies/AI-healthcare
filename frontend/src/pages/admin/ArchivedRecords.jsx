@@ -38,6 +38,8 @@ const ArchivedRecords = () => {
         endpoint = `/api/admin/users/${log.resourceId}/restore`;
       } else if (log.resourceType === 'Doctor') {
         endpoint = `/api/admin/doctors/${log.resourceId}/restore`;
+      } else if (log.resourceType === 'Payment') {
+        endpoint = `/api/payments/${log.resourceId}/restore`;
       } else {
         toast.error(`Restore not implemented for ${log.resourceType}`);
         return;
@@ -49,6 +51,32 @@ const ArchivedRecords = () => {
     } catch (error) {
       console.error('Error restoring record:', error);
       toast.error('Failed to restore record');
+    }
+  };
+
+  const handleDownloadReceipt = async (paymentId) => {
+    try {
+      const toastId = toast.loading(`Generating receipt for ${paymentId}...`);
+      const config = { 
+        headers: { Authorization: `Bearer ${user.token}` },
+        responseType: 'blob'
+      };
+      
+      const response = await API.get(`/api/payments/${paymentId}/receipt`, config);
+      
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `HealthAI-Receipt-${paymentId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Receipt downloaded successfully', { id: toastId });
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      toast.error('Failed to download receipt');
     }
   };
 
@@ -66,6 +94,7 @@ const ArchivedRecords = () => {
       case 'Doctor': return <Activity className="w-5 h-5 text-emerald-500" />;
       case 'MedicalReport': return <FileText className="w-5 h-5 text-purple-500" />;
       case 'Appointment': return <Calendar className="w-5 h-5 text-orange-500" />;
+      case 'Payment': return <Activity className="w-5 h-5 text-sky-500" />;
       default: return <Archive className="w-5 h-5 text-gray-500" />;
     }
   };
@@ -162,15 +191,26 @@ const ArchivedRecords = () => {
                       {new Date(log.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {(log.resourceType === 'User' || log.resourceType === 'Patient' || log.resourceType === 'Doctor') && (
-                        <button
-                          onClick={() => handleRestore(log)}
-                          className="inline-flex items-center justify-center p-2 rounded-lg text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-all"
-                          title="Restore Record"
-                        >
-                          <RefreshCcw className="w-5 h-5" />
-                        </button>
-                      )}
+                      <div className="flex items-center justify-end gap-2">
+                        {log.resourceType === 'Payment' && (
+                          <button
+                            onClick={() => handleDownloadReceipt(log.resourceId)}
+                            className="inline-flex items-center justify-center p-2 rounded-lg text-sky-600 hover:bg-sky-50 border border-transparent hover:border-sky-200 transition-all"
+                            title="Download Receipt"
+                          >
+                            <FileText className="w-5 h-5" />
+                          </button>
+                        )}
+                        {(log.resourceType === 'User' || log.resourceType === 'Patient' || log.resourceType === 'Doctor' || log.resourceType === 'Payment') && (
+                          <button
+                            onClick={() => handleRestore(log)}
+                            className="inline-flex items-center justify-center p-2 rounded-lg text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-all"
+                            title="Restore Record"
+                          >
+                            <RefreshCcw className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

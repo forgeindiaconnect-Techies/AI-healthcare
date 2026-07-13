@@ -29,6 +29,11 @@ const paymentSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  receiptNumber: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   paymentDetails: {
     // For card: { last4: '4242', brand: 'visa' }
     // For upi: { upiId: 'user@upi' }

@@ -14,6 +14,10 @@ const AdminPayments = () => {
   const [loading, setLoading] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState([]);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [bulkArchiveMode, setBulkArchiveMode] = useState(''); // 'selected' or 'filtered'
+  const [totalRevenue, setTotalRevenue] = useState(0);
   
   // Pagination & Filtering
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +36,7 @@ const AdminPayments = () => {
       // Backend /api/payments returns ALL system payments for admin
       const { data } = await API.get('/api/payments', config);
       setPayments(data.data || []);
+      setTotalRevenue(data.totalRevenue || 0);
     } catch (error) {
       console.error('Error fetching admin payments:', error);
       toast.error('Failed to load system payments');
@@ -40,8 +45,30 @@ const AdminPayments = () => {
     }
   };
 
-  const handleDownload = (id) => {
-    toast.success(`Downloading receipt for Transaction ID: ${id}`);
+  const handleDownload = async (paymentId, transactionId) => {
+    try {
+      const toastId = toast.loading(`Generating receipt for ${transactionId}...`);
+      const config = { 
+        headers: { Authorization: `Bearer ${user.token}` },
+        responseType: 'blob'
+      };
+      
+      const response = await API.get(`/api/payments/${paymentId}/receipt`, config);
+      
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `HealthAI-Receipt-${transactionId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Receipt downloaded successfully', { id: toastId });
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      toast.error('Failed to download receipt');
+    }
   };
 
   const handleArchive = async ({ reason }) => {
@@ -60,6 +87,44 @@ const AdminPayments = () => {
   const openDeleteModal = (payment) => {
     setSelectedPayment(payment);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleBulkArchive = async ({ reason }) => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      
+      if (bulkArchiveMode === 'selected') {
+        if (!selectedPaymentIds.length) return;
+        await API.patch('/api/payments/archive', { paymentIds: selectedPaymentIds, reason }, config);
+        toast.success(`${selectedPaymentIds.length} payments archived successfully`);
+        setSelectedPaymentIds([]);
+      } else if (bulkArchiveMode === 'filtered') {
+        const filters = { status: statusFilter, search: searchTerm };
+        await API.patch('/api/payments/archive-all', { filters, reason }, config);
+        toast.success(`Filtered payments archived successfully`);
+        setSelectedPaymentIds([]);
+      }
+      
+      setIsBulkDeleteModalOpen(false);
+      fetchPayments();
+    } catch (error) {
+      console.error("Error archiving payments:", error);
+      toast.error(error.response?.data?.message || "Failed to archive payments");
+    }
+  };
+
+  const togglePaymentSelection = (id) => {
+    setSelectedPaymentIds(prev => 
+      prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = (filteredData) => {
+    if (selectedPaymentIds.length === filteredData.length && filteredData.length > 0) {
+      setSelectedPaymentIds([]);
+    } else {
+      setSelectedPaymentIds(filteredData.map(p => p._id));
+    }
   };
 
   // Client-side filtering and pagination
@@ -84,11 +149,12 @@ const AdminPayments = () => {
     currentPage * itemsPerPage
   );
 
-  // Metrics Calculation
-  const totalRevenue = payments
-    .filter(p => p.status === 'successful')
-    .reduce((sum, p) => sum + (p.amount || 0), 0);
+  const paginatedPayments = filteredPayments.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
+  // Revenue is now calculated on backend
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -192,12 +258,58 @@ const AdminPayments = () => {
         </div>
       </div>
 
+      {/* Bulk Actions Toolbar */}
+      {selectedPaymentIds.length > 0 && (
+        <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 z-20 relative">
+          <div className="flex items-center gap-3">
+            <div className="bg-sky-100 text-sky-700 font-bold px-3 py-1 rounded-lg text-sm">
+              {selectedPaymentIds.length} Selected
+            </div>
+            <span className="text-sky-700 text-sm font-medium">Ready for bulk actions</span>
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <button 
+              onClick={() => { setBulkArchiveMode('selected'); setIsBulkDeleteModalOpen(true); }}
+              className="flex-1 md:flex-none px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" /> Remove Selected
+            </button>
+            <button 
+              onClick={() => { setSelectedPaymentIds([]); }}
+              className="flex-1 md:flex-none px-4 py-2 bg-white text-gray-600 border border-gray-200 hover:bg-gray-100 rounded-xl font-bold text-sm transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Filtered Action */}
+      {!selectedPaymentIds.length && filteredPayments.length > 0 && (
+        <div className="flex justify-end z-20 relative mb-4">
+           <button 
+              onClick={() => { setBulkArchiveMode('filtered'); setIsBulkDeleteModalOpen(true); }}
+              className="px-4 py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-sm"
+            >
+              <Trash2 className="w-4 h-4" /> Remove All {statusFilter !== 'all' || searchTerm ? 'Filtered' : ''}
+            </button>
+        </div>
+      )}
+
       {/* Data Table */}
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden relative z-10">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50/80 border-b border-gray-200">
+                <th className="py-4 px-6 w-12">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedPaymentIds.length === filteredPayments.length && filteredPayments.length > 0}
+                    onChange={() => toggleSelectAll(filteredPayments)}
+                    className="w-4 h-4 text-sky-600 rounded border-gray-300 focus:ring-sky-500 cursor-pointer"
+                  />
+                </th>
                 <th className="py-4 px-6 font-bold text-xs text-gray-500 uppercase tracking-wider">Transaction Details</th>
                 <th className="py-4 px-6 font-bold text-xs text-gray-500 uppercase tracking-wider">Patient Info</th>
                 <th className="py-4 px-6 font-bold text-xs text-gray-500 uppercase tracking-wider">Amount & Method</th>
@@ -228,6 +340,14 @@ const AdminPayments = () => {
               ) : (
                 paginatedPayments.map((payment) => (
                   <tr key={payment._id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 px-6">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedPaymentIds.includes(payment._id)}
+                        onChange={() => togglePaymentSelection(payment._id)}
+                        className="w-4 h-4 text-sky-600 rounded border-gray-300 focus:ring-sky-500 cursor-pointer"
+                      />
+                    </td>
                     {/* Transaction Column */}
                     <td className="py-4 px-6">
                       <p className="font-bold text-gray-900 font-mono text-sm">{payment.transactionId || 'N/A'}</p>
@@ -274,7 +394,7 @@ const AdminPayments = () => {
                       <div className="flex items-center justify-end gap-2">
                         {payment.status === 'successful' ? (
                           <button 
-                            onClick={() => handleDownload(payment.transactionId)}
+                            onClick={() => handleDownload(payment._id, payment.transactionId)}
                             className="p-2 text-sky-600 hover:bg-sky-50 rounded-xl transition-colors tooltip-trigger inline-flex items-center gap-2 font-bold text-sm border border-transparent hover:border-sky-100"
                           >
                             <Download className="w-4 h-4" /> Receipt
@@ -330,6 +450,14 @@ const AdminPayments = () => {
         onConfirm={handleArchive}
         recordName={`Transaction ${selectedPayment?.transactionId || 'Payment'}`}
         description={`This will soft-delete and archive the payment record.`}
+        requireReason={true}
+      />
+      <DeleteConfirmationModal 
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => setIsBulkDeleteModalOpen(false)}
+        onConfirm={handleBulkArchive}
+        recordName={bulkArchiveMode === 'selected' ? `${selectedPaymentIds.length} Selected Payments` : `All Filtered Payments`}
+        description={`This will soft-delete and archive the matched payment records in bulk.`}
         requireReason={true}
       />
     </div>
