@@ -12,7 +12,7 @@ const User = require('../models/User');
 // @access  Private
 exports.getReports = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, reportType, status, patientId } = req.query;
-  const query = { isArchived: false };
+  const query = { isArchived: false, isDeleted: { $ne: true } };
 
   if (req.user.role === 'patient') {
     query.patient = req.user.id;

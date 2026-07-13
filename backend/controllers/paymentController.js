@@ -111,7 +111,7 @@ exports.processPayment = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.getPaymentHistory = asyncHandler(async (req, res, next) => {
   const { includeDeleted } = req.query;
-  const query = { patient: req.user.id };
+  const query = { patient: req.user.id, isDeleted: { $ne: true } };
   
   if (includeDeleted !== 'true') {
     query.isDeleted = { $ne: true };
@@ -133,7 +133,7 @@ exports.getPaymentHistory = asyncHandler(async (req, res, next) => {
 // @access  Private/Admin
 exports.getAllPayments = asyncHandler(async (req, res, next) => {
   const { includeDeleted } = req.query;
-  const query = {};
+  const query = { isDeleted: { $ne: true } };
   
   if (includeDeleted !== 'true') {
     query.isDeleted = { $ne: true };

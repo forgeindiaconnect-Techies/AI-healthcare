@@ -14,7 +14,7 @@ const notificationService = require('../services/notificationService');
 // @access  Private
 exports.getPrescriptions = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, status, patientId } = req.query;
-  const query = {};
+  const query = { isDeleted: { $ne: true } };
 
   if (req.user.role === 'patient') query.patient = req.user.id;
   else if (req.user.role === 'doctor') {
