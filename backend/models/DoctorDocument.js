@@ -29,8 +29,8 @@ const doctorDocumentSchema = new mongoose.Schema(
     fileSize: { type: Number },
     verificationStatus: { 
       type: String, 
-      enum: ['PENDING', 'VERIFIED', 'REJECTED', 'REUPLOAD_REQUIRED'],
-      default: 'PENDING'
+      enum: ['pending', 'verified', 'rejected', 'changes_requested'],
+      default: 'pending'
     },
     adminRemarks: { type: String },
     verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

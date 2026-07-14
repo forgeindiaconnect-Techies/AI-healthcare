@@ -51,17 +51,56 @@ const doctorSchema = new mongoose.Schema(
     },
     
     // Verification Metadata
-    verificationStatus: { type: String, default: 'DRAFT' }, // Kept for consistency if needed, but 'status' handles this
-    medicalLicenseVerificationStatus: { 
-      type: String, 
-      enum: ['NOT_CHECKED', 'CHECK_IN_PROGRESS', 'VERIFIED', 'NOT_FOUND', 'DETAILS_MISMATCH', 'EXPIRED', 'SUSPENDED', 'MANUAL_REVIEW_REQUIRED'],
-      default: 'NOT_CHECKED'
+    verificationStatus: { type: String, default: 'DRAFT' },
+    licenseVerificationStatus: {
+      type: String,
+      enum: [
+        "pending",
+        "under_review",
+        "verified",
+        "not_found",
+        "mismatch",
+        "inactive",
+        "suspended",
+        "cancelled"
+      ],
+      default: "pending"
     },
-    medicalLicenseVerificationMethod: { type: String },
-    medicalLicenseVerifiedName: { type: String },
-    medicalLicenseVerifiedAt: { type: Date },
-    medicalLicenseVerifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    medicalLicenseVerificationNotes: { type: String },
+    isLicenseVerified: {
+      type: Boolean,
+      default: false
+    },
+    licenseVerifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null
+    },
+    licenseVerifiedAt: {
+      type: Date,
+      default: null
+    },
+    licenseVerificationRemarks: {
+      type: String,
+      default: ""
+    },
+    licenseVerificationSource: {
+      type: String,
+      default: ""
+    },
+    licenseVerificationSourceUrl: {
+      type: String,
+      default: ""
+    },
+    nmcVerificationDetails: {
+      registeredNameFound: String,
+      registrationNumberFound: String,
+      registrationYear: String,
+      medicalCouncil: String,
+      qualificationFound: String,
+      registrationStatus: String,
+      verificationResult: String
+    },
+    registrationCouncil: { type: String, default: 'National Medical Commission' },
     
     applicationSubmittedAt: { type: Date },
     reviewStartedAt: { type: Date },

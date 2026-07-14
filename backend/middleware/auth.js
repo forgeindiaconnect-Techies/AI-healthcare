@@ -74,13 +74,17 @@ exports.approvedDoctorOnly = asyncHandler(async (req, res, next) => {
     });
   }
 
-  if (
-    doctor.approvalStatus !== "approved" ||
-    doctor.isVerified !== true
-  ) {
+  const hasDashboardAccess =
+    doctor.approvalStatus === "approved" &&
+    doctor.isVerified === true &&
+    doctor.isLicenseVerified === true &&
+    doctor.licenseVerificationStatus === "verified";
+
+  if (!hasDashboardAccess) {
     return res.status(403).json({
       success: false,
-      message: "Admin approval is required to access the doctor dashboard."
+      code: "DOCTOR_ACCESS_NOT_APPROVED",
+      message: "Admin approval and valid license verification are required."
     });
   }
 

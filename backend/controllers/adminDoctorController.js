@@ -270,71 +270,182 @@ exports.startReview = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: doctor });
 });
 
-// @desc    Verify/Reject/RequestReupload a document
-// @route   PATCH /api/admin/doctors/:id/documents/:documentId/:action
+// @desc    View secure document url
+// @route   GET /api/admin/doctors/:doctorId/documents/:documentId/view
 // @access  Private (Admin)
-exports.updateDocumentStatus = asyncHandler(async (req, res, next) => {
-  const { id, documentId, action } = req.params; // action: 'verify', 'reject', 'request-reupload'
+exports.viewDocument = asyncHandler(async (req, res, next) => {
+  const { doctorId, documentId } = req.params;
+  
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Admin access required.' });
+  }
+
+  const document = await DoctorDocument.findOne({ _id: documentId, doctor: doctorId });
+  if (!document) {
+    return next(new ErrorResponse('Document not found', 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    document: {
+      id: document._id,
+      name: document.documentType.replace(/_/g, ' '),
+      fileName: document.originalFileName,
+      mimeType: document.mimeType || (document.fileUrl.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg'),
+      uploadedAt: document.uploadedAt,
+      previewUrl: document.fileUrl
+    }
+  });
+});
+
+// @desc    Verify document
+// @route   PATCH /api/admin/doctors/:doctorId/documents/:documentId/verify
+// @access  Private (Admin)
+exports.verifyDocument = asyncHandler(async (req, res, next) => {
+  const { doctorId, documentId } = req.params;
   const { remarks } = req.body;
 
-  const document = await DoctorDocument.findOne({ _id: documentId, doctor: id });
+  const document = await DoctorDocument.findOne({ _id: documentId, doctor: doctorId });
   if (!document) return next(new ErrorResponse('Document not found', 404));
 
-  let status, historyAction;
-  if (action === 'verify') { status = 'VERIFIED'; historyAction = 'DOCUMENT_VERIFIED'; }
-  else if (action === 'reject') { status = 'REJECTED'; historyAction = 'DOCUMENT_REJECTED'; }
-  else if (action === 'request-reupload') { status = 'REUPLOAD_REQUIRED'; historyAction = 'DOCUMENT_REUPLOAD_REQUESTED'; }
-  else return next(new ErrorResponse('Invalid action', 400));
-
-  document.verificationStatus = status;
+  document.verificationStatus = 'verified';
   if (remarks) document.adminRemarks = remarks;
-  if (status === 'VERIFIED') {
-    document.verifiedBy = req.user.id;
-    document.verifiedAt = new Date();
-  } else if (status === 'REJECTED') {
-    document.rejectedAt = new Date();
-  }
+  document.verifiedBy = req.user.id;
+  document.verifiedAt = new Date();
   await document.save();
 
   await DoctorVerificationHistory.create({
-    doctor: id, action: historyAction, documentId,
+    doctor: doctorId, action: 'DOCUMENT_VERIFIED', documentId,
     performedBy: req.user.id, performedByRole: 'ADMIN', remarks
   });
 
   res.status(200).json({ success: true, data: document });
 });
 
-// @desc    Verify Medical License
-// @route   POST /api/admin/doctors/:id/verify-medical-license
+// @desc    Request changes for a document
+// @route   PATCH /api/admin/doctors/:doctorId/documents/:documentId/request-changes
 // @access  Private (Admin)
-exports.verifyMedicalLicense = asyncHandler(async (req, res, next) => {
-  const doctor = await Doctor.findById(req.params.id);
-  if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
+exports.requestChangesDocument = asyncHandler(async (req, res, next) => {
+  const { doctorId, documentId } = req.params;
+  const { reason } = req.body;
 
-  const result = await medicalLicenseService.verifyLicense({
-    doctorId: doctor._id,
-    licenseNumber: doctor.medicalLicenseNumber,
-    medicalCouncil: doctor.medicalCouncil,
-    state: doctor.licenseState,
-    country: doctor.licenseCountry
+  if (!reason) return next(new ErrorResponse('Reason is required', 400));
+
+  const document = await DoctorDocument.findOne({ _id: documentId, doctor: doctorId });
+  if (!document) return next(new ErrorResponse('Document not found', 404));
+
+  document.verificationStatus = 'changes_requested';
+  document.adminRemarks = reason;
+  await document.save();
+
+  await DoctorVerificationHistory.create({
+    doctor: doctorId, action: 'DOCUMENT_CHANGES_REQUESTED', documentId,
+    performedBy: req.user.id, performedByRole: 'ADMIN', remarks: reason
   });
 
-  const record = await medicalLicenseService.saveVerificationResult(doctor._id, req.user.id, result, req.body.notes);
+  res.status(200).json({ success: true, data: document });
+});
 
-  doctor.medicalLicenseVerificationStatus = result.status;
-  doctor.medicalLicenseVerificationMethod = 'API';
-  doctor.medicalLicenseVerifiedName = result.registeredName;
-  doctor.medicalLicenseVerifiedAt = new Date();
-  doctor.medicalLicenseVerifiedBy = req.user.id;
+// @desc    Reject a document
+// @route   PATCH /api/admin/doctors/:doctorId/documents/:documentId/reject
+// @access  Private (Admin)
+exports.rejectDocument = asyncHandler(async (req, res, next) => {
+  const { doctorId, documentId } = req.params;
+  const { reason } = req.body;
+
+  if (!reason) return next(new ErrorResponse('Reason is required', 400));
+
+  const document = await DoctorDocument.findOne({ _id: documentId, doctor: doctorId });
+  if (!document) return next(new ErrorResponse('Document not found', 404));
+
+  document.verificationStatus = 'rejected';
+  document.adminRemarks = reason;
+  document.rejectedAt = new Date();
+  await document.save();
+
+  await DoctorVerificationHistory.create({
+    doctor: doctorId, action: 'DOCUMENT_REJECTED', documentId,
+    performedBy: req.user.id, performedByRole: 'ADMIN', remarks: reason
+  });
+
+  res.status(200).json({ success: true, data: document });
+});
+
+// @desc    Update Manual License Verification
+// @route   PATCH /api/admin/doctors/:doctorId/license-verification
+// @access  Private (Admin)
+exports.updateLicenseVerification = asyncHandler(async (req, res, next) => {
+  const { doctorId } = req.params;
+  const {
+    registrationNumberFound,
+    registeredNameFound,
+    registrationYear,
+    medicalCouncil,
+    qualificationFound,
+    registrationStatus,
+    verificationResult,
+    remarks,
+    verificationSource,
+    verificationSourceUrl,
+    adminConfirmed
+  } = req.body;
+
+  const doctor = await Doctor.findById(doctorId);
+  if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
+
+  const canVerify = adminConfirmed === true && verificationResult === "matched" && registrationStatus === "active";
+
+  let status = "pending";
+  let isLicenseVerified = false;
+
+  if (canVerify) {
+    status = "verified";
+    isLicenseVerified = true;
+  } else if (verificationResult === "not_found") {
+    status = "not_found";
+  } else if (verificationResult === "mismatch") {
+    status = "mismatch";
+  } else if (registrationStatus === "suspended") {
+    status = "suspended";
+  } else if (registrationStatus === "inactive" || registrationStatus === "cancelled") {
+    status = "inactive"; // or cancelled based on frontend
+  }
+
+  // If not verified, reason is required
+  if (!canVerify && !remarks) {
+    return next(new ErrorResponse('Remarks/Reason is required for failed verification', 400));
+  }
+
+  doctor.licenseVerificationStatus = status;
+  doctor.isLicenseVerified = isLicenseVerified;
+  doctor.licenseVerifiedBy = req.user.id;
+  doctor.licenseVerifiedAt = new Date();
+  doctor.licenseVerificationRemarks = remarks;
+  doctor.licenseVerificationSource = verificationSource || "NMC Indian Medical Register";
+  doctor.licenseVerificationSourceUrl = verificationSourceUrl || "https://www.nmc.org.in/information-desk/indian-medical-register/";
+  
+  doctor.nmcVerificationDetails = {
+    registeredNameFound,
+    registrationNumberFound,
+    registrationYear,
+    medicalCouncil,
+    qualificationFound,
+    registrationStatus,
+    verificationResult
+  };
+
   await doctor.save();
 
   await DoctorVerificationHistory.create({
-    doctor: doctor._id, action: 'LICENSE_CHECKED', 
-    performedBy: req.user.id, performedByRole: 'ADMIN',
-    metadata: { licenseStatus: result.status }
+    doctor: doctor._id,
+    action: `LICENSE_${status.toUpperCase()}`,
+    performedBy: req.user.id,
+    performedByRole: 'ADMIN',
+    remarks: remarks,
+    metadata: { source: doctor.licenseVerificationSource, result: verificationResult }
   });
 
-  res.status(200).json({ success: true, data: { result, record, doctor } });
+  res.status(200).json({ success: true, data: doctor });
 });
 
 // @desc    Approve/Reject/Suspend/RequestChanges
@@ -358,17 +469,20 @@ exports.updateDoctorStatus = asyncHandler(async (req, res, next) => {
       if (!checklistChecked) throw new ErrorResponse('Checklist must be completed before approval', 400);
       
       const docs = await DoctorDocument.find({ doctor: id }).session(session);
-      const required = ['IDENTITY_PROOF', 'MEDICAL_LICENSE', 'MEDICAL_DEGREE', 'SPECIALIZATION_CERTIFICATE'];
-      const verifiedTypes = docs.filter(d => d.verificationStatus === 'VERIFIED').map(d => d.documentType);
+      const required = ['IDENTITY_PROOF', 'MEDICAL_LICENSE', 'MEDICAL_DEGREE'];
+      const verifiedTypes = docs.filter(d => d.verificationStatus === 'verified' || d.verificationStatus === 'VERIFIED').map(d => d.documentType);
       
       const missing = required.filter(r => !verifiedTypes.includes(r));
       if (missing.length > 0) throw new ErrorResponse(`Cannot approve. Missing verified documents: ${missing.join(', ')}`, 400);
       
-      if (doctor.medicalLicenseVerificationStatus !== 'VERIFIED') throw new ErrorResponse('Medical license must be VERIFIED before approval', 400);
+      if (doctor.isLicenseVerified !== true || doctor.licenseVerificationStatus !== "verified") {
+        throw new ErrorResponse('Medical license verification must be completed before doctor approval.', 400);
+      }
 
       newStatus = 'APPROVED';
       historyAction = 'APPROVED';
       isAcceptingPatients = true;
+      doctor.approvalStatus = 'approved';
       doctor.approvedAt = new Date();
       doctor.approvedBy = req.user.id;
       doctor.isVerified = true;
@@ -376,6 +490,7 @@ exports.updateDoctorStatus = asyncHandler(async (req, res, next) => {
       if (!reason) throw new ErrorResponse('Rejection reason is required', 400);
       newStatus = 'REJECTED';
       historyAction = 'REJECTED';
+      doctor.approvalStatus = 'rejected';
       doctor.rejectedAt = new Date();
       doctor.rejectedBy = req.user.id;
       doctor.rejectionReason = reason;

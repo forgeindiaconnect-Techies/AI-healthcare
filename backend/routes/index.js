@@ -72,8 +72,11 @@ adminRouter.get('/doctors/:doctorId', protect, authorize('admin'), adminDoctorCo
 // New Review & Verification Routes
 adminRouter.get('/doctors/:id/review', protect, authorize('admin'), adminDoctorController.getDoctorForReview);
 adminRouter.patch('/doctors/:id/start-review', protect, authorize('admin'), adminDoctorController.startReview);
-adminRouter.patch('/doctors/:id/documents/:documentId/:action', protect, authorize('admin'), adminDoctorController.updateDocumentStatus);
-adminRouter.post('/doctors/:id/verify-medical-license', protect, authorize('admin'), adminDoctorController.verifyMedicalLicense);
+adminRouter.get('/doctors/:doctorId/documents/:documentId/view', protect, authorize('admin'), adminDoctorController.viewDocument);
+adminRouter.patch('/doctors/:doctorId/documents/:documentId/verify', protect, authorize('admin'), adminDoctorController.verifyDocument);
+adminRouter.patch('/doctors/:doctorId/documents/:documentId/request-changes', protect, authorize('admin'), adminDoctorController.requestChangesDocument);
+adminRouter.patch('/doctors/:doctorId/documents/:documentId/reject', protect, authorize('admin'), adminDoctorController.rejectDocument);
+adminRouter.patch('/doctors/:doctorId/license-verification', protect, authorize('admin'), adminDoctorController.updateLicenseVerification);
 adminRouter.post('/doctors/:id/:action', protect, authorize('admin'), adminDoctorController.updateDoctorStatus); // approve, reject, suspend, request-changes
 
 adminRouter.put('/doctors/:id', protect, authorize('admin'), adminDoctorController.updateDoctor);

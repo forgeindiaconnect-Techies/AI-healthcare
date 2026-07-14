@@ -125,7 +125,10 @@ exports.register = asyncHandler(async (req, res, next) => {
         availability: availability || [],
         status: 'PENDING',
         approvalStatus: 'pending',
-        isVerified: false
+        isVerified: false,
+        isLicenseVerified: false,
+        licenseVerificationStatus: 'pending',
+        registrationCouncil: req.body.registrationCouncil || 'National Medical Commission'
       });
 
       // Create DoctorDocument entries
@@ -232,7 +235,7 @@ exports.login = asyncHandler(async (req, res, next) => {
         return res.status(403).json({
           success: false,
           code: "DOCTOR_APPROVAL_PENDING",
-          message: "Your account is waiting for admin approval."
+          message: "Your account is waiting for document verification, license verification and admin approval."
         });
       }
 
@@ -242,7 +245,15 @@ exports.login = asyncHandler(async (req, res, next) => {
           code: "DOCTOR_ACCOUNT_REJECTED",
           message:
             doctor.rejectionReason ||
-            "Your doctor registration was rejected. Please contact the administrator."
+            "Your registration was not approved."
+        });
+      }
+
+      if (doctor.isLicenseVerified !== true || doctor.licenseVerificationStatus !== "verified") {
+        return res.status(403).json({
+          success: false,
+          code: "LICENSE_NOT_VERIFIED",
+          message: "Your medical license verification is not complete."
         });
       }
 
