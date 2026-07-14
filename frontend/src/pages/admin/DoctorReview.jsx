@@ -153,8 +153,14 @@ const DoctorReview = () => {
     
     setIsSubmittingLicense(true);
     try {
+      const payload = {
+        ...licenseVerifyForm,
+        registrationStatus: 'active',
+        verificationResult: 'matched'
+      };
+
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await API.patch(`/api/admin/doctors/${id}/license-verification`, licenseVerifyForm, config);
+      await API.patch(`/api/admin/doctors/${id}/license-verification`, payload, config);
       toast.success('License verification recorded successfully');
       setNmcWebsiteOpened(false);
       
@@ -394,55 +400,6 @@ const DoctorReview = () => {
                   <div className="bg-white border-2 border-teal-100 rounded-xl p-5 shadow-sm">
                     <h4 className="font-bold text-gray-800 mb-4 border-b pb-2">Record Verification Result</h4>
                     <form onSubmit={handleManualLicenseSubmit} className="space-y-4">
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Name found in register</label>
-                          <input type="text" className="w-full border rounded-md p-2 text-sm focus:ring-teal-500" value={licenseVerifyForm.registeredNameFound} onChange={e => setLicenseVerifyForm({...licenseVerifyForm, registeredNameFound: e.target.value})} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Registration number found</label>
-                          <input type="text" className="w-full border rounded-md p-2 text-sm focus:ring-teal-500" value={licenseVerifyForm.registrationNumberFound} onChange={e => setLicenseVerifyForm({...licenseVerifyForm, registrationNumberFound: e.target.value})} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Registration year</label>
-                          <input type="text" className="w-full border rounded-md p-2 text-sm focus:ring-teal-500" value={licenseVerifyForm.registrationYear} onChange={e => setLicenseVerifyForm({...licenseVerifyForm, registrationYear: e.target.value})} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">State Medical Council</label>
-                          <input type="text" className="w-full border rounded-md p-2 text-sm focus:ring-teal-500" value={licenseVerifyForm.medicalCouncil} onChange={e => setLicenseVerifyForm({...licenseVerifyForm, medicalCouncil: e.target.value})} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Qualification found</label>
-                          <input type="text" className="w-full border rounded-md p-2 text-sm focus:ring-teal-500" value={licenseVerifyForm.qualificationFound} onChange={e => setLicenseVerifyForm({...licenseVerifyForm, qualificationFound: e.target.value})} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Registration status *</label>
-                          <select required className="w-full border rounded-md p-2 text-sm focus:ring-teal-500 bg-white" value={licenseVerifyForm.registrationStatus} onChange={e => setLicenseVerifyForm({...licenseVerifyForm, registrationStatus: e.target.value})}>
-                            <option value="">Select status...</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="suspended">Suspended</option>
-                            <option value="cancelled">Cancelled</option>
-                            <option value="not_available">Not Available</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Verification result *</label>
-                          <select required className="w-full border rounded-md p-2 text-sm focus:ring-teal-500 bg-white" value={licenseVerifyForm.verificationResult} onChange={e => setLicenseVerifyForm({...licenseVerifyForm, verificationResult: e.target.value})}>
-                            <option value="">Select result...</option>
-                            <option value="matched">Record Matched</option>
-                            <option value="not_found">Record Not Found</option>
-                            <option value="mismatch">Details Mismatch</option>
-                            <option value="requires_review">Requires Further Review</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Admin remarks</label>
-                        <textarea className="w-full border rounded-md p-2 text-sm focus:ring-teal-500" rows="2" placeholder="Required for mismatch or not found..." value={licenseVerifyForm.remarks} onChange={e => setLicenseVerifyForm({...licenseVerifyForm, remarks: e.target.value})} />
-                      </div>
 
                       <label className="flex items-start gap-3 p-3 bg-teal-50 rounded border border-teal-100 cursor-pointer">
                         <input 
@@ -458,7 +415,7 @@ const DoctorReview = () => {
                       <div className="flex justify-end pt-2">
                         <button 
                           type="submit"
-                          disabled={!licenseVerifyForm.adminConfirmed || !licenseVerifyForm.registrationStatus || !licenseVerifyForm.verificationResult || isSubmittingLicense}
+                          disabled={!licenseVerifyForm.adminConfirmed || isSubmittingLicense}
                           className="bg-teal-600 text-white px-6 py-2 rounded font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                           {isSubmittingLicense && <Spinner size={16} color="white" />}
