@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../../api/api';
+import api from '../../api/api';
 import toast from 'react-hot-toast';
-import { Button } from '../../../components/ui/SharedUI';
+import { Button } from '../../components/ui/SharedUI';
 
 const PendingDoctors = () => {
   const [doctors, setDoctors] = useState([]);

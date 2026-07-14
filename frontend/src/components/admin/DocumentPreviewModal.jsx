@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { X, ZoomIn, ZoomOut, Download, ExternalLink, Maximize, ChevronLeft, ChevronRight } from 'lucide-react';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
-import { colors } from '../../../theme/colors';
-import { Spinner, Button } from '../../ui/SharedUI';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+import { colors } from "../../theme/colors";
+import { Spinner, Button } from "../ui/SharedUI";
 
 // Set up pdf.js worker for react-pdf (Vite compatible)
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
