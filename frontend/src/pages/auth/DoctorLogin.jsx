@@ -72,7 +72,7 @@ const DoctorLogin = () => {
       // Also set userInfo so AuthContext works too
       localStorage.setItem("userInfo", JSON.stringify({ ...doctor, token }));
 
-      navigate("/dashboard/doctor-dashboard", { replace: true });
+      navigate("/dashboard/doctor", { replace: true });
     } catch (err) {
       let message = err.message || "Authentication failed";
       if (err.response && err.response.data) {

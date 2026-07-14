@@ -6,7 +6,19 @@ const API = axios.create({
 
 // Add a request interceptor
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("doctorToken");
+  let token = localStorage.getItem("doctorToken");
+  
+  if (!token) {
+    const userInfoStr = localStorage.getItem("userInfo");
+    if (userInfoStr && userInfoStr !== 'undefined' && userInfoStr !== 'null') {
+      try {
+        const userInfo = JSON.parse(userInfoStr);
+        token = userInfo.token;
+      } catch (e) {
+        console.error("Failed to parse userInfo", e);
+      }
+    }
+  }
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

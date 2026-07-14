@@ -80,6 +80,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('userInfo');
+    localStorage.removeItem('doctorToken');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('doctor');
     setUser(null);
   };
 

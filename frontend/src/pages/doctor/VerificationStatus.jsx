@@ -13,7 +13,7 @@ const VerificationStatus = () => {
     try {
       const { data } = await API.get('/api/doctors/verification-status');
       if (data.data.status === 'APPROVED') {
-        navigate('/dashboard/doctor-dashboard');
+        navigate('/dashboard/doctor');
       } else {
         setStatusData(data.data);
       }

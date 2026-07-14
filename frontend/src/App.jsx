@@ -9,12 +9,14 @@ import RegistrationRejected from './pages/auth/RegistrationRejected';
 import LandingPage from './pages/Landing';
 
 import DashboardLayout from './components/layout/DashboardLayout';
+import DoctorLayout from './components/layout/DoctorLayout';
+import DoctorProtectedRoute from './auth/DoctorProtectedRoute';
+import DoctorPatients from './pages/doctor/DoctorPatients';
 import PatientDashboard from './pages/patient/PatientDashboard';
 import PatientAppointments from './pages/patient/PatientAppointments';
 import MedicalReports from './pages/patient/MedicalReports';
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
-import PatientManagement from './pages/doctor/PatientManagement';
 import DoctorPrescriptions from './pages/doctor/DoctorPrescriptions';
 import PatientPrescriptions from './pages/patient/PatientPrescriptions';
 import MedicalHistory from './pages/patient/MedicalHistory';
@@ -109,7 +111,6 @@ import { ChatProvider, useChat } from './context/ChatContext';
 import { ROLES } from './auth/roles';
 import ProtectedRoute from './auth/ProtectedRoute';
 import AdminProtectedRoute from './auth/AdminProtectedRoute';
-import ApprovedDoctorRoute from './auth/ApprovedDoctorRoute';
 import { Toaster } from 'react-hot-toast';
 import ChatWindow from './components/chat/ChatWindow';
 
@@ -143,7 +144,7 @@ const RoleRoute = ({ role, children }) => {
 const DashboardIndex = () => {
   const { user } = useAuth();
   if (user?.role === 'admin') return <Navigate to="admin" replace />;
-  if (user?.role === 'doctor') return <Navigate to="verification-status" replace />; // Default to verification status, it handles redirect to dashboard if approved
+  if (user?.role === 'doctor') return <Navigate to="/dashboard/doctor" replace />;
   return <Navigate to="patients" replace />;
 };
 
@@ -194,20 +195,7 @@ function App() {
               <Route path="patient-follow-ups" element={<RoleRoute role="patient"><PatientFollowUps /></RoleRoute>} />
               <Route path="consultation-summary/:appointmentId" element={<RoleRoute role="patient"><ConsultationSummary /></RoleRoute>} />
 
-              {/* Doctor Routes */}
-              <Route path="doctor-dashboard" element={<ApprovedDoctorRoute><DoctorDashboard /></ApprovedDoctorRoute>} />
-              <Route path="verification-status" element={<ApprovedDoctorRoute><VerificationStatus /></ApprovedDoctorRoute>} />
-              <Route path="doctor-patients" element={<ApprovedDoctorRoute><PatientManagement /></ApprovedDoctorRoute>} />
-              <Route path="doctor-patients/:id" element={<ApprovedDoctorRoute><DoctorPatientProfile /></ApprovedDoctorRoute>} />
-              <Route path="consultation/:appointmentId/:patientId" element={<ApprovedDoctorRoute><ConsultationWizard /></ApprovedDoctorRoute>} />
-              <Route path="diagnosis" element={<ApprovedDoctorRoute><Diagnosis /></ApprovedDoctorRoute>} />
-              <Route path="lab-recommendations" element={<ApprovedDoctorRoute><LabRecommendations /></ApprovedDoctorRoute>} />
-              <Route path="follow-up" element={<ApprovedDoctorRoute><FollowUpSchedule /></ApprovedDoctorRoute>} />
-              <Route path="ai-analysis" element={<ApprovedDoctorRoute><DoctorAIAnalysis /></ApprovedDoctorRoute>} />
-              <Route path="chat" element={<ApprovedDoctorRoute><PatientCommunication /></ApprovedDoctorRoute>} />
-              <Route path="review-reports" element={<ApprovedDoctorRoute><ReviewReports /></ApprovedDoctorRoute>} />
-              <Route path="doctor-treatment-plans" element={<ApprovedDoctorRoute><DoctorTreatmentPlans /></ApprovedDoctorRoute>} />
-              <Route path="generate-report" element={<ApprovedDoctorRoute><GenerateReport /></ApprovedDoctorRoute>} />
+              {/* Doctor Routes (Moved to /dashboard/doctor) */}
 
               {/* Admin Routes */}
               <Route path="admin" element={<RoleRoute role="admin"><AdminDashboard /></RoleRoute>} />
@@ -227,6 +215,34 @@ function App() {
               <Route path="appointments" element={<AppointmentsRouter />} />
               <Route path="prescriptions" element={<PrescriptionsRouter />} />
               <Route path="profile" element={<ProfileRouter />} />
+            </Route>
+
+            {/* Doctor Layout Route */}
+            <Route 
+              path="/dashboard/doctor" 
+              element={
+                <DoctorProtectedRoute>
+                  <DoctorLayout />
+                </DoctorProtectedRoute>
+              }
+            >
+              <Route index element={<DoctorDashboard />} />
+              <Route path="verification-status" element={<VerificationStatus />} />
+              <Route path="appointments" element={<DoctorAppointments />} />
+              <Route path="patients" element={<DoctorPatients />} />
+              <Route path="patients/:id" element={<DoctorPatientProfile />} />
+              <Route path="consultation/:appointmentId/:patientId" element={<ConsultationWizard />} />
+              <Route path="diagnosis" element={<Diagnosis />} />
+              <Route path="lab-recommendations" element={<LabRecommendations />} />
+              <Route path="follow-up" element={<FollowUpSchedule />} />
+              <Route path="ai-analysis" element={<DoctorAIAnalysis />} />
+              <Route path="chat" element={<PatientCommunication />} />
+              <Route path="review-reports" element={<ReviewReports />} />
+              <Route path="treatment-plans" element={<DoctorTreatmentPlans />} />
+              <Route path="prescriptions" element={<DoctorPrescriptions />} />
+              <Route path="generate-report" element={<GenerateReport />} />
+              <Route path="notifications" element={<NotificationsRouter />} />
+              <Route path="profile" element={<DoctorProfile />} />
             </Route>
 
             {/* Consultation Route (No Sidebar Layout) */}
