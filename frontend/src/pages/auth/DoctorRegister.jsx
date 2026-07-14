@@ -129,7 +129,7 @@ const DoctorRegister = () => {
         toast.success("Registration successful! Please wait for admin approval.");
         navigate('/doctor-login');
       } else {
-        let errorMessage = data.error || 'Failed to register as doctor';
+        let errorMessage = data.error || data.message || 'Failed to register as doctor';
         if (data.details && data.details.length > 0) {
           errorMessage = data.details.map(d => d.message).join(', ');
         }
