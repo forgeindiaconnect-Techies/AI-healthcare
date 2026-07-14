@@ -308,6 +308,29 @@ exports.login = asyncHandler(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   logger.info(`User logged in: ${email}`);
+
+  if (user.role === 'doctor') {
+    const doctor = await Doctor.findOne({ user: user._id });
+    const token = user.getSignedJwtToken();
+    const cookieOptions = {
+      expires: new Date(Date.now() + parseInt(process.env.JWT_COOKIE_EXPIRE) * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    };
+    return res.status(200).cookie('token', token, cookieOptions).json({
+      success: true,
+      token,
+      doctor: {
+        id: doctor._id,
+        role: "doctor",
+        approvalStatus: doctor.approvalStatus,
+        isVerified: doctor.isVerified,
+        isLicenseVerified: doctor.isLicenseVerified
+      }
+    });
+  }
+
   sendTokenResponse(user, 200, res, 'Login successful');
 });
 

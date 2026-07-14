@@ -12,13 +12,17 @@ const ApprovedDoctorRoute = ({ children }) => {
     let isMounted = true;
 
     const checkDoctorStatus = async () => {
-      if (!user || user.role !== 'doctor') {
+      const doctorToken = localStorage.getItem('doctorToken') || localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo') || '{}').token : null;
+      
+      if (!doctorToken) {
         if (isMounted) setIsApproved(false);
         return;
       }
 
       try {
-        const response = await api.get('/api/auth/me');
+        const response = await api.get('/api/auth/me', {
+          headers: { Authorization: `Bearer ${doctorToken}` }
+        });
         const doctorData = response.data.data;
         
         if (doctorData && doctorData.profile) {
@@ -61,7 +65,7 @@ const ApprovedDoctorRoute = ({ children }) => {
     );
   }
 
-  if (!user || user.role !== 'doctor') {
+  if (!isApproved && errorStatus === null) {
     return <Navigate to="/doctor-login" replace />;
   }
 

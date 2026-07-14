@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { colors } from '../../theme/colors';
 import { Button, Input } from '../../components/ui/SharedUI';
 import { useAuth } from '../../context/AuthContext';
+import API from '../../api/api';
 
 const DoctorLogin = () => {
   const navigate = useNavigate();
@@ -11,39 +12,84 @@ const DoctorLogin = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
+    if (isSubmitting) return;
+
     if (!form.email || !form.password) { 
       setError("Please fill all fields"); 
       return; 
     }
     setLoading(true); 
+    setIsSubmitting(true);
     setError("");
     
     try {
-      const res = await login(form.email, form.password);
-      if (res.success) {
-        if (res.user.role === 'doctor' || res.user.role === 'admin') {
-          navigate('/dashboard/doctor-dashboard');
-        } else {
-          setError("Access denied. Doctor privileges required.");
-        }
-      } else {
-        if (res.code === 'DOCTOR_APPROVAL_PENDING') {
-          navigate('/approval-pending');
-        } else if (res.code === 'DOCTOR_ACCOUNT_REJECTED') {
-          navigate('/registration-rejected', { state: { message: res.message } });
-        } else {
-          setError(res.message || "Authentication failed");
-        }
+      const response = await API.post("/api/auth/login", {
+        email: form.email.trim().toLowerCase(),
+        password: form.password
+      });
+
+      const token = response.data.token || response.data.accessToken;
+      const doctor = response.data.doctor || response.data.user || response.data.data;
+
+      // Make sure it's a doctor
+      if (doctor?.role !== 'doctor' && doctor?.role !== 'admin') {
+         setError("Access denied. Doctor privileges required.");
+         return;
       }
+
+      // Check approval status
+      const isApproved =
+        doctor?.role === "doctor" &&
+        doctor?.approvalStatus === "approved" &&
+        doctor?.isVerified === true &&
+        doctor?.isLicenseVerified === true;
+
+      if (!isApproved && doctor?.role !== 'admin') {
+        if (doctor?.approvalStatus === "pending") {
+          navigate("/approval-pending");
+          return;
+        }
+
+        if (doctor?.approvalStatus === "rejected") {
+          navigate("/registration-rejected", { state: { message: doctor.rejectionReason || "Registration rejected" } });
+          return;
+        }
+
+        throw new Error("Doctor account verification is incomplete.");
+      }
+
+      // Valid doctor, store token
+      localStorage.setItem("doctorToken", token);
+      localStorage.setItem("userRole", doctor.role);
+      localStorage.setItem("doctor", JSON.stringify(doctor));
+
+      // Also set userInfo so AuthContext works too
+      localStorage.setItem("userInfo", JSON.stringify({ ...doctor, token }));
+
+      navigate("/dashboard/doctor-dashboard", { replace: true });
     } catch (err) {
-      setError(err.message || "Authentication failed");
+      let message = err.message || "Authentication failed";
+      if (err.response && err.response.data) {
+        if (err.response.data.code === 'DOCTOR_APPROVAL_PENDING') {
+          navigate('/approval-pending');
+          return;
+        }
+        if (err.response.data.code === 'DOCTOR_ACCOUNT_REJECTED') {
+          navigate('/registration-rejected', { state: { message: err.response.data.message } });
+          return;
+        }
+        message = err.response.data.error || err.response.data.message || message;
+      }
+      setError(message);
     } finally {
       setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -65,8 +111,8 @@ const DoctorLogin = () => {
           
           {error && <div style={{ background: `${colors.danger}15`, color: colors.danger, borderRadius: 8, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>⚠️ {error}</div>}
           
-          <Button variant="primary" onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "13px", fontSize: 15 }}>
-            {loading ? "Authenticating..." : "Login to Portal →"}
+          <Button variant="primary" type="submit" disabled={isSubmitting} style={{ width: "100%", padding: "13px", fontSize: 15 }}>
+            {isSubmitting ? "Authenticating..." : "Login to Portal →"}
           </Button>
         </form>
       </div>
