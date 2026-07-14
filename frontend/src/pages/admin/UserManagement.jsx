@@ -44,14 +44,14 @@ const UserManagement = () => {
       fetchUsers(); // Refresh the list
     } catch (error) {
       console.error("Error toggling status:", error);
-      toast.error(error.response?.data?.message || "Failed to update user status");
+      toast.error(error.response?.data?.error || error.response?.data?.message || "Failed to update user status");
     }
   };
 
   const handleRemove = async ({ reason }) => {
     if (!selectedUser) return;
-    if (selectedUser.role === 'admin') {
-      toast.error("Cannot delete admin accounts");
+    if (selectedUser.role === 'admin' || selectedUser.role === 'doctor') {
+      toast.error(`Cannot delete ${selectedUser.role} accounts from this page`);
       return;
     }
     try {
@@ -61,13 +61,13 @@ const UserManagement = () => {
       fetchUsers(); // Refresh the list
     } catch (error) {
       console.error("Error removing user:", error);
-      toast.error(error.response?.data?.message || "Failed to remove user");
+      toast.error(error.response?.data?.error || error.response?.data?.message || "Failed to remove user");
     }
   };
 
   const openDeleteModal = (u) => {
-    if (u.role === 'admin') {
-      toast.error("Cannot delete admin accounts");
+    if (u.role === 'admin' || u.role === 'doctor') {
+      toast.error(`Cannot delete ${u.role} accounts from this page`);
       return;
     }
     setSelectedUser(u);
@@ -137,9 +137,9 @@ const UserManagement = () => {
                   </button>
                   <button 
                     onClick={() => openDeleteModal(u)}
-                    title="Remove User"
-                    disabled={u.role === 'admin'}
-                    className={`p-1.5 rounded ${u.role === 'admin' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
+                    title={u.role === 'doctor' ? "Use Doctor Management to remove doctors" : "Remove User"}
+                    disabled={u.role === 'admin' || u.role === 'doctor'}
+                    className={`p-1.5 rounded ${u.role === 'admin' || u.role === 'doctor' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
