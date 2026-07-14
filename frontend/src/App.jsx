@@ -219,7 +219,6 @@ function App() {
               <Route path="admin-reports" element={<RoleRoute role="admin"><AdminReports /></RoleRoute>} />
               <Route path="admin-prescriptions" element={<RoleRoute role="admin"><AdminPrescriptions /></RoleRoute>} />
               <Route path="admin-payments" element={<RoleRoute role="admin"><AdminPayments /></RoleRoute>} />
-              <Route path="admin-video-consults" element={<RoleRoute role="admin"><AdminVideoConsults /></RoleRoute>} />
               <Route path="archived-records" element={<RoleRoute role="admin"><ArchivedRecords /></RoleRoute>} />
               <Route path="admin/pending-approvals" element={<AdminProtectedRoute><PendingDoctors /></AdminProtectedRoute>} />
 

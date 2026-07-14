@@ -53,7 +53,6 @@ const navItems = {
     { id: "dashboard/admin-reports", label: "Manage Medical Reports", icon: <Clipboard size={20} /> },
     { id: "dashboard/admin-prescriptions", label: "Manage Prescriptions", icon: <Pill size={20} /> },
     { id: "dashboard/admin-payments", label: "Manage Payments", icon: <CreditCard size={20} /> },
-    { id: "dashboard/admin-video-consults", label: "Manage Video Consultations", icon: <Video size={20} /> },
     { id: "dashboard/archived-records", label: "Archived Records", icon: <Archive size={20} /> },
     { id: "dashboard/analytics", label: "Reports & Analytics", icon: <TrendingUp size={20} /> },
     { id: "dashboard/notifications", label: "Notifications", icon: <Bell size={20} /> },
