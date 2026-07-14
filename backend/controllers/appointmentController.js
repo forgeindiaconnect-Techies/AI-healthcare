@@ -182,6 +182,11 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
 
   const queueNumber = mode !== 'video' ? Math.floor(Math.random() * 50) + 1 : undefined;
 
+  const feePaise = doctorProfile?.consultationFeePaise || Math.round((doctorProfile?.consultationFee || 0) * 100);
+  const commRate = doctorProfile?.commissionRate || 20;
+  const platCommPaise = Math.round(feePaise * commRate / 100);
+  const docEarnPaise = feePaise - platCommPaise;
+
   const appointment = new Appointment({
     patient: patientId,
     doctor: doctorId,
@@ -196,6 +201,10 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
     symptoms: symptoms || [],
     notes: { [req.user.role]: notes || '' },
     consultationFee: doctorProfile?.consultationFee || 0,
+    consultationFeePaise: feePaise,
+    commissionRate: commRate,
+    platformCommissionPaise: platCommPaise,
+    doctorEarningsPaise: docEarnPaise,
     status: 'Pending Doctor Approval',
     queueNumber,
     roomNumber: roomNumber || (mode !== 'video' ? 'Room 101' : undefined)

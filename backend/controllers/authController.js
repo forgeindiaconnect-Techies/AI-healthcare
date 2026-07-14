@@ -93,9 +93,22 @@ exports.register = asyncHandler(async (req, res, next) => {
 
   // If registering as a doctor, validate license numbers before creating user
   let normalizedLicenseNumber;
+  let parsedFee = 0;
+  let isCommissionAccepted = false;
+
   if (role === 'doctor') {
     if (!specialization || !licenseNumber || !registeredNumber) {
       return next(new ErrorResponse('Doctors require specialization, license number, and registered number', 400));
+    }
+
+    parsedFee = parseFloat(req.body.consultationFee);
+    if (!parsedFee || parsedFee <= 0) {
+      return next(new ErrorResponse('Consultation fee is required and must be greater than zero.', 400));
+    }
+
+    isCommissionAccepted = req.body.commissionAccepted === 'true' || req.body.commissionAccepted === true;
+    if (!isCommissionAccepted) {
+      return next(new ErrorResponse('You must accept the 20% platform commission agreement.', 400));
     }
 
     normalizedLicenseNumber = licenseNumber.trim().toUpperCase();
@@ -151,7 +164,12 @@ exports.register = asyncHandler(async (req, res, next) => {
         hospital: { name: hospitalName || '' },
         facilityType: facilityType || 'Clinic',
         clinicAddress: addressObj || {},
-        consultationFee: consultationFee || 0,
+        consultationFee: parsedFee || 0,
+        consultationFeePaise: Math.round((parsedFee || 0) * 100),
+        commissionRate: 20,
+        commissionAccepted: true,
+        commissionAcceptedAt: new Date(),
+        commissionPolicyVersion: 'v1',
         availability: availability || [],
         status: 'PENDING',
         approvalStatus: 'pending',

@@ -25,6 +25,7 @@ const DoctorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [profileData, setProfileData] = useState(null);
   
   // Drill-down Modal State
   const [drilldownType, setDrilldownType] = useState(null);
@@ -43,8 +44,19 @@ const DoctorDashboard = () => {
       }
     };
 
+    const fetchProfile = async () => {
+      try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const { data } = await API.get('/api/doctors/profile', config);
+        setProfileData(data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+
     if (user?.token) {
       fetchAppointments();
+      fetchProfile();
     } else {
       setLoading(false);
     }
@@ -248,6 +260,27 @@ const DoctorDashboard = () => {
 
       {/* Top Stats */}
       <DoctorStatsGrid stats={stats} loading={loading} onCardClick={setDrilldownType} />
+
+      {/* Financial Overview Card */}
+      {profileData && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-800">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Financial Overview (Per Consultation)</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl">
+              <p className="text-sm font-medium text-gray-500">Consultation Fee</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-1">₹ {profileData.consultationFee || 0}</h3>
+            </div>
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30">
+              <p className="text-sm font-medium text-red-600 dark:text-red-400">Platform Commission ({profileData.commissionRate || 20}%)</p>
+              <h3 className="text-xl font-bold text-red-700 dark:text-red-300 mt-1">- ₹ {profileData.estimatedCommission || 0}</h3>
+            </div>
+            <div className="p-4 bg-teal-50 dark:bg-teal-900/20 rounded-xl border border-teal-100 dark:border-teal-900/30">
+              <p className="text-sm font-medium text-teal-700 dark:text-teal-400">Your Earnings ({(100 - (profileData.commissionRate || 20))}%)</p>
+              <h3 className="text-xl font-bold text-teal-800 dark:text-teal-300 mt-1">₹ {profileData.estimatedDoctorEarnings || 0}</h3>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Grid Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

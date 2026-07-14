@@ -153,6 +153,11 @@ const doctorSchema = new mongoose.Schema(
       country: String,
     },
     consultationFee: { type: Number, default: 0 },
+    consultationFeePaise: { type: Number, min: 1 },
+    commissionRate: { type: Number, default: 20 },
+    commissionAccepted: { type: Boolean, default: false },
+    commissionAcceptedAt: { type: Date },
+    commissionPolicyVersion: { type: String, default: 'v1' },
     consultationDuration: { type: Number, default: 30 }, // minutes
     availability: [
       {

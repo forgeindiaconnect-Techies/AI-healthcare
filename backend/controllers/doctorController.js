@@ -87,11 +87,18 @@ exports.getDoctorProfileData = asyncHandler(async (req, res, next) => {
   const profile = await Doctor.findOne({ user: req.user.id }).populate('user', 'name email');
   if (!profile) return next(new ErrorResponse('Doctor profile not found', 404));
 
+  const feePaise = profile.consultationFeePaise || Math.round((profile.consultationFee || 0) * 100);
+  const commRate = profile.commissionRate || 20;
+
   res.status(200).json({
     fullName: profile.user.name,
     email: profile.user.email,
     specialization: profile.specialization,
-    experience: profile.experience
+    experience: profile.experience,
+    consultationFee: profile.consultationFee,
+    commissionRate: commRate,
+    estimatedCommission: Math.round(feePaise * commRate / 100) / 100,
+    estimatedDoctorEarnings: (feePaise - Math.round(feePaise * commRate / 100)) / 100
   });
 });
 
@@ -109,6 +116,10 @@ exports.updateDoctorProfile = asyncHandler(async (req, res, next) => {
 
   const updates = {};
   allowedFields.forEach((f) => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
+
+  if (updates.consultationFee !== undefined) {
+    updates.consultationFeePaise = Math.round(updates.consultationFee * 100);
+  }
 
   const profile = await Doctor.findOneAndUpdate({ user: req.user.id }, updates, { new: true, runValidators: true })
     .populate('user', 'name email avatar phone');

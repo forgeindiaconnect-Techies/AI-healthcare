@@ -19,6 +19,7 @@ const DoctorRegister = () => {
       street: '', city: '', state: '', zipCode: '', country: ''
     },
     consultationFee: '',
+    commissionAccepted: false,
     licenseNumber: '',
     registeredNumber: '',
     docClinicUrl: ''
@@ -47,6 +48,8 @@ const DoctorRegister = () => {
         ...prev,
         location: { ...prev.location, [name]: value }
       }));
+    } else if (name === 'commissionAccepted') {
+      setFormData((prev) => ({ ...prev, [name]: e.target.checked }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -78,6 +81,9 @@ const DoctorRegister = () => {
     }
     if (!formData.specialization) {
       newErrors.specialization = "Please select a specialization.";
+    }
+    if (!formData.commissionAccepted) {
+      newErrors.commissionAccepted = "You must accept the commission terms to register.";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -282,7 +288,7 @@ const DoctorRegister = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Consultation Fee ($)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Consultation Fee (₹)</label>
                   <input name="consultationFee" type="number" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.consultationFee} />
                 </div>
                 <div>
@@ -296,6 +302,45 @@ const DoctorRegister = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
                   <input name="zipCode" type="text" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.location.zipCode} />
+                </div>
+              </div>
+              </div>
+
+              {/* Consultation & Commission Details */}
+              <div className="bg-teal-50 p-4 rounded-lg border border-teal-100 mt-6">
+                <h4 className="font-medium text-teal-800 mb-4">Consultation & Commission Summary</h4>
+                <div className="space-y-3 mb-5">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Consultation Fee:</span>
+                    <span className="font-semibold text-gray-900">₹ {formData.consultationFee || '0'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Platform Commission (20%):</span>
+                    <span className="font-semibold text-red-600">- ₹ {formData.consultationFee ? Math.round(parseFloat(formData.consultationFee) * 0.20) : '0'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-teal-200">
+                    <span className="font-medium text-teal-900">Doctor Earnings (80%):</span>
+                    <span className="font-bold text-teal-700">₹ {formData.consultationFee ? Math.round(parseFloat(formData.consultationFee) * 0.80) : '0'}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 mt-4">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="commissionAccepted"
+                      name="commissionAccepted"
+                      type="checkbox"
+                      checked={formData.commissionAccepted}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-teal-600 bg-white border-gray-300 rounded focus:ring-teal-500"
+                    />
+                  </div>
+                  <div className="text-sm">
+                    <label htmlFor="commissionAccepted" className="font-medium text-gray-700">
+                      I understand and accept that the platform will deduct a 20% commission from every successfully completed consultation.
+                    </label>
+                    {errors.commissionAccepted && <p className="text-red-500 text-sm mt-1">{errors.commissionAccepted}</p>}
+                  </div>
                 </div>
               </div>
             </div>
