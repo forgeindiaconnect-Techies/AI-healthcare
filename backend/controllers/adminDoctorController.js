@@ -49,14 +49,15 @@ exports.createDoctor = asyncHandler(async (req, res, next) => {
       isAcceptingPatients: isVerified
     });
 
-    await notificationService.createNotification({
-      user: user._id,
-      title: 'Doctor Account Created',
-      message: 'Your doctor account has been successfully created by the administrator. You can now login.',
-      type: 'system',
-      priority: 'high'
-    });
-
+    if (user) {
+      await notificationService.create({
+        userId: user._id,
+        title: 'Doctor Account Created',
+        message: 'Your doctor account has been created by an administrator. Please check your email for login details.',
+        type: 'system', priority: 'high'
+      });
+    } 
+    
     res.status(201).json({ success: true, data: { user, profile: doctor } });
   } catch (error) {
     await User.findByIdAndDelete(user._id);
@@ -519,8 +520,8 @@ exports.updateDoctorStatus = asyncHandler(async (req, res, next) => {
     }], { session });
 
     if (doctor.user) {
-      await notificationService.createNotification({
-        user: doctor.user._id,
+      await notificationService.create({
+        userId: doctor.user._id,
         title: `Doctor Application Status: ${newStatus}`,
         message: `Your account status has been updated to ${newStatus}. ${reason ? 'Reason: ' + reason : ''}`,
         type: 'system', priority: 'high'
