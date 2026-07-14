@@ -12,7 +12,13 @@ const doctorSchema = new mongoose.Schema(
     graduationYear: { type: Number },
     experience: { type: Number, default: 0 }, // years
     
-    medicalLicenseNumber: { type: String, required: true, unique: true },
+    medicalLicenseNumber: { 
+      type: String, 
+      required: true, 
+      unique: true,
+      trim: true,
+      uppercase: true
+    },
     registeredNumber: { type: String },
     medicalCouncil: { type: String },
     licenseState: { type: String },

@@ -91,6 +91,40 @@ exports.register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Email already registered', 409));
   }
 
+  // If registering as a doctor, validate license numbers before creating user
+  let normalizedLicenseNumber;
+  if (role === 'doctor') {
+    if (!specialization || !licenseNumber || !registeredNumber) {
+      return next(new ErrorResponse('Doctors require specialization, license number, and registered number', 400));
+    }
+
+    normalizedLicenseNumber = licenseNumber.trim().toUpperCase();
+
+    const existingLicense = await Doctor.findOne({
+      medicalLicenseNumber: normalizedLicenseNumber
+    });
+
+    if (existingLicense) {
+      return res.status(409).json({
+        success: false,
+        field: "medicalLicenseNumber",
+        message: "This medical license number is already registered."
+      });
+    }
+
+    const existingRegisteredNumber = await Doctor.findOne({
+      registeredNumber: registeredNumber.trim()
+    });
+
+    if (existingRegisteredNumber) {
+      return res.status(409).json({
+        success: false,
+        field: "registeredNumber",
+        message: "This registered number is already registered."
+      });
+    }
+  }
+
   // Handle location/address string to object mapping
   const addressObj = typeof location === 'string' ? { city: location } : (location || undefined);
 
@@ -107,15 +141,11 @@ exports.register = asyncHandler(async (req, res, next) => {
     if (role === 'patient') {
       await Patient.create({ user: user._id });
     } else if (role === 'doctor') {
-      if (!specialization || !licenseNumber || !registeredNumber) {
-        await User.findByIdAndDelete(user._id);
-        return next(new ErrorResponse('Doctors require specialization, license number, and registered number', 400));
-      }
       const doctor = await Doctor.create({
         user: user._id,
         specialization,
-        medicalLicenseNumber: licenseNumber || 'PENDING-' + Date.now(),
-        registeredNumber,
+        medicalLicenseNumber: normalizedLicenseNumber,
+        registeredNumber: registeredNumber.trim(),
         experience: experience || 0,
         education: qualification ? [{ degree: qualification }] : [],
         hospital: { name: hospitalName || '' },

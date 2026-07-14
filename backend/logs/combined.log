@@ -2519,3 +2519,23 @@
 2026-07-14 14:03:10 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
 2026-07-14 14:03:10 [info]: ⏰ Starting scheduler service...
 2026-07-14 14:03:10 [info]: ✅ Scheduler service started
+2026-07-14 14:03:22 [info]: Connecting to MongoDB...
+2026-07-14 14:03:22 [info]: Server bound to port 5000
+2026-07-14 14:03:23 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-07-14 14:03:23 [info]: ⏰ Starting scheduler service...
+2026-07-14 14:03:23 [info]: ✅ Scheduler service started
+2026-07-14 14:10:55 [error]: Email failed to testdoc_new1@example.com: connect ECONNREFUSED ::1:587
+2026-07-14 14:10:55 [warn]: Welcome email failed: connect ECONNREFUSED ::1:587
+2026-07-14 14:10:55 [error]: Email failed to testdoc_new1@example.com: connect ECONNREFUSED ::1:587
+2026-07-14 14:10:55 [warn]: Verification email failed: connect ECONNREFUSED ::1:587
+2026-07-14 14:10:55 [info]: New user registered: testdoc_new1@example.com (doctor)
+2026-07-14 14:17:11 [info]: Connecting to MongoDB...
+2026-07-14 14:17:11 [info]: Server bound to port 5000
+2026-07-14 14:17:12 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-07-14 14:17:12 [info]: ⏰ Starting scheduler service...
+2026-07-14 14:17:12 [info]: ✅ Scheduler service started
+2026-07-14 14:17:20 [info]: Connecting to MongoDB...
+2026-07-14 14:17:20 [info]: Server bound to port 5000
+2026-07-14 14:17:21 [info]: ✅ MongoDB Connected: ac-hg05jo1-shard-00-00.t17ks7f.mongodb.net
+2026-07-14 14:17:21 [info]: ⏰ Starting scheduler service...
+2026-07-14 14:17:21 [info]: ✅ Scheduler service started

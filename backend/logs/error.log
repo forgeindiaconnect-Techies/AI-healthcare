@@ -432,3 +432,5 @@
     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
 2026-06-27 15:56:15 [error]: MongoDB connection failed: MONGODB_URI is not defined in environment variables. Please add your MongoDB connection string in the Render Dashboard -> Environment variables.
 2026-07-03 17:11:33 [error]: MongoDB connection failed: MONGODB_URI is not defined in environment variables. Please add your MongoDB connection string in the Render Dashboard -> Environment variables.
+2026-07-14 14:10:55 [error]: Email failed to testdoc_new1@example.com: connect ECONNREFUSED ::1:587
+2026-07-14 14:10:55 [error]: Email failed to testdoc_new1@example.com: connect ECONNREFUSED ::1:587

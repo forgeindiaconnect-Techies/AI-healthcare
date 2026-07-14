@@ -69,6 +69,7 @@ const DoctorRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isLoading) return;
     setIsLoading(true);
 
     let newErrors = {};
@@ -86,10 +87,18 @@ const DoctorRegister = () => {
     }
 
     try {
-      // Validate required documents
-      if (!files.docLicenseFile && !formData.docLicenseUrl) return toast.error("Medical License is required");
-      if (!files.docDegreeFile && !formData.docDegreeUrl) return toast.error("Degree Certificate is required");
-      if (!files.docIdFile && !formData.docIdUrl) return toast.error("Government ID is required");
+      if (!files.docLicenseFile && !formData.docLicenseUrl) {
+        setIsLoading(false);
+        return toast.error("Medical License is required");
+      }
+      if (!files.docDegreeFile && !formData.docDegreeUrl) {
+        setIsLoading(false);
+        return toast.error("Degree Certificate is required");
+      }
+      if (!files.docIdFile && !formData.docIdUrl) {
+        setIsLoading(false);
+        return toast.error("Government ID is required");
+      }
 
       const payload = new FormData();
       
