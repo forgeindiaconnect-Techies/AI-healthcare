@@ -421,3 +421,68 @@ exports.updateDoctorStatus = asyncHandler(async (req, res, next) => {
     session.endSession();
   }
 });
+
+// @desc    Get all pending doctors
+// @route   GET /api/admin/doctors/pending
+// @access  Private (Admin)
+exports.getPendingDoctors = asyncHandler(async (req, res, next) => {
+  const doctors = await Doctor.find({ approvalStatus: "pending" })
+    .populate('user', '-password')
+    .sort({ createdAt: -1 });
+
+  res.status(200).json({ success: true, count: doctors.length, data: doctors });
+});
+
+// @desc    Get single doctor by ID
+// @route   GET /api/admin/doctors/:doctorId
+// @access  Private (Admin)
+exports.getDoctor = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findById(req.params.doctorId).populate('user', '-password');
+  if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
+
+  res.status(200).json({ success: true, data: doctor });
+});
+
+// @desc    Approve doctor
+// @route   PATCH /api/admin/doctors/:doctorId/approve
+// @access  Private (Admin)
+exports.approveDoctor = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findByIdAndUpdate(
+    req.params.doctorId,
+    {
+      approvalStatus: "approved",
+      isVerified: true,
+      approvedBy: req.user.id,
+      approvedAt: new Date(),
+      rejectionReason: "",
+      isAcceptingPatients: true // Assuming approval allows them to accept patients
+    },
+    { new: true }
+  ).populate('user', '-password');
+
+  if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
+
+  res.status(200).json({ success: true, data: doctor, message: "Doctor approved successfully." });
+});
+
+// @desc    Reject doctor
+// @route   PATCH /api/admin/doctors/:doctorId/reject
+// @access  Private (Admin)
+exports.rejectDoctor = asyncHandler(async (req, res, next) => {
+  const doctor = await Doctor.findByIdAndUpdate(
+    req.params.doctorId,
+    {
+      approvalStatus: "rejected",
+      isVerified: false,
+      approvedBy: null,
+      approvedAt: null,
+      rejectionReason: req.body.rejectionReason || "",
+      isAcceptingPatients: false
+    },
+    { new: true }
+  ).populate('user', '-password');
+
+  if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
+
+  res.status(200).json({ success: true, data: doctor, message: "Doctor registration rejected." });
+});

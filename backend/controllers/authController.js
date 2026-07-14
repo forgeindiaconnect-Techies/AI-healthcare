@@ -124,6 +124,7 @@ exports.register = asyncHandler(async (req, res, next) => {
         consultationFee: consultationFee || 0,
         availability: availability || [],
         status: 'PENDING',
+        approvalStatus: 'pending',
         isVerified: false
       });
 
@@ -222,8 +223,38 @@ exports.login = asyncHandler(async (req, res, next) => {
 
   if (user.role === 'doctor') {
     const doctor = await Doctor.findOne({ user: user._id });
-    if (doctor && doctor.status === 'SUSPENDED') {
-      return next(new ErrorResponse(`Account is suspended. Please contact admin.`, 403));
+    if (doctor) {
+      if (doctor.status === 'SUSPENDED') {
+        return next(new ErrorResponse(`Account is suspended. Please contact admin.`, 403));
+      }
+      
+      if (doctor.approvalStatus === "pending") {
+        return res.status(403).json({
+          success: false,
+          code: "DOCTOR_APPROVAL_PENDING",
+          message: "Your account is waiting for admin approval."
+        });
+      }
+
+      if (doctor.approvalStatus === "rejected") {
+        return res.status(403).json({
+          success: false,
+          code: "DOCTOR_ACCOUNT_REJECTED",
+          message:
+            doctor.rejectionReason ||
+            "Your doctor registration was rejected. Please contact the administrator."
+        });
+      }
+
+      if (
+        doctor.approvalStatus !== "approved" ||
+        doctor.isVerified !== true
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "Your doctor account is not approved."
+        });
+      }
     }
   }
 

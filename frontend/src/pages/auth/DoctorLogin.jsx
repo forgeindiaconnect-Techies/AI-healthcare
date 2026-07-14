@@ -32,7 +32,13 @@ const DoctorLogin = () => {
           setError("Access denied. Doctor privileges required.");
         }
       } else {
-        setError(res.message || "Authentication failed");
+        if (res.code === 'DOCTOR_APPROVAL_PENDING') {
+          navigate('/approval-pending');
+        } else if (res.code === 'DOCTOR_ACCOUNT_REJECTED') {
+          navigate('/registration-rejected', { state: { message: res.message } });
+        } else {
+          setError(res.message || "Authentication failed");
+        }
       }
     } catch (err) {
       setError(err.message || "Authentication failed");

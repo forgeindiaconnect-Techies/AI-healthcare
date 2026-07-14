@@ -26,6 +26,30 @@ const doctorSchema = new mongoose.Schema(
       default: 'DRAFT' 
     },
     
+    // Approval Workflow Status
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending"
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null
+    },
+    approvedAt: {
+      type: Date,
+      default: null
+    },
+    rejectionReason: {
+      type: String,
+      default: ""
+    },
+    
     // Verification Metadata
     verificationStatus: { type: String, default: 'DRAFT' }, // Kept for consistency if needed, but 'status' handles this
     medicalLicenseVerificationStatus: { 
@@ -106,7 +130,6 @@ const doctorSchema = new mongoose.Schema(
         date: { type: Date, default: Date.now },
       },
     ],
-    isVerified: { type: Boolean, default: false },
     isAcceptingPatients: { type: Boolean, default: false }, // Should default to false until approved
     totalPatients: { type: Number, default: 0 },
     totalAppointments: { type: Number, default: 0 },

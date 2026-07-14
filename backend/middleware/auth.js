@@ -64,10 +64,27 @@ exports.approvedDoctorOnly = asyncHandler(async (req, res, next) => {
   if (req.user.role !== 'doctor') {
     return next(new ErrorResponse('Not authorized', 403));
   }
+  
   const doctor = await Doctor.findOne({ user: req.user.id });
-  if (!doctor || doctor.status !== 'APPROVED') {
-    return next(new ErrorResponse('Doctor is not approved to access this resource', 403));
+
+  if (!doctor) {
+    return res.status(404).json({
+      success: false,
+      message: "Doctor account not found."
+    });
   }
+
+  if (
+    doctor.approvalStatus !== "approved" ||
+    doctor.isVerified !== true
+  ) {
+    return res.status(403).json({
+      success: false,
+      message: "Admin approval is required to access the doctor dashboard."
+    });
+  }
+
+  req.doctor = doctor;
   next();
 });
 

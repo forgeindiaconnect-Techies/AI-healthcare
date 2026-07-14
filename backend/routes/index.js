@@ -24,6 +24,7 @@ const { approvedDoctorOnly } = require('../middleware/auth');
 doctorRouter.get('/', doctorController.getDoctors);
 doctorRouter.get('/specializations', doctorController.getSpecializations);
 doctorRouter.get('/profile/me', protect, authorize('doctor'), doctorController.getDoctorProfile);
+doctorRouter.get('/profile', protect, authorize('doctor'), doctorController.getDoctorProfileData);
 doctorRouter.put('/profile', protect, authorize('doctor'), doctorController.updateDoctorProfile);
 
 // New Verification Routes
@@ -61,6 +62,12 @@ adminRouter.get('/analytics', protect, authorize('admin'), patientController.get
 // Admin Doctor Management Routes
 adminRouter.post('/doctors', protect, authorize('admin'), adminDoctorController.createDoctor);
 adminRouter.get('/doctors', protect, authorize('admin'), adminDoctorController.getAllDoctors);
+
+// New Pending Doctor Approvals Routes
+adminRouter.get('/doctors/pending', protect, authorize('admin'), adminDoctorController.getPendingDoctors);
+adminRouter.patch('/doctors/:doctorId/approve', protect, authorize('admin'), adminDoctorController.approveDoctor);
+adminRouter.patch('/doctors/:doctorId/reject', protect, authorize('admin'), adminDoctorController.rejectDoctor);
+adminRouter.get('/doctors/:doctorId', protect, authorize('admin'), adminDoctorController.getDoctor);
 
 // New Review & Verification Routes
 adminRouter.get('/doctors/:id/review', protect, authorize('admin'), adminDoctorController.getDoctorForReview);

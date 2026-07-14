@@ -48,6 +48,7 @@ const navItems = {
     { id: "dashboard/admin", label: "Dashboard Overview", icon: <Home size={20} /> },
     { id: "dashboard/users", label: "Manage Patients", icon: <Users size={20} /> },
     { id: "dashboard/doctors", label: "Manage Doctors", icon: <UserCheck size={20} /> },
+    { id: "dashboard/pending-doctors", label: "Pending Approvals", icon: <UserCheck size={20} /> },
     { id: "dashboard/appointments", label: "Manage Appointments", icon: <Calendar size={20} /> },
     { id: "dashboard/admin-reports", label: "Manage Medical Reports", icon: <Clipboard size={20} /> },
     { id: "dashboard/admin-prescriptions", label: "Manage Prescriptions", icon: <Pill size={20} /> },

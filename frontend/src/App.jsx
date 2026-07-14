@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthPage from './pages/AuthPage';
 import DoctorLogin from './pages/auth/DoctorLogin';
 import DoctorRegister from './pages/auth/DoctorRegister';
+import ApprovalPending from './pages/auth/ApprovalPending';
+import RegistrationRejected from './pages/auth/RegistrationRejected';
 import LandingPage from './pages/Landing';
 
 import DashboardLayout from './components/layout/DashboardLayout';
@@ -64,6 +66,7 @@ import AdminPayments from './pages/admin/AdminPayments';
 import AdminVideoConsults from './pages/admin/AdminVideoConsults';
 import DoctorReview from './pages/admin/DoctorReview';
 import ArchivedRecords from './pages/admin/ArchivedRecords';
+import PendingDoctors from './pages/admin/PendingDoctors';
 
 // Shared
 import VideoConsultation from './pages/consultation/VideoConsultation';
@@ -105,6 +108,7 @@ import { SocketProvider } from './context/SocketContext';
 import { ChatProvider, useChat } from './context/ChatContext';
 import { ROLES } from './auth/roles';
 import ProtectedRoute from './auth/ProtectedRoute';
+import ApprovedDoctorRoute from './auth/ApprovedDoctorRoute';
 import { Toaster } from 'react-hot-toast';
 import ChatWindow from './components/chat/ChatWindow';
 
@@ -154,6 +158,8 @@ function App() {
             <Route path="/register" element={<AuthPage />} />
             <Route path="/doctor-login" element={<DoctorLogin />} />
             <Route path="/doctor-register" element={<DoctorRegister />} />
+            <Route path="/approval-pending" element={<ApprovalPending />} />
+            <Route path="/registration-rejected" element={<RegistrationRejected />} />
             <Route path="/admin-login" element={<AuthPage />} />
             
             <Route 
@@ -188,19 +194,19 @@ function App() {
               <Route path="consultation-summary/:appointmentId" element={<RoleRoute role="patient"><ConsultationSummary /></RoleRoute>} />
 
               {/* Doctor Routes */}
-              <Route path="doctor-dashboard" element={<RoleRoute role="doctor"><DoctorDashboard /></RoleRoute>} />
-              <Route path="verification-status" element={<RoleRoute role="doctor"><VerificationStatus /></RoleRoute>} />
-              <Route path="doctor-patients" element={<RoleRoute role="doctor"><PatientManagement /></RoleRoute>} />
-              <Route path="doctor-patients/:id" element={<RoleRoute role="doctor"><DoctorPatientProfile /></RoleRoute>} />
-              <Route path="consultation/:appointmentId/:patientId" element={<RoleRoute role="doctor"><ConsultationWizard /></RoleRoute>} />
-              <Route path="diagnosis" element={<RoleRoute role="doctor"><Diagnosis /></RoleRoute>} />
-              <Route path="lab-recommendations" element={<RoleRoute role="doctor"><LabRecommendations /></RoleRoute>} />
-              <Route path="follow-up" element={<RoleRoute role="doctor"><FollowUpSchedule /></RoleRoute>} />
-              <Route path="ai-analysis" element={<RoleRoute role="doctor"><DoctorAIAnalysis /></RoleRoute>} />
-              <Route path="chat" element={<RoleRoute role="doctor"><PatientCommunication /></RoleRoute>} />
-              <Route path="review-reports" element={<RoleRoute role="doctor"><ReviewReports /></RoleRoute>} />
-              <Route path="doctor-treatment-plans" element={<RoleRoute role="doctor"><DoctorTreatmentPlans /></RoleRoute>} />
-              <Route path="generate-report" element={<RoleRoute role="doctor"><GenerateReport /></RoleRoute>} />
+              <Route path="doctor-dashboard" element={<ApprovedDoctorRoute><DoctorDashboard /></ApprovedDoctorRoute>} />
+              <Route path="verification-status" element={<ApprovedDoctorRoute><VerificationStatus /></ApprovedDoctorRoute>} />
+              <Route path="doctor-patients" element={<ApprovedDoctorRoute><PatientManagement /></ApprovedDoctorRoute>} />
+              <Route path="doctor-patients/:id" element={<ApprovedDoctorRoute><DoctorPatientProfile /></ApprovedDoctorRoute>} />
+              <Route path="consultation/:appointmentId/:patientId" element={<ApprovedDoctorRoute><ConsultationWizard /></ApprovedDoctorRoute>} />
+              <Route path="diagnosis" element={<ApprovedDoctorRoute><Diagnosis /></ApprovedDoctorRoute>} />
+              <Route path="lab-recommendations" element={<ApprovedDoctorRoute><LabRecommendations /></ApprovedDoctorRoute>} />
+              <Route path="follow-up" element={<ApprovedDoctorRoute><FollowUpSchedule /></ApprovedDoctorRoute>} />
+              <Route path="ai-analysis" element={<ApprovedDoctorRoute><DoctorAIAnalysis /></ApprovedDoctorRoute>} />
+              <Route path="chat" element={<ApprovedDoctorRoute><PatientCommunication /></ApprovedDoctorRoute>} />
+              <Route path="review-reports" element={<ApprovedDoctorRoute><ReviewReports /></ApprovedDoctorRoute>} />
+              <Route path="doctor-treatment-plans" element={<ApprovedDoctorRoute><DoctorTreatmentPlans /></ApprovedDoctorRoute>} />
+              <Route path="generate-report" element={<ApprovedDoctorRoute><GenerateReport /></ApprovedDoctorRoute>} />
 
               {/* Admin Routes */}
               <Route path="admin" element={<RoleRoute role="admin"><AdminDashboard /></RoleRoute>} />
@@ -214,6 +220,7 @@ function App() {
               <Route path="admin-payments" element={<RoleRoute role="admin"><AdminPayments /></RoleRoute>} />
               <Route path="admin-video-consults" element={<RoleRoute role="admin"><AdminVideoConsults /></RoleRoute>} />
               <Route path="archived-records" element={<RoleRoute role="admin"><ArchivedRecords /></RoleRoute>} />
+              <Route path="pending-doctors" element={<RoleRoute role="admin"><PendingDoctors /></RoleRoute>} />
 
               {/* Shared Routes based on role */}
               <Route path="notifications" element={<NotificationsRouter />} />

@@ -80,6 +80,21 @@ exports.getDoctorProfile = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: profile });
 });
 
+// @desc    Get doctor profile data flat format
+// @route   GET /api/doctors/profile
+// @access  Private (doctor)
+exports.getDoctorProfileData = asyncHandler(async (req, res, next) => {
+  const profile = await Doctor.findOne({ user: req.user.id }).populate('user', 'name email');
+  if (!profile) return next(new ErrorResponse('Doctor profile not found', 404));
+
+  res.status(200).json({
+    fullName: profile.user.name,
+    email: profile.user.email,
+    specialization: profile.specialization,
+    experience: profile.experience
+  });
+});
+
 // @desc    Update doctor profile
 // @route   PUT /api/doctors/profile
 // @access  Private (doctor)
