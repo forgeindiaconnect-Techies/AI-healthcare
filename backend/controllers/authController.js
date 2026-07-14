@@ -114,7 +114,7 @@ exports.register = asyncHandler(async (req, res, next) => {
       const doctor = await Doctor.create({
         user: user._id,
         specialization,
-        licenseNumber,
+        medicalLicenseNumber: licenseNumber || 'PENDING-' + Date.now(),
         registeredNumber,
         experience: experience || 0,
         education: qualification ? [{ degree: qualification }] : [],

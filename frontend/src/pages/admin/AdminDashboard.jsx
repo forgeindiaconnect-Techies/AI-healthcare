@@ -74,7 +74,7 @@ const AdminDashboard = () => {
           ) : (
             <div className="space-y-3">
               {pendingDoctors.slice(0, 5).map(doc => (
-                <div key={doc._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => navigate('/dashboard/pending-doctors')}>
+                <div key={doc._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => navigate('/dashboard/admin/pending-approvals')}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
                       {doc.user?.name?.charAt(0) || 'D'}
@@ -90,7 +90,7 @@ const AdminDashboard = () => {
                 </div>
               ))}
               {pendingDoctors.length > 5 && (
-                <button onClick={() => navigate('/dashboard/pending-doctors')} className="w-full mt-2 py-2 text-sm text-teal-600 font-bold hover:bg-teal-50 rounded-lg transition-colors">
+                <button onClick={() => navigate('/dashboard/admin/pending-approvals')} className="w-full mt-2 py-2 text-sm text-teal-600 font-bold hover:bg-teal-50 rounded-lg transition-colors">
                   View All Pending ({pendingDoctors.length})
                 </button>
               )}

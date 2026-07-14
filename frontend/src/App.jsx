@@ -108,6 +108,7 @@ import { SocketProvider } from './context/SocketContext';
 import { ChatProvider, useChat } from './context/ChatContext';
 import { ROLES } from './auth/roles';
 import ProtectedRoute from './auth/ProtectedRoute';
+import AdminProtectedRoute from './auth/AdminProtectedRoute';
 import ApprovedDoctorRoute from './auth/ApprovedDoctorRoute';
 import { Toaster } from 'react-hot-toast';
 import ChatWindow from './components/chat/ChatWindow';
@@ -220,7 +221,7 @@ function App() {
               <Route path="admin-payments" element={<RoleRoute role="admin"><AdminPayments /></RoleRoute>} />
               <Route path="admin-video-consults" element={<RoleRoute role="admin"><AdminVideoConsults /></RoleRoute>} />
               <Route path="archived-records" element={<RoleRoute role="admin"><ArchivedRecords /></RoleRoute>} />
-              <Route path="pending-doctors" element={<RoleRoute role="admin"><PendingDoctors /></RoleRoute>} />
+              <Route path="admin/pending-approvals" element={<AdminProtectedRoute><PendingDoctors /></AdminProtectedRoute>} />
 
               {/* Shared Routes based on role */}
               <Route path="notifications" element={<NotificationsRouter />} />
@@ -239,7 +240,7 @@ function App() {
               } 
             />
             
-            <Route path="*" element={<div className="p-8 text-center text-red-500 font-bold">404 - Not Found</div>} />
+            <Route path="*" element={<div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="text-center"><h1 className="text-6xl font-bold text-gray-900">404</h1><p className="text-xl text-gray-600 mt-4">Page not found</p><a href="/" className="mt-6 inline-block bg-teal-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-teal-700">Go Home</a></div></div>} />
           </Routes>
           <Toaster position="top-right" />
           <GlobalChatOverlay />

@@ -13,6 +13,7 @@ const doctorSchema = new mongoose.Schema(
     experience: { type: Number, default: 0 }, // years
     
     medicalLicenseNumber: { type: String, required: true, unique: true },
+    registeredNumber: { type: String },
     medicalCouncil: { type: String },
     licenseState: { type: String },
     licenseCountry: { type: String, default: 'India' },
