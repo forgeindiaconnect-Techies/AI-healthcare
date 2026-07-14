@@ -23,14 +23,17 @@ const DoctorProtectedRoute = ({ children }) => {
         
         if (isMounted) {
           const doctorData = response.data.data;
+          const userObj = doctorData?.user || doctorData;
+          const profileObj = doctorData?.profile || doctorData;
+
           // Normalise role (e.g., if backend returns "Doctor", "DOCTOR", etc)
-          const normalizedRole = doctorData?.role?.toLowerCase();
+          const normalizedRole = userObj?.role?.toLowerCase();
           
           if (normalizedRole === 'doctor') {
              setUser({
-               ...doctorData,
+               ...userObj,
                role: 'doctor',
-               approvalStatus: doctorData.profile?.approvalStatus || doctorData.approvalStatus
+               approvalStatus: profileObj?.approvalStatus || userObj?.approvalStatus
              });
           }
         }
