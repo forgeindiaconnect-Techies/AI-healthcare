@@ -158,7 +158,8 @@ const AdminPayments = () => {
   };
 
   const getStatusBadge = (status) => {
-    switch (status) {
+    const normalizedStatus = status?.toLowerCase();
+    switch (normalizedStatus) {
       case 'successful':
         return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-100 text-emerald-700 capitalize">Successful</span>;
       case 'pending':
@@ -387,7 +388,7 @@ const AdminPayments = () => {
                     {/* Actions Column */}
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {payment.status === 'successful' ? (
+                        {payment.status?.toLowerCase() === 'successful' ? (
                           <button 
                             onClick={() => handleDownload(payment._id, payment.transactionId)}
                             className="p-2 text-sky-600 hover:bg-sky-50 rounded-xl transition-colors tooltip-trigger inline-flex items-center gap-2 font-bold text-sm border border-transparent hover:border-sky-100"

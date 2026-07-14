@@ -31,6 +31,7 @@ const DoctorRegister = () => {
     docClinicFile: null
   });
 
+  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -69,6 +70,20 @@ const DoctorRegister = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
+    let newErrors = {};
+    if (formData.phone.length !== 10) {
+      newErrors.phone = "Phone number must be exactly 10 digits.";
+    }
+    if (!formData.specialization) {
+      newErrors.specialization = "Please select a specialization.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       // Validate required documents
@@ -169,7 +184,22 @@ const DoctorRegister = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input name="phone" type="tel" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.phone} />
+                <input 
+                  name="phone" 
+                  type="tel" 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg" 
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    setFormData((prev) => ({ ...prev, phone: value }));
+                    if (value.length === 10) {
+                      setErrors((prev) => ({ ...prev, phone: "" }));
+                    }
+                  }} 
+                  value={formData.phone} 
+                  maxLength={10} 
+                  inputMode="numeric" 
+                />
+                {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
               </div>
             </div>
 
@@ -186,7 +216,34 @@ const DoctorRegister = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
-                <input name="specialization" type="text" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.specialization} placeholder="e.g. Cardiology" />
+                <select 
+                  name="specialization" 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white" 
+                  onChange={(e) => {
+                    handleChange(e);
+                    if (e.target.value) {
+                      setErrors((prev) => ({ ...prev, specialization: "" }));
+                    }
+                  }} 
+                  value={formData.specialization}
+                >
+                  <option value="" disabled>Select Specialization</option>
+                  <option value="General Physician">General Physician</option>
+                  <option value="Cardiologist">Cardiologist</option>
+                  <option value="Dermatologist">Dermatologist</option>
+                  <option value="Pediatrician">Pediatrician</option>
+                  <option value="Gynecologist">Gynecologist</option>
+                  <option value="Orthopedic">Orthopedic</option>
+                  <option value="Neurologist">Neurologist</option>
+                  <option value="Psychiatrist">Psychiatrist</option>
+                  <option value="Dentist">Dentist</option>
+                  <option value="ENT Specialist">ENT Specialist</option>
+                  <option value="Ophthalmologist">Ophthalmologist</option>
+                  <option value="Physiotherapist">Physiotherapist</option>
+                  <option value="Surgeon">Surgeon</option>
+                  <option value="Other">Other</option>
+                </select>
+                {errors.specialization && <p className="text-red-500 text-sm mt-1">{errors.specialization}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Qualification</label>
