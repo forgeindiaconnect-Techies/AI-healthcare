@@ -85,7 +85,7 @@ const UserManagement = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-        <Shield className="w-6 h-6 mr-2 text-teal-600" /> User Management
+        <Shield className="w-6 h-6 mr-2 text-teal-600" /> User Management (Updated)
         <span className="ml-4 px-3 py-1 bg-teal-100 text-teal-800 text-sm rounded-full font-medium">{usersList.length} Total Users</span>
       </h1>
       
