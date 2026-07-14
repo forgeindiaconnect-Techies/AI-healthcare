@@ -304,7 +304,6 @@ const DoctorRegister = () => {
                   <input name="zipCode" type="text" required className="w-full px-3 py-2 border border-gray-300 rounded-lg" onChange={handleChange} value={formData.location.zipCode} />
                 </div>
               </div>
-              </div>
 
               {/* Consultation & Commission Details */}
               <div className="bg-teal-50 p-4 rounded-lg border border-teal-100 mt-6">
