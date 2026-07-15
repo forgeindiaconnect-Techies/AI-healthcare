@@ -244,6 +244,16 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
     });
   } catch (error) {
     session.endSession();
+    
+    // 11000 is MongoDB's duplicate key error code
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        code: "SLOT_ALREADY_BOOKED",
+        message: "This slot was just booked by another patient. Please choose another time."
+      });
+    }
+    
     return next(error);
   }
 

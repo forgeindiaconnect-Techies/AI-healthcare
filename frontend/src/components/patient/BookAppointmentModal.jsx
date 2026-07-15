@@ -93,8 +93,9 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
     e.preventDefault();
     
     if (!doctorId) return toast.error('Please select a doctor');
-    if (!selectedSlot) return toast.error('Please select an appointment slot');
+    if (!selectedSlot || selectedSlot.status !== 'AVAILABLE') return toast.error('Please select an available appointment slot');
     if (!reason.trim()) return toast.error('Please provide a reason for the visit');
+    if (new Date(selectedSlot.startDateTime) <= new Date()) return toast.error('Cannot book past slots');
 
     try {
       setBooking(true);
@@ -110,14 +111,23 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
       const response = await API.post('/api/appointments', payload, config);
       toast.success('Appointment booked successfully!');
       
+      // Instantly update the slot to BOOKED in local state without waiting for a re-fetch
+      setSlots(prevSlots => prevSlots.map(s => 
+        s._id === selectedSlot._id ? { ...s, status: 'BOOKED', appointmentId: response.data.data?._id } : s
+      ));
+      
       onSuccess(response.data.data, doctorId);
       onClose();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to book appointment');
-      // If someone else booked it, refresh slots
-      if (error.response?.status === 409) {
-        fetchSlots(doctorId, selectedDate);
+      if (error.response?.status === 409 || error.response?.data?.code === 'SLOT_ALREADY_BOOKED') {
+        toast.error('This slot was just booked by another patient. Please choose another time.');
+        // Instantly mark the conflicting slot as booked so it becomes disabled
+        setSlots(prevSlots => prevSlots.map(s => 
+          s._id === selectedSlot._id ? { ...s, status: 'BOOKED' } : s
+        ));
         setSelectedSlot(null);
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to book appointment');
       }
     } finally {
       setBooking(false);
@@ -231,22 +241,28 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
                     <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
                       {slots.map(slot => {
                         const isAvailable = slot.status === 'AVAILABLE';
+                        const isBooked = slot.status === 'BOOKED';
+                        const isBlocked = slot.status === 'BLOCKED';
                         const isSelected = selectedSlot?._id === slot._id;
+                        
                         return (
                           <button
                             key={slot._id}
                             type="button"
                             disabled={!isAvailable}
                             onClick={() => setSelectedSlot(slot)}
-                            className={`p-2 rounded-lg text-sm font-bold transition-all border ${
-                              !isAvailable 
-                                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed line-through decoration-gray-400'
+                            className={`flex flex-col items-center justify-center p-2 rounded-lg text-sm font-bold transition-all border min-h-[60px] ${
+                              isBooked || isBlocked
+                                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-75'
                                 : isSelected 
                                   ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-200 scale-105'
                                   : 'bg-white border-gray-200 text-gray-700 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50'
                             }`}
                           >
-                            {formatTime(slot.startDateTime)}
+                            <span>{formatTime(slot.startDateTime)}</span>
+                            <span className="text-[10px] uppercase mt-0.5 tracking-wider font-semibold opacity-90">
+                              {isBooked ? 'Already Booked' : isBlocked ? 'Unavailable' : isSelected ? 'Selected' : 'Available'}
+                            </span>
                           </button>
                         );
                       })}
@@ -275,9 +291,9 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
             Cancel
           </button>
           <button 
-            disabled={booking || !selectedSlot} 
+            disabled={booking || !selectedSlot || selectedSlot.status !== 'AVAILABLE'} 
             onClick={handleBook}
-            className="px-6 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
+            className="px-6 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
           >
             {booking ? 'Booking...' : 'Confirm Booking'}
           </button>

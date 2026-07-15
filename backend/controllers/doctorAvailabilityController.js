@@ -162,7 +162,7 @@ exports.deleteAvailability = asyncHandler(async (req, res, next) => {
   });
 
   if (bookedSlots > 0) {
-    return next(new ErrorResponse('Cannot delete availability rule that has upcoming booked appointments.', 400));
+    return next(new ErrorResponse('This schedule contains booked appointments and cannot be deleted.', 400));
   }
 
   // Delete all future AVAILABLE slots associated with this rule

@@ -84,4 +84,6 @@ appointmentSchema.index({ doctor: 1, appointmentDate: -1 });
 appointmentSchema.index({ status: 1, appointmentDate: 1 });
 appointmentSchema.index({ appointmentDate: 1, appointmentTime: 1, doctor: 1 });
 
+appointmentSchema.index({ slotId: 1 }, { unique: true, partialFilterExpression: { slotId: { $type: "objectId" } } });
+
 module.exports = mongoose.model('Appointment', appointmentSchema);
