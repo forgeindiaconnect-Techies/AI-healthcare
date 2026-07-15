@@ -286,7 +286,7 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
       populatedAppointment = await Appointment.findById(appointment._id)
         .populate({ path: 'patient', select: 'name email avatar' })
         .populate({ path: 'doctor', select: 'name email avatar' })
-        .populate('hospitalLocationId');
+        .populate('hospitalLocationId')
         .session(session);
     });
   } catch (error) {
