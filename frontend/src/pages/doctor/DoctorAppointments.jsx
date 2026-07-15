@@ -14,6 +14,7 @@ const DoctorAppointments = () => {
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('All');
   const { socket } = useSocket();
   const navigate = useNavigate();
@@ -41,11 +42,12 @@ const DoctorAppointments = () => {
 
   const fetchAppointments = async () => {
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await API.get('/api/appointments', config);
+      setError(null);
+      const { data } = await API.get('/api/appointments');
       setAppointments(data.data || []);
     } catch (error) {
       console.error('Error fetching appointments', error);
+      setError('Failed to load appointments. Please try again.');
       toast.error('Failed to load appointments');
     } finally {
       setLoading(false);
@@ -54,8 +56,7 @@ const DoctorAppointments = () => {
 
   const fetchPatients = async () => {
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await API.get('/api/patients?limit=100', config);
+      const { data } = await API.get('/api/doctors/patients');
       setPatients(data.data || []);
     } catch (error) {
       console.error('Error fetching patients', error);
@@ -65,8 +66,7 @@ const DoctorAppointments = () => {
 
   const fetchDoctors = async () => {
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await API.get('/api/doctors', config);
+      const { data } = await API.get('/api/doctors');
       setDoctors(data.data || []);
     } catch (error) {
       console.error('Error fetching doctors', error);
@@ -100,8 +100,7 @@ const DoctorAppointments = () => {
 
   const updateStatus = async (id, status) => {
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await API.put(`/api/appointments/${id}/status`, { status }, config);
+      await API.put(`/api/appointments/${id}/status`, { status });
       fetchAppointments();
       toast.success(`Appointment marked as ${status}`);
     } catch (error) {
@@ -113,8 +112,7 @@ const DoctorAppointments = () => {
   const handleRemoveAppointment = async ({ reason }) => {
     if (!aptToRemove) return;
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await API.patch(`/api/appointments/${aptToRemove._id}/cancel`, { reason }, config);
+      await API.patch(`/api/appointments/${aptToRemove._id}/cancel`, { reason });
       toast.success('Appointment cancelled successfully.');
       setAppointments(prev => prev.filter(a => a._id !== aptToRemove._id));
       setIsDeleteModalOpen(false);
@@ -135,7 +133,6 @@ const DoctorAppointments = () => {
     }
 
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
       const payload = {
         doctor: bookingData.doctor || user.id,
         patient: bookingData.patient,
@@ -147,7 +144,7 @@ const DoctorAppointments = () => {
         roomNumber: bookingData.roomNumber
       };
 
-      await API.post('/api/appointments', payload, config);
+      await API.post('/api/appointments', payload);
       toast.success('Appointment Booked Successfully!');
       setBookingModalOpen(false);
       setBookingData({ patient: '', doctor: '', date: '', time: '', type: 'general', mode: 'video', reason: '', roomNumber: '' });
@@ -240,7 +237,21 @@ const DoctorAppointments = () => {
       </div>
 
       {/* Appointment Cards Grid */}
-      {filteredAppointments.length === 0 ? (
+      {error ? (
+        <div className="bg-white rounded-3xl border border-red-100 p-16 text-center">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-400">
+             <XCircle className="w-10 h-10" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900">Unable to load appointments</h3>
+          <p className="text-gray-500 mt-2 mb-6">{error}</p>
+          <button 
+            onClick={() => { setLoading(true); fetchAppointments(); }}
+            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm transition-all"
+          >
+            <RefreshCw className="w-4 h-4 inline-block mr-2" /> Retry
+          </button>
+        </div>
+      ) : filteredAppointments.length === 0 ? (
         <div className="bg-white rounded-3xl border border-dashed border-gray-200 p-16 text-center">
           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
              <Calendar className="w-10 h-10" />

@@ -46,7 +46,7 @@ patientRouter.post('/vitals', protect, authorize('patient', 'doctor'), patientCo
 patientRouter.get('/vitals/:id', protect, authorize('patient', 'doctor'), patientController.getVitals);
 patientRouter.get('/dashboard', protect, authorize('patient'), patientController.getPatientDashboard);
 patientRouter.get('/treatment-plans', protect, authorize('patient'), patientController.getPatientTreatmentPlans);
-patientRouter.get('/', protect, authorize('admin', 'doctor'), patientController.getAllPatients);
+patientRouter.get('/', protect, authorize('admin'), patientController.getAllPatients);
 
 // ---------------- ADMIN ROUTES ----------------
 const adminDoctorController = require('../controllers/adminDoctorController');
