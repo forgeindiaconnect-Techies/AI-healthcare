@@ -174,10 +174,11 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
       let finalAppointmentDate = req.body.appointmentDate;
       let finalAppointmentTime = req.body.appointmentTime;
       let finalEndTime = null;
+      let slot = null;
 
       if (slotId) {
         // Find the slot and lock it for this transaction
-        const slot = await AppointmentSlot.findOne({ _id: slotId, doctor: doctorId }).session(session);
+        slot = await AppointmentSlot.findOne({ _id: slotId, doctor: doctorId }).session(session);
 
         if (!slot) {
           throw new ErrorResponse('Slot not found', 404);
@@ -248,8 +249,10 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
 
       await appointment.save({ session });
       
-      slot.appointmentId = appointment._id;
-      await slot.save({ session });
+      if (slot) {
+        slot.appointmentId = appointment._id;
+        await slot.save({ session });
+      }
 
       // Update counters
       if (patientProfile) await Patient.findByIdAndUpdate(patientProfile._id, { $inc: { totalAppointments: 1 } }, { session });
