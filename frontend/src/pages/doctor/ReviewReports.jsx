@@ -29,7 +29,7 @@ const ReviewReports = () => {
   useEffect(() => {
     if (selectedReport && (!selectedReport.aiAnalysis?.summary)) {
       setAnalysisLoading(true);
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       API.post(`/api/reports/${selectedReport._id}/analyze`, {}, config)
         .then(({ data }) => {
           if (data.success) {
@@ -46,7 +46,7 @@ const ReviewReports = () => {
   const handleGenerateFinalReport = () => {
     if (!selectedReport) return;
     setFinalReportGenerating(true);
-    const config = { headers: { Authorization: `Bearer ${user.token}` } };
+    const config = { headers: { Authorization: `Bearer ${user?.token}` } };
     API.post(`/api/medical/reports/${selectedReport._id}/final-report`, { notes: reviewNotes }, config)
       .then(({ data }) => {
         if (data.success) {
@@ -81,7 +81,7 @@ const ReviewReports = () => {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       const { data } = await API.get('/api/medical/reports', config);
       setReports(data.data);
     } catch (error) {
@@ -124,7 +124,7 @@ const ReviewReports = () => {
   const handleSaveStatus = async (status) => {
     try {
       setSubmitting(true);
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       await API.put(`/api/medical/reports/${selectedReport._id}/review`, { 
         doctorNotes: reviewNotes,
         status: status 
@@ -147,7 +147,7 @@ const ReviewReports = () => {
     if (!reportToRemove) return;
     
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       await API.patch(`/api/medical/reports/${reportToRemove._id}/remove`, { reason }, config);
       toast.success('Report removed successfully');
       setReports(reports.filter(r => r._id !== reportToRemove._id));
@@ -176,7 +176,7 @@ const ReviewReports = () => {
     setChatting(true);
     
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       const { data } = await API.post(`/api/medical/reports/${selectedReport._id}/chat`, { message: msg }, config);
       setChatHistory(data.data);
     } catch (error) {

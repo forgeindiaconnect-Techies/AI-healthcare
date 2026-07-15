@@ -34,7 +34,7 @@ const DoctorDashboard = () => {
     // 1. Initial fetch of appointments
     const fetchAppointments = async () => {
       try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const config = { headers: { Authorization: `Bearer ${user?.token}` } };
         const { data } = await API.get('/api/appointments', config);
         setAppointments(data.data || []);
       } catch (error) {
@@ -46,7 +46,7 @@ const DoctorDashboard = () => {
 
     const fetchProfile = async () => {
       try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const config = { headers: { Authorization: `Bearer ${user?.token}` } };
         const { data } = await API.get('/api/doctors/profile', config);
         setProfileData(data);
       } catch (error) {

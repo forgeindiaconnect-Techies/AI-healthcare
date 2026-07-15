@@ -134,7 +134,7 @@ const DoctorAppointments = () => {
 
     try {
       const payload = {
-        doctor: bookingData.doctor || user.id,
+        doctor: bookingData.doctor || user?.id,
         patient: bookingData.patient,
         appointmentDate: bookingData.date,
         appointmentTime: bookingData.time,

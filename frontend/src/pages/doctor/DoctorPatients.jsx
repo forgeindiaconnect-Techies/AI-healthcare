@@ -20,7 +20,7 @@ const PatientManagement = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const config = { headers: { Authorization: `Bearer ${user?.token}` } };
         const { data } = await API.get('/api/appointments', config);
         
         const appointmentsData = data.data || [];
@@ -65,14 +65,14 @@ const PatientManagement = () => {
     };
 
     fetchPatients();
-  }, [user.token]);
+  }, [user?.token]);
 
   useEffect(() => {
     if (modalType === 'reports' && selectedPatient) {
       const fetchReports = async () => {
         try {
           setReportsLoading(true);
-          const config = { headers: { Authorization: `Bearer ${user.token}` } };
+          const config = { headers: { Authorization: `Bearer ${user?.token}` } };
           const patientId = selectedPatient._id || selectedPatient.user?._id;
           const { data } = await API.get(`/api/reports?patientId=${patientId}`, config);
           setPatientReports(data.data || []);
@@ -85,7 +85,7 @@ const PatientManagement = () => {
       };
       fetchReports();
     }
-  }, [modalType, selectedPatient, user.token]);
+  }, [modalType, selectedPatient, user?.token]);
 
   const filteredPatients = patients.filter(p => {
     const patientName = p.name || p.user?.name || '';

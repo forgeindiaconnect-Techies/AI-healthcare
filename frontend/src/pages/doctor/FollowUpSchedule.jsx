@@ -30,9 +30,7 @@ const FollowUpSchedule = () => {
   const fetchFollowups = async () => {
     try {
       setLoading(true);
-      const { data } = await API.get('/api/appointments?type=follow-up', {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
+      const { data } = await API.get('/api/appointments?type=follow-up');
       setFollowups(data.data || []);
     } catch (err) {
       console.error("Failed to fetch follow-ups:", err);
@@ -44,9 +42,7 @@ const FollowUpSchedule = () => {
 
   const fetchPatients = async () => {
     try {
-      const { data } = await API.get('/api/doctors/patients', {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
+      const { data } = await API.get('/api/doctors/patients');
       setPatients(data.data || []);
     } catch (err) {
       console.error("Failed to fetch patients:", err);
@@ -56,7 +52,7 @@ const FollowUpSchedule = () => {
   useEffect(() => {
     fetchFollowups();
     fetchPatients();
-  }, [user.token]);
+  }, [user?.token]);
 
   const handleOpenModal = (apt = null) => {
     if (apt) {
@@ -92,12 +88,11 @@ const FollowUpSchedule = () => {
       return;
     }
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
       if (isEditMode) {
-        await API.put(`/api/appointments/${selectedAptId}`, formData, config);
+        await API.put(`/api/appointments/${selectedAptId}`, formData);
         toast.success('Follow-up updated successfully');
       } else {
-        await API.post('/api/appointments', { ...formData, doctor: user._id, type: 'follow-up' }, config);
+        await API.post('/api/appointments', { ...formData, doctor: user?._id || user?.id, type: 'follow-up' });
         toast.success('Follow-up scheduled successfully');
       }
       setIsModalOpen(false);
@@ -110,8 +105,7 @@ const FollowUpSchedule = () => {
 
   const handleStatusChange = async (id, status) => {
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await API.put(`/api/appointments/${id}/status`, { status }, config);
+      await API.put(`/api/appointments/${id}/status`, { status });
       toast.success(`Follow-up marked as ${status}`);
       fetchFollowups();
     } catch (err) {

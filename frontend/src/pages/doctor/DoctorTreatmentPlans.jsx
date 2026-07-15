@@ -31,7 +31,7 @@ const DoctorTreatmentPlans = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       
       // Fetch plans
       const plansRes = await API.get('/api/medical/treatment-plans', config);
@@ -70,7 +70,7 @@ const DoctorTreatmentPlans = () => {
 
     try {
       setSubmitting(true);
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       
       const payload = {
         ...formData,

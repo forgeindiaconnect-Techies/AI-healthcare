@@ -53,7 +53,7 @@ const DoctorPatientProfile = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await API.get(`/api/medical/patients/${id}`, { headers: { Authorization: `Bearer ${user.token}` } });
+      const res = await API.get(`/api/medical/patients/${id}`, { headers: { Authorization: `Bearer ${user?.token}` } });
       setData(res.data.data);
     } catch (error) {
       console.error(error);
@@ -66,7 +66,7 @@ const DoctorPatientProfile = () => {
   // --- Handlers ---
   const handleUpdateProfile = async () => {
     try {
-      await API.put(`/api/medical/patients/${data.patient._id}`, profileForm, { headers: { Authorization: `Bearer ${user.token}` } });
+      await API.put(`/api/medical/patients/${data.patient._id}`, profileForm, { headers: { Authorization: `Bearer ${user?.token}` } });
       toast.success('Profile updated');
       setEditProfileOpen(false);
       fetchData();
@@ -84,7 +84,7 @@ const DoctorPatientProfile = () => {
         respiratoryRate: vitalsForm.respiratoryRate,
         glucoseLevel: vitalsForm.glucoseLevel
       };
-      await API.post(`/api/medical/patients/${data.patient._id}/vitals`, payload, { headers: { Authorization: `Bearer ${user.token}` } });
+      await API.post(`/api/medical/patients/${data.patient._id}/vitals`, payload, { headers: { Authorization: `Bearer ${user?.token}` } });
       toast.success('Vitals added');
       setVitalsForm({ bloodPressure: '', heartRate: '', temperature: '', oxygenSaturation: '', respiratoryRate: '', glucoseLevel: '' });
       fetchData();
@@ -104,7 +104,7 @@ const DoctorPatientProfile = () => {
     setData(prev => ({...prev, patient: newPatient}));
 
     try {
-      await API.post(`/api/medical/patients/${data.patient._id}/ai-chat`, { message: msg }, { headers: { Authorization: `Bearer ${user.token}` } });
+      await API.post(`/api/medical/patients/${data.patient._id}/ai-chat`, { message: msg }, { headers: { Authorization: `Bearer ${user?.token}` } });
       fetchData();
     } catch (err) { toast.error('Failed to get AI response'); }
     finally { setChatting(false); }
@@ -113,7 +113,7 @@ const DoctorPatientProfile = () => {
   const handleAddMedication = async () => {
     try {
       await API.post('/api/medical/prescriptions', { 
-        patient: data.patient.user._id, 
+        patient: data.patient.user?._id, 
         medicines: [{
           name: medForm.medicineName,
           dosage: medForm.dosage,
@@ -121,7 +121,7 @@ const DoctorPatientProfile = () => {
           duration: medForm.duration,
           instructions: medForm.instructions
         }]
-      }, { headers: { Authorization: `Bearer ${user.token}` } });
+      }, { headers: { Authorization: `Bearer ${user?.token}` } });
       toast.success('Medication added');
       setMedForm({ medicineName: '', dosage: '', frequency: '', duration: '', instructions: '' });
       fetchData();
@@ -134,7 +134,7 @@ const DoctorPatientProfile = () => {
         patient: data.patient._id, 
         type: followUpForm.type, 
         timeline: followUpForm.timeline 
-      }, { headers: { Authorization: `Bearer ${user.token}` } });
+      }, { headers: { Authorization: `Bearer ${user?.token}` } });
       toast.success('Follow up scheduled');
       setFollowUpForm({ type: '', timeline: '' });
       fetchData();
@@ -143,7 +143,7 @@ const DoctorPatientProfile = () => {
 
   const handleSaveLifestyle = async () => {
     try {
-      await API.put(`/api/medical/patients/${data.patient._id}/lifestyle`, lifestyleForm, { headers: { Authorization: `Bearer ${user.token}` } });
+      await API.put(`/api/medical/patients/${data.patient._id}/lifestyle`, lifestyleForm, { headers: { Authorization: `Bearer ${user?.token}` } });
       toast.success('Lifestyle plan saved');
       fetchData();
     } catch (err) { toast.error('Error saving lifestyle plan'); }
@@ -154,7 +154,7 @@ const DoctorPatientProfile = () => {
       await API.post('/api/medical/notes', { 
         patient: data.patient._id, 
         note: `**${noteForm.title}**\n\n${noteForm.note}`
-      }, { headers: { Authorization: `Bearer ${user.token}` } });
+      }, { headers: { Authorization: `Bearer ${user?.token}` } });
       toast.success('Note saved');
       setNoteForm({ title: '', note: '' });
       fetchData();

@@ -33,13 +33,13 @@ const LabRecommendations = () => {
   useEffect(() => {
     fetchLabs();
     fetchPatients();
-  }, [user.token]);
+  }, [user?.token]);
 
   const fetchLabs = async () => {
     try {
       setLoading(true);
       const { data } = await API.get('/api/medical/lab-recommendations', {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${user?.token}` }
       });
       setLabs(data.data || []);
     } catch (err) {
@@ -88,7 +88,7 @@ const LabRecommendations = () => {
   const fetchPatients = async () => {
     try {
       const { data } = await API.get('/api/doctor/patients', {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${user?.token}` }
       });
       setPatients(data.data || [
          { _id: 'p1', user: { name: 'Jane Doe' } },

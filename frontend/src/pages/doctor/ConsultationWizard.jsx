@@ -43,7 +43,7 @@ const ConsultationWizard = () => {
     const fetchPatientData = async () => {
       try {
         const { data } = await API.get(`/api/medical/patients/${patientId}`, {
-          headers: { Authorization: `Bearer ${user.token}` }
+          headers: { Authorization: `Bearer ${user?.token}` }
         });
         setPatientData(data.data);
       } catch (err) {
@@ -53,7 +53,7 @@ const ConsultationWizard = () => {
       }
     };
     fetchPatientData();
-  }, [patientId, user.token]);
+  }, [patientId, user?.token]);
 
   const addMedicine = () => {
     if (!medForm.name) return;
@@ -80,7 +80,7 @@ const ConsultationWizard = () => {
       };
       
       await API.post('/api/medical/consultation', payload, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${user?.token}` }
       });
       
       alert('Consultation saved successfully!');

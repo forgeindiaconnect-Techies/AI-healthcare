@@ -27,7 +27,7 @@ const GenerateReport = () => {
   const fetchPatients = async () => {
     try {
       setLoadingPatients(true);
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       
       const aptRes = await API.get('/api/appointments', config);
       const appointmentsData = aptRes.data.data || [];
@@ -55,7 +55,7 @@ const GenerateReport = () => {
     try {
       setLoadingReport(true);
       setReportData(null);
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       const { data } = await API.get(`/api/medical/report/${selectedPatientId}`, config);
       
       setReportData(data.data);

@@ -42,7 +42,7 @@ const DoctorPrescriptions = () => {
   const handleVoidPrescription = async ({ reason }) => {
     if (!prescriptionToVoid) return;
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       await API.patch(`/api/prescriptions/${prescriptionToVoid.id || prescriptionToVoid._id}/void`, { reason }, config);
       toast.success('Prescription voided successfully');
       setIsDeleteModalOpen(false);

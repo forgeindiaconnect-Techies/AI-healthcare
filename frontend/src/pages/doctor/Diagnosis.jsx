@@ -28,7 +28,7 @@ const Diagnosis = () => {
   const fetchDiagnoses = async () => {
     try {
       const { data } = await API.get('/api/medical/diagnosis', {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${user?.token}` }
       });
       setDiagnoses(data.data || []);
     } catch (err) {
@@ -41,7 +41,7 @@ const Diagnosis = () => {
   const fetchPatients = async () => {
     try {
       const { data } = await API.get('/api/doctors/patients', {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${user?.token}` }
       });
       setPatients(data.data || []);
     } catch (err) {
@@ -52,7 +52,7 @@ const Diagnosis = () => {
   useEffect(() => {
     fetchDiagnoses();
     fetchPatients();
-  }, [user.token]);
+  }, [user?.token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,7 +74,7 @@ const Diagnosis = () => {
       }
 
       await API.post('/api/medical/diagnosis', payload, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${user?.token}` }
       });
       toast.success('Diagnosis added successfully');
       setIsModalOpen(false);

@@ -16,7 +16,7 @@ const DoctorNotifications = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const config = { headers: { Authorization: `Bearer ${user?.token}` } };
         const { data } = await API.get('/api/notifications', config);
         setNotifications(data.data || []);
       } catch (error) {
@@ -28,11 +28,11 @@ const DoctorNotifications = () => {
     };
     
     fetchNotifications();
-  }, [user.token]);
+  }, [user?.token]);
 
   const markAllRead = async () => {
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       await API.put('/api/notifications/read-all', {}, config);
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
       toast.success('All notifications marked as read');
@@ -43,7 +43,7 @@ const DoctorNotifications = () => {
 
   const markAsRead = async (id) => {
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       await API.put(`/api/notifications/${id}/read`, {}, config);
       setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
     } catch (error) {
@@ -54,7 +54,7 @@ const DoctorNotifications = () => {
   const handleRemoveNotification = async ({ reason }) => {
     if (!notificationToRemove) return;
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const config = { headers: { Authorization: `Bearer ${user?.token}` } };
       await API.patch(`/api/notifications/${notificationToRemove._id}/remove`, { reason }, config);
       toast.success('Notification removed successfully');
       setNotifications(notifications.filter(n => n._id !== notificationToRemove._id));
