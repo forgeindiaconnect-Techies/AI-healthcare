@@ -6,20 +6,19 @@ const DoctorProtectedRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   
-  const doctorToken = localStorage.getItem('doctorToken');
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('doctorToken');
 
   useEffect(() => {
     let isMounted = true;
     const verifyDoctor = async () => {
-      if (!doctorToken) {
+      if (!token) {
         if (isMounted) setLoading(false);
         return;
       }
       
       try {
-        const response = await API.get('/api/auth/me', {
-          headers: { Authorization: `Bearer ${doctorToken}` }
-        });
+        // api.js interceptor will automatically attach the token
+        const response = await API.get('/api/auth/me');
         
         if (isMounted) {
           const doctorData = response.data.data;
@@ -51,7 +50,7 @@ const DoctorProtectedRoute = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, [doctorToken]);
+  }, [token]);
 
   if (loading) {
     return (
@@ -61,7 +60,7 @@ const DoctorProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!doctorToken) {
+  if (!token) {
     return <Navigate to="/doctor-login" replace />;
   }
 

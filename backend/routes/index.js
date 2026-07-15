@@ -33,7 +33,9 @@ doctorRouter.post('/documents', protect, authorize('doctor'), uploadDoctorDocume
 doctorRouter.post('/submit-verification', protect, authorize('doctor'), doctorController.submitVerification);
 
 doctorRouter.get('/dashboard', protect, approvedDoctorOnly, doctorController.getDoctorDashboard);
-doctorRouter.get('/patients', protect, approvedDoctorOnly, doctorController.getDoctorPatients);
+doctorRouter.get('/me/appointments', protect, authorize('doctor'), doctorController.getDoctorAppointments);
+doctorRouter.get('/me/patients', protect, authorize('doctor'), doctorController.getDoctorPatients);
+doctorRouter.get('/patients', protect, approvedDoctorOnly, doctorController.getDoctorPatients); // Keep legacy for backwards compatibility if needed
 doctorRouter.post('/:id/rate', protect, authorize('patient'), doctorController.rateDoctor);
 doctorRouter.get('/:id', doctorController.getDoctor);
 

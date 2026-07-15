@@ -43,8 +43,8 @@ const DoctorAppointments = () => {
   const fetchAppointments = async () => {
     try {
       setError(null);
-      const { data } = await API.get('/api/appointments');
-      setAppointments(data.data || []);
+      const { data } = await API.get('/api/doctors/me/appointments');
+      setAppointments(data?.data?.appointments || []);
     } catch (error) {
       console.error('Error fetching appointments', error);
       setError('Failed to load appointments. Please try again.');
@@ -56,8 +56,8 @@ const DoctorAppointments = () => {
 
   const fetchPatients = async () => {
     try {
-      const { data } = await API.get('/api/doctors/patients');
-      setPatients(data.data || []);
+      const { data } = await API.get('/api/doctors/me/patients');
+      setPatients(data?.data?.patients || []);
     } catch (error) {
       console.error('Error fetching patients', error);
       toast.error('Failed to load patient list');

@@ -195,7 +195,43 @@ exports.getDoctorPatients = asyncHandler(async (req, res) => {
     })
   );
 
-  res.status(200).json({ success: true, count: patients.length, total, data: patientsWithStats });
+  res.status(200).json({ 
+    success: true, 
+    data: { patients: patientsWithStats, total } 
+  });
+});
+
+// @desc    Get doctor's appointments
+// @route   GET /api/doctors/me/appointments
+// @access  Private (doctor)
+exports.getDoctorAppointments = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 100, status, startDate, endDate, type } = req.query;
+  const query = { doctor: req.user.id, isDeleted: { $ne: true } };
+
+  if (status && status !== 'All') {
+    if (status === 'Online') query.mode = 'video';
+    else if (status === 'Offline') query.mode = { $in: ['in-person', 'phone'] };
+    else query.status = status.toLowerCase();
+  }
+  
+  if (type) query.type = type;
+  if (startDate || endDate) {
+    query.appointmentDate = {};
+    if (startDate) query.appointmentDate.$gte = new Date(startDate);
+    if (endDate) query.appointmentDate.$lte = new Date(endDate);
+  }
+
+  const total = await Appointment.countDocuments(query);
+  const appointments = await Appointment.find(query)
+    .populate('patient', 'name email avatar phone')
+    .sort({ appointmentDate: -1, appointmentTime: -1 })
+    .skip((page - 1) * Number(limit))
+    .limit(Number(limit));
+
+  res.status(200).json({
+    success: true,
+    data: { appointments, total }
+  });
 });
 
 // @desc    Rate a doctor

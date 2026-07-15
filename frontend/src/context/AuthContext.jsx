@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
       const userPayload = { ...data.data, token: data.token };
       setUser(userPayload);
       localStorage.setItem('userInfo', JSON.stringify(userPayload));
+      localStorage.setItem('accessToken', data.token);
       return { success: true, user: userPayload };
     } catch (error) {
       let message = error.message;
@@ -55,6 +56,7 @@ export const AuthProvider = ({ children }) => {
         const userPayload = { ...data.data, token: data.token };
         setUser(userPayload);
         localStorage.setItem('userInfo', JSON.stringify(userPayload));
+        localStorage.setItem('accessToken', data.token);
         return { success: true, user: userPayload };
       } else {
         return { success: true, message: data.message };
@@ -79,6 +81,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    localStorage.removeItem('accessToken');
     localStorage.removeItem('userInfo');
     localStorage.removeItem('doctorToken');
     localStorage.removeItem('userRole');

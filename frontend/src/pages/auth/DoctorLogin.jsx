@@ -65,7 +65,8 @@ const DoctorLogin = () => {
       }
 
       // Valid doctor, store token
-      localStorage.setItem("doctorToken", token);
+      localStorage.setItem("accessToken", token);
+      localStorage.setItem("doctorToken", token); // Keep for legacy component references
       localStorage.setItem("userRole", doctor.role);
       localStorage.setItem("doctor", JSON.stringify(doctor));
 
