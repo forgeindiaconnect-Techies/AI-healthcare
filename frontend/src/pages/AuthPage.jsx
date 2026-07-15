@@ -48,7 +48,7 @@ const AuthPage = () => {
       if (userRole === 'admin') {
         navigate('/dashboard/admin');
       } else if (userRole === 'doctor') {
-        navigate('/dashboard/doctor-dashboard');
+        navigate('/dashboard/doctor');
       } else {
         navigate('/dashboard/patients');
       }
