@@ -14,7 +14,8 @@ exports.getDoctors = asyncHandler(async (req, res) => {
   const { page = 1, limit = 12, specialization, search, minRating, isAcceptingPatients } = req.query;
 
   // Build doctor profile query
-  const profileQuery = { status: 'Approved' };
+  // Changed from status: 'Approved' to show all doctors for testing unless rejected
+  const profileQuery = { status: { $ne: 'Rejected' } };
   if (specialization) profileQuery.specialization = { $regex: specialization, $options: 'i' };
   if (minRating) profileQuery.rating = { $gte: Number(minRating) };
   if (isAcceptingPatients !== undefined) profileQuery.isAcceptingPatients = isAcceptingPatients === 'true';
