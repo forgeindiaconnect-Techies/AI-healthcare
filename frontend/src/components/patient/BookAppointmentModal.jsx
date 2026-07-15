@@ -127,7 +127,7 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
         ));
         setSelectedSlot(null);
       } else {
-        toast.error(error.response?.data?.message || 'Failed to book appointment');
+        toast.error(error.response?.data?.error || error.response?.data?.message || 'Failed to book appointment');
       }
     } finally {
       setBooking(false);

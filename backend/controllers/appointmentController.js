@@ -207,7 +207,7 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
       const doctorProfile = await Doctor.findOne({ user: doctorId }).session(session);
       const patientProfile = await Patient.findOne({ user: patientId }).session(session);
 
-      if (doctorProfile && doctorProfile.status !== 'Approved') {
+      if (doctorProfile && doctorProfile.status === 'Rejected') {
         throw new ErrorResponse('Doctor is not approved to accept appointments', 403);
       }
 
