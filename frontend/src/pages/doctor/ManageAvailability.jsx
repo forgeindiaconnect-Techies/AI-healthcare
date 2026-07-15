@@ -3,11 +3,12 @@ import { Calendar, Clock, Plus, Trash2, CheckCircle2, XCircle, FileText, Setting
 import API from '../../api/api';
 import toast from 'react-hot-toast';
 import { colors } from '../../theme/colors';
+import { useAuth } from '../../context/AuthContext';
+import { useDoctorAvailability } from '../../hooks/useDoctorAvailability';
 
 const ManageAvailability = () => {
-  const [rules, setRules] = useState([]);
-  const [slots, setSlots] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { rules, slots, loading, error, refetch: fetchAvailability } = useDoctorAvailability(user);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
@@ -21,23 +22,6 @@ const ManageAvailability = () => {
 
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchAvailability();
-  }, []);
-
-  const fetchAvailability = async () => {
-    try {
-      setLoading(true);
-      const { data } = await API.get('/api/doctors/availability');
-      setRules(data.rules || []);
-      setSlots(data.slots || []);
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to load availability');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddBreak = () => {
     setBreaks([...breaks, { startTime: '13:00', endTime: '14:00' }]);
@@ -140,6 +124,18 @@ const ManageAvailability = () => {
           <h2 className="font-bold text-gray-900">Your Schedules</h2>
           {loading ? (
             <p className="text-sm text-gray-500">Loading...</p>
+          ) : error ? (
+            <div className="bg-white p-6 rounded-2xl border border-red-100 text-center">
+              <XCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+              <p className="font-bold text-gray-900 mb-1">Unable to load availability</p>
+              <p className="text-sm text-gray-500 mb-4">{error}</p>
+              <button 
+                onClick={() => fetchAvailability()}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm transition-all text-sm"
+              >
+                Retry
+              </button>
+            </div>
           ) : rules.length === 0 ? (
             <div className="bg-white p-6 rounded-2xl border border-gray-100 text-center">
               <Settings className="w-8 h-8 text-gray-300 mx-auto mb-2" />
