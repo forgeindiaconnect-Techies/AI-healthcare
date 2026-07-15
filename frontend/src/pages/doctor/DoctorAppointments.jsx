@@ -193,8 +193,8 @@ const DoctorAppointments = () => {
 
   const filteredAppointments = appointments.filter(apt => {
     if (filter === 'All') return true;
-    if (filter === 'Online') return apt.mode === 'video';
-    if (filter === 'Offline') return apt.mode === 'in-person';
+    if (filter === 'Online') return apt.appointmentType === 'ONLINE' || apt.mode === 'video';
+    if (filter === 'Offline') return apt.appointmentType === 'OFFLINE' || apt.mode === 'in-person';
     return apt.status?.toLowerCase() === filter.toLowerCase();
   });
 
@@ -262,7 +262,7 @@ const DoctorAppointments = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredAppointments.map(apt => {
-            const isOnline = apt.mode === 'video';
+            const isOnline = apt.appointmentType === 'ONLINE' || apt.mode === 'video';
             const statusLabel = apt.status.charAt(0).toUpperCase() + apt.status.slice(1);
             
             return (
@@ -290,18 +290,22 @@ const DoctorAppointments = () => {
                   </div>
                 </div>
 
-                {/* Details Section */}
-                <div className="px-6 pb-6 space-y-4 flex-grow">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1"><Calendar className="w-3 h-3"/> Date</p>
-                      <p className="text-sm font-semibold text-gray-800">{new Date(apt.appointmentDate).toLocaleDateString()}</p>
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1"><Clock className="w-3 h-3"/> Time</p>
-                      <p className="text-sm font-semibold text-gray-800">{apt.appointmentTime}</p>
-                    </div>
-                  </div>
+                  {/* Details Section */}
+                  <div className="px-6 pb-6 space-y-4 flex-grow">
+                    {(isOnline || apt.appointmentDate) && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1"><Calendar className="w-3 h-3"/> Date</p>
+                          <p className="text-sm font-semibold text-gray-800">{new Date(apt.appointmentDate || apt.preferredVisitDate).toLocaleDateString()}</p>
+                        </div>
+                        {apt.appointmentTime && (
+                          <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1"><Clock className="w-3 h-3"/> Time</p>
+                            <p className="text-sm font-semibold text-gray-800">{apt.appointmentTime}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                   {/* Mode Specific Info */}
                   {isOnline ? (() => {
@@ -324,22 +328,35 @@ const DoctorAppointments = () => {
                        </div>
                      );
                   })() : (
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-amber-50/50 p-3 rounded-xl border border-amber-100/50 flex items-start gap-3">
-                          <div className="p-2 bg-amber-100 text-amber-600 rounded-lg shrink-0"><Ticket className="w-4 h-4" /></div>
-                          <div>
-                            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-0.5">Queue Token</p>
-                            <p className="text-lg font-black text-amber-700 leading-none">{apt.queueNumber || '--'}</p>
-                          </div>
+                      <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50 space-y-3">
+                        <div className="flex items-center gap-2 border-b border-emerald-100 pb-2">
+                          <Building2 className="w-5 h-5 text-emerald-600" />
+                          <h4 className="font-bold text-emerald-900">{apt.hospitalLocationId?.hospitalName || 'Offline Hospital'}</h4>
                         </div>
-                        <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/50 flex items-start gap-3">
-                          <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg shrink-0"><Building2 className="w-4 h-4" /></div>
-                          <div>
-                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-0.5">Consult Room</p>
-                            <p className="text-sm font-bold text-emerald-800">{apt.roomNumber || 'TBD'}</p>
+                        {apt.hospitalLocationId && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-700">
+                            <div>
+                              <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-0.5">Room & Floor</p>
+                              <p className="font-semibold">{apt.hospitalLocationId.roomNumber} {apt.hospitalLocationId.floor ? `(Floor: ${apt.hospitalLocationId.floor})` : ''}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-0.5">Contact</p>
+                              <p className="font-semibold">{apt.hospitalLocationId.contactNumber}</p>
+                            </div>
+                            <div className="col-span-full">
+                              <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-0.5">Address</p>
+                              <p>{apt.hospitalLocationId.addressLine1}, {apt.hospitalLocationId.city}, {apt.hospitalLocationId.state} - {apt.hospitalLocationId.postalCode}</p>
+                            </div>
                           </div>
-                        </div>
-                     </div>
+                        )}
+                        <a 
+                          href={`https://maps.google.com/?q=${encodeURIComponent(apt.hospitalLocationId?.addressLine1 + ' ' + apt.hospitalLocationId?.city)}`}
+                          target="_blank" rel="noreferrer"
+                          className="mt-2 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
+                        >
+                          <Building2 className="w-3 h-3" /> Open in Maps
+                        </a>
+                      </div>
                   )}
 
                   <div className="pt-2">

@@ -23,6 +23,8 @@ const { approvedDoctorOnly } = require('../middleware/auth');
 
 doctorRouter.get('/', doctorController.getDoctors);
 doctorRouter.get('/specializations', doctorController.getSpecializations);
+const hospitalDetailsController = require('../controllers/hospitalDetailsController');
+doctorRouter.get('/:doctorId/hospital-details', hospitalDetailsController.getDoctorHospitalDetails);
 doctorRouter.get('/profile/me', protect, authorize('doctor'), doctorController.getDoctorProfile);
 doctorRouter.get('/profile', protect, authorize('doctor'), doctorController.getDoctorProfileData);
 doctorRouter.put('/profile', protect, authorize('doctor'), doctorController.updateDoctorProfile);

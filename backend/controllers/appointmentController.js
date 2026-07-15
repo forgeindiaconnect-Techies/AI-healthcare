@@ -133,6 +133,7 @@ exports.getAppointment = asyncHandler(async (req, res, next) => {
     .populate('doctor', 'name email avatar phone')
     .populate('patientProfile')
     .populate('doctorProfile')
+    .populate('hospitalLocationId')
     .populate('prescription');
 
   if (!appointment) return next(new ErrorResponse('Appointment not found', 404));
@@ -154,15 +155,23 @@ exports.getAppointment = asyncHandler(async (req, res, next) => {
 // @route   POST /api/appointments
 // @access  Private (patient, doctor)
 exports.bookAppointment = asyncHandler(async (req, res, next) => {
-  const { doctor: reqDoctorId, patient: reqPatientId, slotId, reason, type, mode, priority, symptoms, notes, roomNumber } = req.body;
+  const { doctor: reqDoctorId, patient: reqPatientId, slotId, reason, type, mode, priority, symptoms, notes, roomNumber, appointmentType, hospitalLocationId, preferredVisitDate } = req.body;
 
   const doctorId = req.user.role === 'doctor' ? req.user.id : reqDoctorId;
   const patientId = req.user.role === 'doctor' ? reqPatientId : req.user.id;
 
   if (!doctorId || !patientId) return next(new ErrorResponse('Doctor ID and Patient ID are required', 400));
   
-  if (!slotId && (!req.body.appointmentDate || !req.body.appointmentTime)) {
-    return next(new ErrorResponse('Slot ID or Appointment Date and Time are required', 400));
+  const normalizedType = String(appointmentType || '').toUpperCase();
+  const isOffline = normalizedType === 'OFFLINE';
+  const isOnline = !isOffline; // Default to online if not specified
+
+  if (isOnline && !slotId && (!req.body.appointmentDate || !req.body.appointmentTime)) {
+    return next(new ErrorResponse('Slot ID or Appointment Date and Time are required for online appointments', 400));
+  }
+
+  if (isOffline && !hospitalLocationId) {
+    return next(new ErrorResponse('Hospital location is required for offline visits', 400));
   }
 
   const session = await mongoose.startSession();
@@ -212,8 +221,19 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
         throw new ErrorResponse('Doctor is not approved to accept appointments', 403);
       }
 
-      const queueNumber = mode !== 'video' ? Math.floor(Math.random() * 50) + 1 : undefined;
-      const feePaise = doctorProfile?.consultationFeePaise || Math.round((doctorProfile?.consultationFee || 0) * 100);
+      let hospitalLocation = null;
+      let finalFee = doctorProfile?.consultationFee || 0;
+
+      if (isOffline) {
+        hospitalLocation = await mongoose.model('DoctorHospitalDetails').findById(hospitalLocationId).session(session);
+        if (!hospitalLocation || hospitalLocation.doctor.toString() !== doctorProfile?._id?.toString()) {
+          throw new ErrorResponse('Invalid hospital location', 400);
+        }
+        finalFee = hospitalLocation.offlineConsultationFee || 0;
+      }
+
+      const queueNumber = mode !== 'video' && !isOffline ? Math.floor(Math.random() * 50) + 1 : undefined;
+      const feePaise = doctorProfile?.consultationFeePaise || Math.round(finalFee * 100);
       const commRate = doctorProfile?.commissionRate || 20;
       const platCommPaise = Math.round(feePaise * commRate / 100);
       const docEarnPaise = feePaise - platCommPaise;
@@ -223,24 +243,27 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
         doctor: doctorId,
         patientProfile: patientProfile?._id,
         doctorProfile: doctorProfile?._id,
-        slotId: slotId || undefined,
-        appointmentDate: finalAppointmentDate,
-        appointmentTime: finalAppointmentTime,
-        endTime: finalEndTime,
+        appointmentType: isOffline ? 'OFFLINE' : 'ONLINE',
+        slotId: isOnline && slotId ? slotId : undefined,
+        hospitalLocationId: isOffline ? hospitalLocationId : undefined,
+        preferredVisitDate: isOffline ? preferredVisitDate : undefined,
+        appointmentDate: isOnline ? finalAppointmentDate : undefined,
+        appointmentTime: isOnline ? finalAppointmentTime : undefined,
+        endTime: isOnline ? finalEndTime : undefined,
         reason,
         type: type || 'general',
         mode: mode || 'in-person',
         priority: priority || 'Medium',
         symptoms: symptoms || [],
         notes: { [req.user.role]: notes || '' },
-        consultationFee: doctorProfile?.consultationFee || 0,
+        consultationFee: finalFee,
         consultationFeePaise: feePaise,
         commissionRate: commRate,
         platformCommissionPaise: platCommPaise,
         doctorEarningsPaise: docEarnPaise,
-        status: 'Pending Doctor Approval',
+        status: isOffline ? 'REQUESTED' : 'Pending Doctor Approval',
         queueNumber,
-        roomNumber: roomNumber || (mode !== 'video' ? 'Room 101' : undefined)
+        roomNumber: isOffline && hospitalLocation ? hospitalLocation.roomNumber : (roomNumber || (mode !== 'video' ? 'Room 101' : undefined))
       });
 
       if (appointment.mode === 'video') {
@@ -263,6 +286,7 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
       populatedAppointment = await Appointment.findById(appointment._id)
         .populate({ path: 'patient', select: 'name email avatar' })
         .populate({ path: 'doctor', select: 'name email avatar' })
+        .populate('hospitalLocationId');
         .session(session);
     });
   } catch (error) {
@@ -503,7 +527,8 @@ exports.updateAppointment = asyncHandler(async (req, res, next) => {
 
   const updated = await Appointment.findByIdAndUpdate(req.params.id, updates, { new: true })
     .populate('patient', 'name email avatar')
-    .populate('doctor', 'name email avatar');
+    .populate('doctor', 'name email avatar')
+    .populate('hospitalLocationId');
 
   // Trigger notification if date/time changed
   if (appointmentDate || appointmentTime) {
@@ -587,6 +612,7 @@ exports.getTodayAppointments = asyncHandler(async (req, res) => {
   })
     .populate('patient', 'name email avatar phone')
     .populate('patientProfile', 'bloodType allergies chronicConditions')
+    .populate('hospitalLocationId')
     .sort({ appointmentTime: 1 });
 
   res.status(200).json({ success: true, count: appointments.length, data: appointments });

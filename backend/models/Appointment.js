@@ -7,8 +7,11 @@ const mongoose = require('mongoose');
       patientProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
       doctorProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
       slotId: { type: mongoose.Schema.Types.ObjectId, ref: 'AppointmentSlot' },
-      appointmentDate: { type: Date, required: true },
-      appointmentTime: { type: String, required: true }, // "10:30"
+      appointmentType: { type: String, enum: ['ONLINE', 'OFFLINE'] },
+      hospitalLocationId: { type: mongoose.Schema.Types.ObjectId, ref: 'DoctorHospitalDetails' },
+      preferredVisitDate: { type: Date },
+      appointmentDate: { type: Date },
+      appointmentTime: { type: String }, // "10:30"
       endTime: { type: String },
       duration: { type: Number, default: 30 }, // minutes
       type: {
@@ -28,7 +31,7 @@ const mongoose = require('mongoose');
       },
       status: {
         type: String,
-        enum: ['Pending Doctor Approval', 'Approved - Payment Pending', 'Payment Completed', 'Meeting Scheduled', 'Completed', 'Cancelled', 'Rejected', 'no-show', 'rescheduled', 'pending', 'confirmed'],
+        enum: ['Pending Doctor Approval', 'Approved - Payment Pending', 'Payment Completed', 'Meeting Scheduled', 'Completed', 'Cancelled', 'Rejected', 'no-show', 'rescheduled', 'pending', 'confirmed', 'REQUESTED', 'CONFIRMED', 'CHECKED_IN'],
         default: 'Pending Doctor Approval',
       },
       reason: { type: String, required: true },

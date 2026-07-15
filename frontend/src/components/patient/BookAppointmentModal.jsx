@@ -6,16 +6,18 @@ import { useSocket } from '../../context/SocketContext';
 
 const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => {
   const [doctorId, setDoctorId] = useState('');
-  const [mode, setMode] = useState('video');
-  const [type, setType] = useState('general');
+  const [appointmentType, setAppointmentType] = useState('ONLINE');
   const [reason, setReason] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedHospitalLocation, setSelectedHospitalLocation] = useState(null);
   
   const [availableDates, setAvailableDates] = useState([]);
   const [slots, setSlots] = useState([]);
+  const [hospitalLocations, setHospitalLocations] = useState([]);
   const [loadingDates, setLoadingDates] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [loadingHospitals, setLoadingHospitals] = useState(false);
   const [booking, setBooking] = useState(false);
   const { socket } = useSocket();
 
@@ -44,19 +46,40 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
 
   useEffect(() => {
     if (doctorId) {
-      fetchAvailableDates(doctorId);
-      setSelectedDate('');
-      setSelectedSlot(null);
-      setSlots([]);
+      if (appointmentType === 'ONLINE') {
+        fetchAvailableDates(doctorId);
+        setSelectedHospitalLocation(null);
+      } else {
+        fetchHospitalLocations(doctorId);
+        setSelectedDate('');
+        setSelectedSlot(null);
+        setSlots([]);
+      }
     }
-  }, [doctorId]);
+  }, [doctorId, appointmentType]);
 
   useEffect(() => {
-    if (doctorId && selectedDate) {
+    if (doctorId && selectedDate && appointmentType === 'ONLINE') {
       fetchSlots(doctorId, selectedDate);
       setSelectedSlot(null);
     }
-  }, [selectedDate, doctorId]);
+  }, [selectedDate, doctorId, appointmentType]);
+
+  const fetchHospitalLocations = async (docId) => {
+    try {
+      setLoadingHospitals(true);
+      const { data } = await API.get(`/api/doctors/${docId}/hospital-details`);
+      setHospitalLocations(data.data || []);
+      if (data.data && data.data.length > 0) {
+        setSelectedHospitalLocation(data.data[0]);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to load hospital locations');
+    } finally {
+      setLoadingHospitals(false);
+    }
+  };
 
   const fetchAvailableDates = async (docId) => {
     try {
@@ -89,39 +112,67 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
     }
   };
 
+  const canConfirmOnline = 
+    appointmentType === 'ONLINE' && 
+    Boolean(doctorId) && 
+    Boolean(selectedDate) && 
+    Boolean(selectedSlot?._id) && 
+    selectedSlot?.status === 'AVAILABLE' && 
+    Boolean(reason.trim()) && 
+    !booking;
+
+  const canConfirmOffline = 
+    appointmentType === 'OFFLINE' && 
+    Boolean(doctorId) && 
+    Boolean(selectedHospitalLocation?._id) && 
+    Boolean(reason.trim()) && 
+    !booking;
+
   const handleBook = async (e) => {
     e.preventDefault();
     
-    if (!doctorId) return toast.error('Please select a doctor');
-    if (!selectedSlot || selectedSlot.status !== 'AVAILABLE') return toast.error('Please select an available appointment slot');
+    if (appointmentType === 'ONLINE' && (!selectedSlot || selectedSlot.status !== 'AVAILABLE')) {
+      return toast.error('Please select an available appointment slot');
+    }
+    if (appointmentType === 'OFFLINE' && !selectedHospitalLocation) {
+      return toast.error('Please select a hospital location');
+    }
     if (!reason.trim()) return toast.error('Please provide a reason for the visit');
-    if (new Date(selectedSlot.startDateTime) <= new Date()) return toast.error('Cannot book past slots');
+    
+    if (appointmentType === 'ONLINE' && new Date(selectedSlot.startDateTime) <= new Date()) {
+      return toast.error('Cannot book past slots');
+    }
 
     try {
       setBooking(true);
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       const payload = {
         doctor: doctorId,
-        slotId: selectedSlot._id,
+        appointmentType,
         reason,
-        mode,
-        type
+        mode: appointmentType === 'ONLINE' ? 'video' : 'in-person',
       };
 
+      if (appointmentType === 'ONLINE') {
+        payload.slotId = selectedSlot._id;
+      } else {
+        payload.hospitalLocationId = selectedHospitalLocation._id;
+      }
+
       const response = await API.post('/api/appointments', payload, config);
-      toast.success('Appointment booked successfully!');
+      toast.success(appointmentType === 'ONLINE' ? 'Appointment booked successfully!' : 'Hospital visit requested successfully!');
       
-      // Instantly update the slot to BOOKED in local state without waiting for a re-fetch
-      setSlots(prevSlots => prevSlots.map(s => 
-        s._id === selectedSlot._id ? { ...s, status: 'BOOKED', appointmentId: response.data.data?._id } : s
-      ));
+      if (appointmentType === 'ONLINE') {
+        setSlots(prevSlots => prevSlots.map(s => 
+          s._id === selectedSlot._id ? { ...s, status: 'BOOKED', appointmentId: response.data.data?._id } : s
+        ));
+      }
       
       onSuccess(response.data.data, doctorId);
       onClose();
     } catch (error) {
-      if (error.response?.status === 409 || error.response?.data?.code === 'SLOT_ALREADY_BOOKED') {
+      if (appointmentType === 'ONLINE' && (error.response?.status === 409 || error.response?.data?.code === 'SLOT_ALREADY_BOOKED')) {
         toast.error('This slot was just booked by another patient. Please choose another time.');
-        // Instantly mark the conflicting slot as booked so it becomes disabled
         setSlots(prevSlots => prevSlots.map(s => 
           s._id === selectedSlot._id ? { ...s, status: 'BOOKED' } : s
         ));
@@ -181,31 +232,31 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
             <label className="block text-sm font-bold text-gray-700 mb-2">Appointment Type *</label>
             <div className="grid grid-cols-2 gap-4">
               <div 
-                onClick={() => setMode('video')}
-                className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${mode === 'video' ? 'border-indigo-500 bg-indigo-50/50' : 'border-gray-200 hover:border-indigo-300'}`}
+                onClick={() => setAppointmentType('ONLINE')}
+                className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${appointmentType === 'ONLINE' ? 'border-indigo-500 bg-indigo-50/50' : 'border-gray-200 hover:border-indigo-300'}`}
               >
-                <div className={`p-2 rounded-lg ${mode === 'video' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'}`}><VideoIcon className="w-5 h-5"/></div>
+                <div className={`p-2 rounded-lg ${appointmentType === 'ONLINE' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'}`}><VideoIcon className="w-5 h-5"/></div>
                 <div>
-                  <p className={`font-bold ${mode === 'video' ? 'text-indigo-900' : 'text-gray-700'}`}>Online</p>
+                  <p className={`font-bold ${appointmentType === 'ONLINE' ? 'text-indigo-900' : 'text-gray-700'}`}>Online</p>
                   <p className="text-xs text-gray-500">Video Consultation</p>
                 </div>
               </div>
               
               <div 
-                onClick={() => setMode('in-person')}
-                className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${mode === 'in-person' ? 'border-emerald-500 bg-emerald-50/50' : 'border-gray-200 hover:border-emerald-300'}`}
+                onClick={() => setAppointmentType('OFFLINE')}
+                className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${appointmentType === 'OFFLINE' ? 'border-emerald-500 bg-emerald-50/50' : 'border-gray-200 hover:border-emerald-300'}`}
               >
-                <div className={`p-2 rounded-lg ${mode === 'in-person' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}><Building2 className="w-5 h-5"/></div>
+                <div className={`p-2 rounded-lg ${appointmentType === 'OFFLINE' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}><Building2 className="w-5 h-5"/></div>
                 <div>
-                  <p className={`font-bold ${mode === 'in-person' ? 'text-emerald-900' : 'text-gray-700'}`}>Offline</p>
+                  <p className={`font-bold ${appointmentType === 'OFFLINE' ? 'text-emerald-900' : 'text-gray-700'}`}>Offline</p>
                   <p className="text-xs text-gray-500">Hospital Visit</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Date & Time Selection */}
-          {doctorId && (
+          {/* ONLINE Date & Time Selection */}
+          {doctorId && appointmentType === 'ONLINE' && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Select Date *</label>
@@ -273,6 +324,65 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
             </div>
           )}
 
+          {/* OFFLINE Hospital Selection */}
+          {doctorId && appointmentType === 'OFFLINE' && (
+            <div className="space-y-4">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Select Hospital Location *</label>
+              {loadingHospitals ? (
+                <p className="text-sm text-gray-500">Loading hospital details...</p>
+              ) : hospitalLocations.length === 0 ? (
+                <p className="text-sm text-red-500 bg-red-50 p-3 rounded-xl border border-red-100">Offline hospital visit details are not available for this doctor.</p>
+              ) : (
+                <div className="space-y-3">
+                  {hospitalLocations.map(hospital => (
+                    <div 
+                      key={hospital._id}
+                      onClick={() => setSelectedHospitalLocation(hospital)}
+                      className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${selectedHospitalLocation?._id === hospital._id ? 'border-emerald-500 bg-emerald-50/30 ring-2 ring-emerald-100' : 'border-gray-200 hover:border-emerald-300'}`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl mt-1">
+                          <Building2 className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div>
+                            <h4 className="font-bold text-gray-900 text-lg">{hospital.hospitalName}</h4>
+                            {hospital.department && <p className="text-sm font-medium text-emerald-700">{hospital.department} Department</p>}
+                          </div>
+                          
+                          <div className="text-sm text-gray-600 grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4">
+                            <div className="flex items-start gap-2">
+                              <span className="font-semibold text-gray-800">Address:</span>
+                              <span>{hospital.addressLine1}, {hospital.city}, {hospital.state} - {hospital.postalCode}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-800">Room:</span>
+                              <span>{hospital.roomNumber} {hospital.floor ? `(Floor: ${hospital.floor})` : ''}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-800">Contact:</span>
+                              <span>{hospital.contactNumber}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-800">Visiting Hours:</span>
+                              <span>{hospital.visitingStartTime} - {hospital.visitingEndTime}</span>
+                            </div>
+                          </div>
+                          
+                          {hospital.instructions && (
+                            <div className="mt-3 p-3 bg-amber-50 rounded-lg text-xs text-amber-800 border border-amber-100">
+                              <span className="font-bold">Instructions:</span> {hospital.instructions}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Reason */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Reason for Visit *</label>
@@ -291,11 +401,11 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
             Cancel
           </button>
           <button 
-            disabled={booking || !selectedSlot || selectedSlot.status !== 'AVAILABLE'} 
+            disabled={appointmentType === 'ONLINE' ? !canConfirmOnline : !canConfirmOffline} 
             onClick={handleBook}
             className="px-6 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
           >
-            {booking ? 'Booking...' : 'Confirm Booking'}
+            {booking ? (appointmentType === 'ONLINE' ? 'Booking Slot...' : 'Submitting Visit...') : (appointmentType === 'ONLINE' ? 'Confirm Online Booking' : 'Confirm Hospital Visit')}
           </button>
         </div>
       </div>
