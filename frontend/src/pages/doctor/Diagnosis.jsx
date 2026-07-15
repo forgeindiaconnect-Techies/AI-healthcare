@@ -40,10 +40,8 @@ const Diagnosis = () => {
 
   const fetchPatients = async () => {
     try {
-      const { data } = await API.get('/api/doctors/patients', {
-        headers: { Authorization: `Bearer ${user?.token}` }
-      });
-      setPatients(data.data || []);
+      const { data } = await API.get('/api/doctors/patients');
+      setPatients(data.data?.patients || []);
     } catch (err) {
       console.error("Failed to fetch patients:", err);
     }
