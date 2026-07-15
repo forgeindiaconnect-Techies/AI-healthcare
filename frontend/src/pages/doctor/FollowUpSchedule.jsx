@@ -261,18 +261,6 @@ const FollowUpSchedule = () => {
                 ]}
               />
             </div>
-            <div style={{ flex: 1 }}>
-              <Select 
-                label="Priority" 
-                value={formData.priority} 
-                onChange={(e) => setFormData({...formData, priority: e.target.value})}
-                options={[
-                  { label: 'Low', value: 'Low' },
-                  { label: 'Medium', value: 'Medium' },
-                  { label: 'High', value: 'High' }
-                ]}
-              />
-            </div>
           </div>
 
           <Input 
