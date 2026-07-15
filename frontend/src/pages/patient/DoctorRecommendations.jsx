@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
+import BookAppointmentModal from '../../components/patient/BookAppointmentModal';
 import { Search, Star, MapPin, Clock, Building2, Video as VideoIcon, UserCircle, Calendar, XCircle, ChevronRight, Activity, Heart, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -20,7 +21,6 @@ const DoctorRecommendations = () => {
   // Booking Modal State
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [bookingData, setBookingData] = useState({ date: '', time: '', type: 'general', mode: 'video', reason: '' });
 
   useEffect(() => {
     fetchDoctors();
@@ -64,41 +64,12 @@ const DoctorRecommendations = () => {
 
   const handleOpenBooking = (doc) => {
     setSelectedDoctor(doc);
-    setBookingData({ date: '', time: '', type: 'general', mode: 'video', reason: '' });
     setBookingModalOpen(true);
   };
 
-  const handleBookingSubmit = async (e) => {
-    e.preventDefault();
-    if (!bookingData.date || !bookingData.time || !bookingData.reason) {
-      toast.error('Please fill all required fields');
-      return;
-    }
-
-    try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const payload = {
-        doctor: selectedDoctor.user?._id || selectedDoctor._id, // Ensure we send the User ID
-        patient: user.id, // Authenticated patient
-        appointmentDate: bookingData.date,
-        appointmentTime: bookingData.time,
-        reason: bookingData.reason,
-        mode: bookingData.mode,
-        type: bookingData.type
-      };
-
-      await API.post('/api/appointments', payload, config);
-      toast.success('Booking request sent for Doctor approval!');
-      setBookingModalOpen(false);
-      
-      // Optionally redirect to appointments page
-      setTimeout(() => {
-        navigate('/dashboard/appointments');
-      }, 1500);
-
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to book appointment');
-    }
+  const handleBookingSuccess = () => {
+    // Already handled internally by modal showing toast
+    // Can navigate to appointments or show a success screen here if needed
   };
 
   if (loading) {
@@ -264,100 +235,13 @@ const DoctorRecommendations = () => {
       )}
 
       {/* Booking Modal */}
-      {bookingModalOpen && selectedDoctor && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                <Calendar className="w-6 h-6 mr-2 text-indigo-600" /> Book Appointment
-              </h2>
-              <button onClick={() => setBookingModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-white border border-transparent hover:border-gray-200 transition-all">
-                <XCircle className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="bg-indigo-50/50 p-4 mx-6 mt-6 rounded-2xl border border-indigo-100 flex items-center gap-4">
-              <img src={selectedDoctor.user?.avatar} alt="doctor" className="w-12 h-12 rounded-full border border-white shadow-sm" />
-              <div>
-                <p className="text-sm font-semibold text-gray-500">Booking with</p>
-                <p className="text-lg font-bold text-indigo-900">{selectedDoctor.user?.name}</p>
-              </div>
-            </div>
-
-            <form onSubmit={handleBookingSubmit} className="p-6 space-y-6">
-              {/* Mode Selection */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Appointment Type *</label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div 
-                    onClick={() => setBookingData({...bookingData, mode: 'video'})}
-                    className={`cursor-pointer p-4 rounded-2xl border-2 transition-all flex items-center gap-3 ${bookingData.mode === 'video' ? 'border-indigo-500 bg-indigo-50/50' : 'border-gray-200 hover:border-indigo-300'}`}
-                  >
-                    <div className={`p-2 rounded-xl ${bookingData.mode === 'video' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'}`}><VideoIcon className="w-5 h-5"/></div>
-                    <div>
-                      <p className={`font-bold ${bookingData.mode === 'video' ? 'text-indigo-900' : 'text-gray-700'}`}>Online</p>
-                      <p className="text-xs text-gray-500">Video Consultation</p>
-                    </div>
-                  </div>
-                  
-                  <div 
-                    onClick={() => setBookingData({...bookingData, mode: 'in-person'})}
-                    className={`cursor-pointer p-4 rounded-2xl border-2 transition-all flex items-center gap-3 ${bookingData.mode === 'in-person' ? 'border-emerald-500 bg-emerald-50/50' : 'border-gray-200 hover:border-emerald-300'}`}
-                  >
-                    <div className={`p-2 rounded-xl ${bookingData.mode === 'in-person' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}><Building2 className="w-5 h-5"/></div>
-                    <div>
-                      <p className={`font-bold ${bookingData.mode === 'in-person' ? 'text-emerald-900' : 'text-gray-700'}`}>Offline</p>
-                      <p className="text-xs text-gray-500">Hospital Visit</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Date & Time */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Date *</label>
-                  <input 
-                    type="date" required
-                    value={bookingData.date}
-                    onChange={(e) => setBookingData({...bookingData, date: e.target.value})}
-                    className="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm font-medium bg-gray-50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Time *</label>
-                  <input 
-                    type="time" required
-                    value={bookingData.time}
-                    onChange={(e) => setBookingData({...bookingData, time: e.target.value})}
-                    className="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm font-medium bg-gray-50"
-                  />
-                </div>
-              </div>
-
-              {/* Reason */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Reason for Visit *</label>
-                <input 
-                  type="text" required placeholder="e.g. Annual Checkup, Back Pain..."
-                  value={bookingData.reason}
-                  onChange={(e) => setBookingData({...bookingData, reason: e.target.value})}
-                  className="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm font-medium bg-gray-50"
-                />
-              </div>
-
-              <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
-                <button type="button" onClick={() => setBookingModalOpen(false)} className="px-6 py-3.5 font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all">
-                  Cancel
-                </button>
-                <button type="submit" className="px-8 py-3.5 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5">
-                  Confirm Booking
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <BookAppointmentModal 
+        isOpen={bookingModalOpen && selectedDoctor}
+        onClose={() => { setBookingModalOpen(false); setSelectedDoctor(null); }}
+        doctors={selectedDoctor ? [selectedDoctor] : []}
+        onSuccess={handleBookingSuccess}
+        user={user}
+      />
     </div>
   );
 };

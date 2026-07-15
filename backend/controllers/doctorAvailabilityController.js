@@ -1,0 +1,201 @@
+const DoctorAvailability = require('../models/DoctorAvailability');
+const AppointmentSlot = require('../models/AppointmentSlot');
+const Appointment = require('../models/Appointment');
+const asyncHandler = require('../middleware/asyncHandler');
+const ErrorResponse = require('../utils/errorResponse');
+const moment = require('moment');
+
+// Helper to generate slots
+const generateSlotsForDay = (date, startTime, endTime, slotDuration, breaks) => {
+  const slots = [];
+  let current = moment(`${date} ${startTime}`, 'YYYY-MM-DD HH:mm');
+  const end = moment(`${date} ${endTime}`, 'YYYY-MM-DD HH:mm');
+
+  while (current.isBefore(end)) {
+    let next = moment(current).add(slotDuration, 'minutes');
+    
+    // Check if slot overlaps with any break
+    let isBreak = false;
+    for (let b of breaks) {
+      let bStart = moment(`${date} ${b.startTime}`, 'YYYY-MM-DD HH:mm');
+      let bEnd = moment(`${date} ${b.endTime}`, 'YYYY-MM-DD HH:mm');
+      if ((current.isSameOrAfter(bStart) && current.isBefore(bEnd)) ||
+          (next.isAfter(bStart) && next.isSameOrBefore(bEnd))) {
+        isBreak = true;
+        break;
+      }
+    }
+
+    if (!isBreak && next.isSameOrBefore(end)) {
+      slots.push({
+        startDateTime: current.toDate(),
+        endDateTime: next.toDate(),
+      });
+    }
+    
+    current = next;
+  }
+  return slots;
+};
+
+// @desc    Create availability rule and slots
+// @route   POST /api/doctors/availability
+// @access  Private (doctor)
+exports.createAvailability = asyncHandler(async (req, res, next) => {
+  const { isRecurring, dayOfWeek, date, startTime, endTime, slotDuration, recurrenceEndDate, breaks = [] } = req.body;
+  const doctorId = req.user.id; // user id
+
+  if (startTime >= endTime) {
+    return next(new ErrorResponse('Start time must be before end time', 400));
+  }
+
+  // Create Availability Rule
+  const availability = await DoctorAvailability.create({
+    doctor: doctorId,
+    isRecurring,
+    dayOfWeek,
+    date,
+    startTime,
+    endTime,
+    slotDuration,
+    recurrenceEndDate,
+    breaks
+  });
+
+  // Generate Slots
+  const slotsToInsert = [];
+  const startGeneratingDate = moment().startOf('day');
+  const endGeneratingDate = isRecurring && recurrenceEndDate ? moment(recurrenceEndDate).endOf('day') : moment().add(30, 'days').endOf('day');
+
+  if (isRecurring) {
+    let currentDay = moment(startGeneratingDate);
+    while (currentDay.isSameOrBefore(endGeneratingDate)) {
+      if (currentDay.day() === dayOfWeek) {
+        const slots = generateSlotsForDay(currentDay.format('YYYY-MM-DD'), startTime, endTime, slotDuration, breaks);
+        slots.forEach(s => {
+          slotsToInsert.push({
+            doctor: doctorId,
+            availabilityId: availability._id,
+            appointmentDate: currentDay.toDate(),
+            startDateTime: s.startDateTime,
+            endDateTime: s.endDateTime,
+            status: 'AVAILABLE'
+          });
+        });
+      }
+      currentDay.add(1, 'days');
+    }
+  } else {
+    // Specific date
+    const targetDate = moment(date);
+    if (targetDate.isSameOrAfter(startGeneratingDate)) {
+      const slots = generateSlotsForDay(targetDate.format('YYYY-MM-DD'), startTime, endTime, slotDuration, breaks);
+      slots.forEach(s => {
+        slotsToInsert.push({
+          doctor: doctorId,
+          availabilityId: availability._id,
+          appointmentDate: targetDate.toDate(),
+          startDateTime: s.startDateTime,
+          endDateTime: s.endDateTime,
+          status: 'AVAILABLE'
+        });
+      });
+    }
+  }
+
+  if (slotsToInsert.length > 0) {
+    // Ignoring duplicates that might arise from overlapping rules
+    await AppointmentSlot.insertMany(slotsToInsert, { ordered: false }).catch(err => {
+      console.warn("Some duplicate slots were ignored during generation.");
+    });
+  }
+
+  res.status(201).json({
+    success: true,
+    data: availability,
+    slotsGenerated: slotsToInsert.length
+  });
+});
+
+// @desc    Get all availability rules for doctor
+// @route   GET /api/doctors/availability
+// @access  Private (doctor)
+exports.getAvailability = asyncHandler(async (req, res, next) => {
+  const rules = await DoctorAvailability.find({ doctor: req.user.id });
+  // Also get the generated slots from today onwards
+  const slots = await AppointmentSlot.find({ 
+    doctor: req.user.id,
+    startDateTime: { $gte: new Date() }
+  }).sort('startDateTime');
+
+  res.status(200).json({
+    success: true,
+    rules,
+    slots
+  });
+});
+
+// @desc    Delete availability rule
+// @route   DELETE /api/doctors/availability/:id
+// @access  Private (doctor)
+exports.deleteAvailability = asyncHandler(async (req, res, next) => {
+  const rule = await DoctorAvailability.findOne({ _id: req.params.id, doctor: req.user.id });
+  
+  if (!rule) {
+    return next(new ErrorResponse('Availability rule not found', 404));
+  }
+
+  // Check if any slot generated by this rule has been booked
+  const bookedSlots = await AppointmentSlot.countDocuments({
+    availabilityId: rule._id,
+    status: 'BOOKED',
+    startDateTime: { $gte: new Date() }
+  });
+
+  if (bookedSlots > 0) {
+    return next(new ErrorResponse('Cannot delete availability rule that has upcoming booked appointments.', 400));
+  }
+
+  // Delete all future AVAILABLE slots associated with this rule
+  await AppointmentSlot.deleteMany({
+    availabilityId: rule._id,
+    status: { $ne: 'BOOKED' },
+    startDateTime: { $gte: new Date() }
+  });
+
+  await rule.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    data: {}
+  });
+});
+
+// @desc    Toggle specific slot availability
+// @route   PATCH /api/doctors/slots/:id/toggle
+// @access  Private (doctor)
+exports.toggleSlot = asyncHandler(async (req, res, next) => {
+  const slot = await AppointmentSlot.findOne({ _id: req.params.id, doctor: req.user.id });
+
+  if (!slot) {
+    return next(new ErrorResponse('Slot not found', 404));
+  }
+
+  if (slot.status === 'BOOKED') {
+    return next(new ErrorResponse('Cannot toggle a booked slot', 400));
+  }
+
+  slot.status = slot.status === 'AVAILABLE' ? 'BLOCKED' : 'AVAILABLE';
+  await slot.save();
+
+  // Socket update
+  const io = req.app.get('io');
+  if (io) {
+    io.emit('slot_updated', { doctorId: slot.doctor, slotId: slot._id, status: slot.status, date: slot.appointmentDate });
+  }
+
+  res.status(200).json({
+    success: true,
+    data: slot
+  });
+});

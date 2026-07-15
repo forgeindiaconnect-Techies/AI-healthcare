@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
       doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
       patientProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
       doctorProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
+      slotId: { type: mongoose.Schema.Types.ObjectId, ref: 'AppointmentSlot' },
       appointmentDate: { type: Date, required: true },
       appointmentTime: { type: String, required: true }, // "10:30"
       endTime: { type: String },

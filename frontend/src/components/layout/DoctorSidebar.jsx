@@ -13,6 +13,7 @@ import {
 const navItems = [
   { id: "/dashboard/doctor", label: "Dashboard", icon: <Home size={20} />, exact: true },
   { id: "/dashboard/doctor/appointments", label: "Appointments", icon: <Calendar size={20} /> },
+  { id: "/dashboard/doctor/availability", label: "Manage Availability", icon: <Calendar size={20} /> },
   { id: "/dashboard/doctor/patients", label: "My Patients", icon: <Users size={20} /> },
   { id: "/dashboard/doctor/review-reports", label: "Review Reports", icon: <Clipboard size={20} /> },
   { id: "/dashboard/doctor/diagnosis", label: "Diagnosis", icon: <Stethoscope size={20} /> },

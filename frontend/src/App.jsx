@@ -60,6 +60,7 @@ import ReviewReports from './pages/doctor/ReviewReports';
 import DoctorTreatmentPlans from './pages/doctor/DoctorTreatmentPlans';
 import GenerateReport from './pages/doctor/GenerateReport';
 import VerificationStatus from './pages/doctor/VerificationStatus';
+import ManageAvailability from './pages/doctor/ManageAvailability';
 
 // NEW ADMIN IMPORTS
 import AdminReports from './pages/admin/AdminReports';
@@ -229,6 +230,7 @@ function App() {
               <Route index element={<DoctorDashboard />} />
               <Route path="verification-status" element={<VerificationStatus />} />
               <Route path="appointments" element={<DoctorAppointments />} />
+              <Route path="availability" element={<ManageAvailability />} />
               <Route path="patients" element={<DoctorPatients />} />
               <Route path="patients/:id" element={<DoctorPatientProfile />} />
               <Route path="consultation/:appointmentId/:patientId" element={<ConsultationWizard />} />

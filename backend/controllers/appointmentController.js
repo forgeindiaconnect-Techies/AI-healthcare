@@ -5,6 +5,8 @@ const Patient = require('../models/Patient');
 const asyncHandler = require('../middleware/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse');
 const notificationService = require('../services/notificationService');
+const AppointmentSlot = require('../models/AppointmentSlot');
+const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
 
 // Helper: check appointment slot availability
@@ -152,95 +154,127 @@ exports.getAppointment = asyncHandler(async (req, res, next) => {
 // @route   POST /api/appointments
 // @access  Private (patient, doctor)
 exports.bookAppointment = asyncHandler(async (req, res, next) => {
-  const { doctor: reqDoctorId, patient: reqPatientId, appointmentDate, appointmentTime, reason, type, mode, priority, symptoms, notes, roomNumber } = req.body;
+  const { doctor: reqDoctorId, patient: reqPatientId, slotId, reason, type, mode, priority, symptoms, notes, roomNumber } = req.body;
 
   const doctorId = req.user.role === 'doctor' ? req.user.id : reqDoctorId;
   const patientId = req.user.role === 'doctor' ? reqPatientId : req.user.id;
 
-  if (!doctorId || !patientId) return next(new ErrorResponse('Doctor and Patient IDs are required', 400));
+  if (!doctorId || !patientId || !slotId) return next(new ErrorResponse('Doctor ID, Patient ID, and Slot ID are required', 400));
 
-  // Verify doctor exists
-  const doctor = await User.findOne({ _id: doctorId, role: 'doctor', isActive: true });
-  if (!doctor) return next(new ErrorResponse('Doctor not found', 404));
+  const session = await mongoose.startSession();
+  let populatedAppointment = null;
+  let savedAppointment = null;
+  
+  try {
+    await session.withTransaction(async () => {
+      // Find the slot and lock it for this transaction
+      const slot = await AppointmentSlot.findOne({ _id: slotId, doctor: doctorId }).session(session);
 
-  // Verify patient exists
-  const patientUser = await User.findOne({ _id: patientId, role: 'patient', isActive: true });
-  if (!patientUser) return next(new ErrorResponse('Patient not found', 404));
+      if (!slot) {
+        throw new ErrorResponse('Slot not found', 404);
+      }
 
-  const doctorProfile = await Doctor.findOne({ user: doctorId });
-  const patientProfile = await Patient.findOne({ user: patientId });
+      if (slot.status !== 'AVAILABLE') {
+        throw new ErrorResponse('This slot was just booked by another patient. Please choose another slot.', 409);
+      }
 
-  if (doctorProfile && doctorProfile.status !== 'Approved') {
-    return next(new ErrorResponse('Doctor is not approved to accept appointments', 403));
-  }
+      const doctorProfile = await Doctor.findOne({ user: doctorId }).session(session);
+      const patientProfile = await Patient.findOne({ user: patientId }).session(session);
 
-  // Check availability
-  const available = await isSlotAvailable(doctorId, appointmentDate, appointmentTime);
-  if (!available) {
-    return next(new ErrorResponse('This time slot is already booked. Please choose another time.', 409));
-  }
+      if (doctorProfile && doctorProfile.status !== 'Approved') {
+        throw new ErrorResponse('Doctor is not approved to accept appointments', 403);
+      }
 
-  const queueNumber = mode !== 'video' ? Math.floor(Math.random() * 50) + 1 : undefined;
+      // Mark slot as booked
+      slot.status = 'BOOKED';
+      
+      const queueNumber = mode !== 'video' ? Math.floor(Math.random() * 50) + 1 : undefined;
+      const feePaise = doctorProfile?.consultationFeePaise || Math.round((doctorProfile?.consultationFee || 0) * 100);
+      const commRate = doctorProfile?.commissionRate || 20;
+      const platCommPaise = Math.round(feePaise * commRate / 100);
+      const docEarnPaise = feePaise - platCommPaise;
 
-  const feePaise = doctorProfile?.consultationFeePaise || Math.round((doctorProfile?.consultationFee || 0) * 100);
-  const commRate = doctorProfile?.commissionRate || 20;
-  const platCommPaise = Math.round(feePaise * commRate / 100);
-  const docEarnPaise = feePaise - platCommPaise;
+      const appointmentTime = slot.startDateTime.toISOString().split('T')[1].substring(0, 5); // "HH:mm"
+      const endTime = slot.endDateTime.toISOString().split('T')[1].substring(0, 5);
 
-  const appointment = new Appointment({
-    patient: patientId,
-    doctor: doctorId,
-    patientProfile: patientProfile?._id,
-    doctorProfile: doctorProfile?._id,
-    appointmentDate: new Date(appointmentDate),
-    appointmentTime,
-    reason,
-    type: type || 'general',
-    mode: mode || 'in-person',
-    priority: priority || 'Medium',
-    symptoms: symptoms || [],
-    notes: { [req.user.role]: notes || '' },
-    consultationFee: doctorProfile?.consultationFee || 0,
-    consultationFeePaise: feePaise,
-    commissionRate: commRate,
-    platformCommissionPaise: platCommPaise,
-    doctorEarningsPaise: docEarnPaise,
-    status: 'Pending Doctor Approval',
-    queueNumber,
-    roomNumber: roomNumber || (mode !== 'video' ? 'Room 101' : undefined)
-  });
+      const appointment = new Appointment({
+        patient: patientId,
+        doctor: doctorId,
+        patientProfile: patientProfile?._id,
+        doctorProfile: doctorProfile?._id,
+        slotId: slot._id,
+        appointmentDate: slot.appointmentDate,
+        appointmentTime: appointmentTime,
+        endTime: endTime,
+        reason,
+        type: type || 'general',
+        mode: mode || 'in-person',
+        priority: priority || 'Medium',
+        symptoms: symptoms || [],
+        notes: { [req.user.role]: notes || '' },
+        consultationFee: doctorProfile?.consultationFee || 0,
+        consultationFeePaise: feePaise,
+        commissionRate: commRate,
+        platformCommissionPaise: platCommPaise,
+        doctorEarningsPaise: docEarnPaise,
+        status: 'Pending Doctor Approval',
+        queueNumber,
+        roomNumber: roomNumber || (mode !== 'video' ? 'Room 101' : undefined)
+      });
 
-  if (appointment.mode === 'video') {
-    appointment.meetingLink = `https://meet.jit.si/healthai-${appointment._id}`;
-  }
+      if (appointment.mode === 'video') {
+        appointment.meetingLink = `https://meet.jit.si/healthai-${appointment._id}`;
+      }
 
-  await appointment.save();
+      await appointment.save({ session });
+      
+      slot.appointmentId = appointment._id;
+      await slot.save({ session });
 
-  // Update counters
-  if (patientProfile) await Patient.findByIdAndUpdate(patientProfile._id, { $inc: { totalAppointments: 1 } });
-  if (doctorProfile) await Doctor.findByIdAndUpdate(doctorProfile._id, { $inc: { totalAppointments: 1 } });
+      // Update counters
+      if (patientProfile) await Patient.findByIdAndUpdate(patientProfile._id, { $inc: { totalAppointments: 1 } }, { session });
+      if (doctorProfile) await Doctor.findByIdAndUpdate(doctorProfile._id, { $inc: { totalAppointments: 1 } }, { session });
 
-  // Send notifications
-  await notificationService.appointmentBooked(req.user, doctor, appointment);
-
-  const populated = await appointment.populate([
-    { path: 'patient', select: 'name email avatar' },
-    { path: 'doctor', select: 'name email avatar' },
-  ]);
-
-  // Emit socket event to the doctor
-  const io = req.app.get('io');
-  if (io) {
-    io.to(`user_${doctor._id.toString()}`).emit('new_notification', {
-      title: '🔔 New Appointment Request',
-      message: `${populated.patient.name} has booked an appointment on ${new Date(appointment.appointmentDate).toDateString()} at ${appointment.appointmentTime}.`,
-      type: 'appointment',
-      metadata: { appointmentId: appointment._id, status: 'Pending', senderId: req.user.id },
-      appointment: populated
+      savedAppointment = appointment;
+      
+      populatedAppointment = await Appointment.findById(appointment._id)
+        .populate({ path: 'patient', select: 'name email avatar' })
+        .populate({ path: 'doctor', select: 'name email avatar' })
+        .session(session);
     });
+  } catch (error) {
+    session.endSession();
+    return next(error);
   }
 
-  res.status(201).json({ success: true, message: 'Appointment booked successfully', data: populated });
+  session.endSession();
+
+  if (savedAppointment) {
+    const doctor = await User.findById(doctorId);
+    // Send notifications
+    await notificationService.appointmentBooked(req.user, doctor, savedAppointment);
+
+    // Emit socket event to update the booking page for other patients
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('slot_updated', { 
+        doctorId: doctorId, 
+        slotId: slotId, 
+        status: 'BOOKED', 
+        date: savedAppointment.appointmentDate 
+      });
+
+      io.to(`user_${doctorId.toString()}`).emit('new_notification', {
+        title: '🔔 New Appointment Request',
+        message: `${populatedAppointment.patient.name} has booked an appointment on ${new Date(savedAppointment.appointmentDate).toDateString()} at ${savedAppointment.appointmentTime}.`,
+        type: 'appointment',
+        metadata: { appointmentId: savedAppointment._id, status: 'Pending', senderId: req.user.id },
+        appointment: populatedAppointment
+      });
+    }
+  }
+
+  res.status(201).json({ success: true, message: 'Appointment booked successfully', data: populatedAppointment });
 });
 
 // @desc    Update appointment status
@@ -288,6 +322,21 @@ exports.updateAppointmentStatus = asyncHandler(async (req, res, next) => {
     .populate('patient', 'name email')
     .populate('doctor', 'name email');
 
+  if (['cancelled', 'Rejected', 'no-show'].includes(status) && updated.slotId) {
+    const AppointmentSlot = require('../models/AppointmentSlot');
+    await AppointmentSlot.findByIdAndUpdate(updated.slotId, { status: 'AVAILABLE', appointmentId: null });
+    
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('slot_updated', { 
+        doctorId: appointment.doctor._id, 
+        slotId: updated.slotId, 
+        status: 'AVAILABLE', 
+        date: appointment.appointmentDate 
+      });
+    }
+  }
+
   // Notification
   await notificationService.appointmentStatusChanged(appointment.patient, appointment.doctor, appointment, status, req.user.id);
 
@@ -324,20 +373,68 @@ exports.updateAppointmentStatus = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/appointments/:id/reschedule
 // @access  Private
 exports.rescheduleAppointment = asyncHandler(async (req, res, next) => {
-  const { appointmentDate, appointmentTime } = req.body;
+  const { slotId } = req.body;
   const appointment = await Appointment.findById(req.params.id);
   if (!appointment) return next(new ErrorResponse('Appointment not found', 404));
 
-  const available = await isSlotAvailable(appointment.doctor, appointmentDate, appointmentTime, req.params.id);
-  if (!available) return next(new ErrorResponse('This time slot is not available', 409));
+  if (!slotId) return next(new ErrorResponse('Slot ID is required to reschedule', 400));
+  
+  const AppointmentSlot = require('../models/AppointmentSlot');
+  
+  const session = await mongoose.startSession();
+  let updatedAppointment = null;
+  let oldSlotId = appointment.slotId;
 
-  const updated = await Appointment.findByIdAndUpdate(
-    req.params.id,
-    { appointmentDate: new Date(appointmentDate), appointmentTime, status: 'rescheduled' },
-    { new: true }
-  ).populate('patient doctor', 'name email');
+  try {
+    await session.withTransaction(async () => {
+      const newSlot = await AppointmentSlot.findOne({ _id: slotId, doctor: appointment.doctor }).session(session);
+      
+      if (!newSlot || newSlot.status !== 'AVAILABLE') {
+        throw new ErrorResponse('The selected time slot is not available', 409);
+      }
 
-  res.status(200).json({ success: true, message: 'Appointment rescheduled', data: updated });
+      newSlot.status = 'BOOKED';
+      newSlot.appointmentId = appointment._id;
+      await newSlot.save({ session });
+
+      if (oldSlotId) {
+        await AppointmentSlot.findByIdAndUpdate(oldSlotId, { status: 'AVAILABLE', appointmentId: null }, { session });
+      }
+
+      const appointmentTime = newSlot.startDateTime.toISOString().split('T')[1].substring(0, 5); // "HH:mm"
+      const endTime = newSlot.endDateTime.toISOString().split('T')[1].substring(0, 5);
+
+      updatedAppointment = await Appointment.findByIdAndUpdate(
+        req.params.id,
+        { 
+          appointmentDate: newSlot.appointmentDate, 
+          appointmentTime: appointmentTime,
+          endTime: endTime,
+          slotId: newSlot._id,
+          status: 'rescheduled' 
+        },
+        { new: true, session }
+      );
+    });
+  } catch (error) {
+    session.endSession();
+    return next(error);
+  }
+  
+  session.endSession();
+
+  const io = req.app.get('io');
+  if (io && oldSlotId) {
+    io.emit('slot_updated', { doctorId: appointment.doctor, slotId: oldSlotId, status: 'AVAILABLE' });
+    io.emit('slot_updated', { doctorId: appointment.doctor, slotId, status: 'BOOKED' });
+  }
+  
+  if (updatedAppointment) {
+    updatedAppointment = await Appointment.findById(updatedAppointment._id).populate('patient doctor', 'name email');
+    await notificationService.appointmentStatusChanged(updatedAppointment.patient, updatedAppointment.doctor, updatedAppointment, 'rescheduled', req.user.id);
+  }
+
+  res.status(200).json({ success: true, message: 'Appointment rescheduled', data: updatedAppointment });
 });
 
 // @desc    Generic update for appointment details (Doctor/Admin)

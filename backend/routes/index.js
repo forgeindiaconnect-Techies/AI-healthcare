@@ -37,6 +37,17 @@ doctorRouter.get('/me/appointments', protect, authorize('doctor'), doctorControl
 doctorRouter.get('/me/patients', protect, authorize('doctor'), doctorController.getDoctorPatients);
 doctorRouter.get('/patients', protect, approvedDoctorOnly, doctorController.getDoctorPatients); // Keep legacy for backwards compatibility if needed
 doctorRouter.post('/:id/rate', protect, authorize('patient'), doctorController.rateDoctor);
+// New Availability Routes
+const doctorAvailabilityController = require('../controllers/doctorAvailabilityController');
+doctorRouter.post('/availability', protect, authorize('doctor'), doctorAvailabilityController.createAvailability);
+doctorRouter.get('/availability', protect, authorize('doctor'), doctorAvailabilityController.getAvailability);
+doctorRouter.delete('/availability/:id', protect, authorize('doctor'), doctorAvailabilityController.deleteAvailability);
+doctorRouter.patch('/slots/:id/toggle', protect, authorize('doctor'), doctorAvailabilityController.toggleSlot);
+
+const patientBookingController = require('../controllers/patientBookingController');
+doctorRouter.get('/:id/available-dates', protect, authorize('patient', 'doctor'), patientBookingController.getAvailableDates);
+doctorRouter.get('/:id/slots', protect, authorize('patient', 'doctor'), patientBookingController.getSlotsByDate);
+
 doctorRouter.get('/:id', doctorController.getDoctor);
 
 // ---------------- PATIENT ROUTES ----------------

@@ -4,6 +4,7 @@ import { Calendar, Clock, Video, CheckCircle, XCircle, RefreshCw, Plus, Building
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import toast from 'react-hot-toast';
+import BookAppointmentModal from '../../components/patient/BookAppointmentModal';
 import PaymentModal from '../../components/dashboard/patient/PaymentModal';
 import PatientChat from './PatientChat';
 import ReviewModal from '../../components/dashboard/patient/ReviewModal';
@@ -39,7 +40,6 @@ const PatientAppointments = () => {
   const { socket } = useSocket();
   
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [bookingForm, setBookingForm] = useState({ doctorId: '', date: '', time: '', type: 'general', mode: 'video', reason: '' });
   
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [rescheduleData, setRescheduleData] = useState({ id: null, newDate: '', newTime: '', reason: '' });
@@ -160,56 +160,18 @@ const PatientAppointments = () => {
     }
   }, [socket]);
 
-  const handleBook = async (e) => {
-    e.preventDefault();
-    
-    // Validate all input fields before saving
-    if (!bookingForm.doctorId) return toast.error('Please select a doctor');
-    if (!bookingForm.date) return toast.error('Please select an appointment date');
-    if (!bookingForm.time) return toast.error('Please select an appointment time');
-    if (!bookingForm.reason.trim()) return toast.error('Please provide a reason for the visit');
+  const handleBookingSuccess = (newApt, doctorId) => {
+    const selectedDoc = doctors.find(d => (d.user?._id || d._id) === doctorId);
+    const optimisticApt = {
+      ...newApt,
+      doctorProfile: {
+        specialization: selectedDoc?.specialization || 'Consultation'
+      }
+    };
 
-    try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const payload = {
-        doctor: bookingForm.doctorId,
-        appointmentDate: bookingForm.date,
-        appointmentTime: bookingForm.time,
-        reason: bookingForm.reason,
-        mode: bookingForm.mode,
-        type: bookingForm.type
-      };
-
-      // Persist in backend API
-      const response = await API.post('/api/appointments', payload, config);
-      const newApt = response.data.data;
-      
-      // Create a proper appointment object with matching field names used by the UI cards
-      const selectedDoc = doctors.find(d => (d.user?._id || d._id) === bookingForm.doctorId);
-      const optimisticApt = {
-        ...newApt,
-        doctorProfile: {
-          specialization: selectedDoc?.specialization || 'Consultation'
-        }
-      };
-
-      // Save the new appointment to state immediately
-      setAppointments(prev => [optimisticApt, ...prev]);
-      
-      // Make sure new appointments appear under the Upcoming tab
-      setActiveTab('Upcoming');
-      
-      toast.success('Appointment booked successfully!');
-      
-      // After saving, reset the form and close modal
-      setBookingForm({ doctorId: '', date: '', time: '', type: 'general', mode: 'video', reason: '' });
-      setShowBookingModal(false);
-      
-      // Sync with backend in background
-      fetchAppointments();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to book appointment');
-    }
+    setAppointments(prev => [optimisticApt, ...prev]);
+    setActiveTab('Upcoming');
+    fetchAppointments();
   };
 
   const updateStatus = async (id, status) => {
@@ -534,111 +496,13 @@ const PatientAppointments = () => {
       )}
 
       {/* Booking Modal */}
-      {showBookingModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                <Calendar className="w-6 h-6 mr-2 text-indigo-600" /> Book New Appointment
-              </h2>
-              <button onClick={() => setShowBookingModal(false)} className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-white border border-transparent hover:border-gray-200 transition-all">
-                <XCircle className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleBook} className="p-6 space-y-6">
-              
-              {/* Select Doctor */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2"><Stethoscope className="w-4 h-4 text-indigo-500"/> Select Doctor *</label>
-                <select 
-                  required
-                  value={bookingForm.doctorId}
-                  onChange={(e) => setBookingForm({...bookingForm, doctorId: e.target.value})}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm font-medium bg-gray-50"
-                >
-                  <option value="">-- Choose a doctor --</option>
-                  {doctors.map(doc => (
-                    <option key={doc._id} value={doc.user?._id || doc._id}>
-                      {doc.user?.name || doc.name} {doc.specialization ? `- ${doc.specialization}` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Mode Selection */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Appointment Type *</label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div 
-                    onClick={() => setBookingForm({...bookingForm, mode: 'video'})}
-                    className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${bookingForm.mode === 'video' ? 'border-indigo-500 bg-indigo-50/50' : 'border-gray-200 hover:border-indigo-300'}`}
-                  >
-                    <div className={`p-2 rounded-lg ${bookingForm.mode === 'video' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'}`}><VideoIcon className="w-5 h-5"/></div>
-                    <div>
-                      <p className={`font-bold ${bookingForm.mode === 'video' ? 'text-indigo-900' : 'text-gray-700'}`}>Online</p>
-                      <p className="text-xs text-gray-500">Video Consultation</p>
-                    </div>
-                  </div>
-                  
-                  <div 
-                    onClick={() => setBookingForm({...bookingForm, mode: 'in-person'})}
-                    className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${bookingForm.mode === 'in-person' ? 'border-emerald-500 bg-emerald-50/50' : 'border-gray-200 hover:border-emerald-300'}`}
-                  >
-                    <div className={`p-2 rounded-lg ${bookingForm.mode === 'in-person' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}><Building2 className="w-5 h-5"/></div>
-                    <div>
-                      <p className={`font-bold ${bookingForm.mode === 'in-person' ? 'text-emerald-900' : 'text-gray-700'}`}>Offline</p>
-                      <p className="text-xs text-gray-500">Hospital Visit</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Date & Time */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Date *</label>
-                  <input 
-                    type="date" required
-                    value={bookingForm.date}
-                    onChange={(e) => setBookingForm({...bookingForm, date: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm font-medium bg-gray-50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Time *</label>
-                  <input 
-                    type="time" required
-                    value={bookingForm.time}
-                    onChange={(e) => setBookingForm({...bookingForm, time: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm font-medium bg-gray-50"
-                  />
-                </div>
-              </div>
-
-              {/* Reason */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Reason for Visit *</label>
-                <input 
-                  type="text" required placeholder="e.g. General Checkup, Fever, etc."
-                  value={bookingForm.reason}
-                  onChange={(e) => setBookingForm({...bookingForm, reason: e.target.value})}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm font-medium bg-gray-50"
-                />
-              </div>
-
-              <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
-                <button type="button" onClick={() => setShowBookingModal(false)} className="px-6 py-3 font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all">
-                  Cancel
-                </button>
-                <button type="submit" className="px-6 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5">
-                  Confirm Booking
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <BookAppointmentModal 
+        isOpen={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        doctors={doctors}
+        onSuccess={handleBookingSuccess}
+        user={user}
+      />
 
       {/* Reschedule Modal */}
       {showRescheduleModal && (
