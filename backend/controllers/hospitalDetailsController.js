@@ -9,11 +9,8 @@ const Doctor = require('../models/Doctor');
 exports.getDoctorHospitalDetails = asyncHandler(async (req, res, next) => {
   const { doctorId } = req.params;
 
-  // Verify doctor exists by User ID or Doctor Profile ID
-  let doctor = await Doctor.findOne({ user: doctorId });
-  if (!doctor) {
-    doctor = await Doctor.findById(doctorId).catch(() => null);
-  }
+  // Verify doctor exists
+  const doctor = await Doctor.findOne({ user: doctorId });
   if (!doctor) {
     return next(new ErrorResponse('Doctor not found', 404));
   }
