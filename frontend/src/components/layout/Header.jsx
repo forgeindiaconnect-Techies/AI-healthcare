@@ -251,11 +251,11 @@ const Header = ({ onToggleSidebar }) => {
 
       <div className="flex items-center gap-3 pl-2">
         <div className="hidden sm:block text-right">
-          <p className="text-sm font-bold text-gray-900 leading-none">{user.name}</p>
+          <p className="text-sm font-bold text-gray-900 leading-none">{user.name || (user.role === 'doctor' ? 'Doctor' : 'User')}</p>
           <p className="text-xs text-gray-500 mt-1 font-medium uppercase tracking-wider">{user.role}</p>
         </div>
         <div className="ring-2 ring-white shadow-sm rounded-full">
-          <Avatar name={user.name} size={38} className="rounded-full" />
+          <Avatar name={user.name || 'User'} size={38} className="rounded-full" />
         </div>
       </div>
     </header>

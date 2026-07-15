@@ -52,8 +52,8 @@ const DoctorSidebar = ({ sidebarOpen }) => {
     navigate('/doctor-login');
   };
 
-  const displayName = doctor?.name || user?.name || doctor?.fullName || "Doctor";
-  const displayRole = doctor?.role || user?.role || "doctor";
+  const displayName = doctor?.user?.name || user?.name || "Doctor";
+  const displayRole = doctor?.user?.role || user?.role || "doctor";
   const initials = displayName.charAt(0).toUpperCase();
 
   return (

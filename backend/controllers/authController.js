@@ -342,6 +342,9 @@ exports.login = asyncHandler(async (req, res, next) => {
       doctor: {
         id: doctor._id,
         role: "doctor",
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
         approvalStatus: doctor.approvalStatus,
         isVerified: doctor.isVerified,
         isLicenseVerified: doctor.isLicenseVerified
