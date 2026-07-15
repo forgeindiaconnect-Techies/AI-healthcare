@@ -35,8 +35,9 @@ const loginValidator = [
 // Appointment validators
 const appointmentValidator = [
   body('doctor').isMongoId().withMessage('Valid doctor ID required'),
-  body('appointmentDate').isISO8601().withMessage('Valid date required'),
+  body('appointmentDate').optional().isISO8601().withMessage('Valid date required'),
   body('appointmentTime')
+    .optional()
     .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
     .withMessage('Valid time required (HH:MM)'),
   body('reason').trim().notEmpty().withMessage('Reason for visit is required'),

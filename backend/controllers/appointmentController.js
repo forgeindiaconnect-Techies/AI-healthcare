@@ -159,7 +159,11 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
   const doctorId = req.user.role === 'doctor' ? req.user.id : reqDoctorId;
   const patientId = req.user.role === 'doctor' ? reqPatientId : req.user.id;
 
-  if (!doctorId || !patientId || !slotId) return next(new ErrorResponse('Doctor ID, Patient ID, and Slot ID are required', 400));
+  if (!doctorId || !patientId) return next(new ErrorResponse('Doctor ID and Patient ID are required', 400));
+  
+  if (!slotId && (!req.body.appointmentDate || !req.body.appointmentTime)) {
+    return next(new ErrorResponse('Slot ID or Appointment Date and Time are required', 400));
+  }
 
   const session = await mongoose.startSession();
   let populatedAppointment = null;
@@ -167,15 +171,37 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
   
   try {
     await session.withTransaction(async () => {
-      // Find the slot and lock it for this transaction
-      const slot = await AppointmentSlot.findOne({ _id: slotId, doctor: doctorId }).session(session);
+      let finalAppointmentDate = req.body.appointmentDate;
+      let finalAppointmentTime = req.body.appointmentTime;
+      let finalEndTime = null;
 
-      if (!slot) {
-        throw new ErrorResponse('Slot not found', 404);
-      }
+      if (slotId) {
+        // Find the slot and lock it for this transaction
+        const slot = await AppointmentSlot.findOne({ _id: slotId, doctor: doctorId }).session(session);
 
-      if (slot.status !== 'AVAILABLE') {
-        throw new ErrorResponse('This slot was just booked by another patient. Please choose another slot.', 409);
+        if (!slot) {
+          throw new ErrorResponse('Slot not found', 404);
+        }
+
+        if (slot.status !== 'AVAILABLE') {
+          throw new ErrorResponse('This slot was just booked by another patient. Please choose another slot.', 409);
+        }
+
+        // Mark slot as booked
+        slot.status = 'BOOKED';
+        await slot.save({ session });
+
+        finalAppointmentDate = slot.appointmentDate;
+        finalAppointmentTime = slot.startDateTime.toISOString().split('T')[1].substring(0, 5); // "HH:mm"
+        finalEndTime = slot.endDateTime.toISOString().split('T')[1].substring(0, 5);
+      } else {
+         // Manual calculation of end time for manual bookings
+         if (finalAppointmentTime) {
+            const [hours, minutes] = finalAppointmentTime.split(':').map(Number);
+            const endDate = new Date();
+            endDate.setHours(hours, minutes + 30);
+            finalEndTime = endDate.toTimeString().substring(0, 5);
+         }
       }
 
       const doctorProfile = await Doctor.findOne({ user: doctorId }).session(session);
@@ -185,27 +211,21 @@ exports.bookAppointment = asyncHandler(async (req, res, next) => {
         throw new ErrorResponse('Doctor is not approved to accept appointments', 403);
       }
 
-      // Mark slot as booked
-      slot.status = 'BOOKED';
-      
       const queueNumber = mode !== 'video' ? Math.floor(Math.random() * 50) + 1 : undefined;
       const feePaise = doctorProfile?.consultationFeePaise || Math.round((doctorProfile?.consultationFee || 0) * 100);
       const commRate = doctorProfile?.commissionRate || 20;
       const platCommPaise = Math.round(feePaise * commRate / 100);
       const docEarnPaise = feePaise - platCommPaise;
 
-      const appointmentTime = slot.startDateTime.toISOString().split('T')[1].substring(0, 5); // "HH:mm"
-      const endTime = slot.endDateTime.toISOString().split('T')[1].substring(0, 5);
-
       const appointment = new Appointment({
         patient: patientId,
         doctor: doctorId,
         patientProfile: patientProfile?._id,
         doctorProfile: doctorProfile?._id,
-        slotId: slot._id,
-        appointmentDate: slot.appointmentDate,
-        appointmentTime: appointmentTime,
-        endTime: endTime,
+        slotId: slotId || undefined,
+        appointmentDate: finalAppointmentDate,
+        appointmentTime: finalAppointmentTime,
+        endTime: finalEndTime,
         reason,
         type: type || 'general',
         mode: mode || 'in-person',
