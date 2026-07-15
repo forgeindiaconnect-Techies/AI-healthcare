@@ -8,22 +8,20 @@ import { useDoctorAvailability } from '../../hooks/useDoctorAvailability';
 
 const ManageAvailability = () => {
   const { user, loading: authLoading } = useAuth();
-  const isAuthReady = !authLoading;
-  const { rules, slots, loading, isError, error, refetch: fetchAvailability, isAvailabilityRoute } = useDoctorAvailability(user, isAuthReady);
+  
+  const { 
+    availability: rules, 
+    slots, 
+    availabilityLoading, 
+    slotsLoading, 
+    availabilityError, 
+    slotsError, 
+    fetchAvailability,
+    fetchUpcomingSlots,
+    refetchBoth, 
+    isAvailabilityRoute 
+  } = useDoctorAvailability(user, authLoading);
 
-  const hasShownErrorToast = useRef(false);
-
-  useEffect(() => {
-    if (!isAvailabilityRoute || !isError) {
-      hasShownErrorToast.current = false;
-      return;
-    }
-
-    if (!hasShownErrorToast.current && error) {
-      toast.error(error);
-      hasShownErrorToast.current = true;
-    }
-  }, [isError, error, isAvailabilityRoute]);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
@@ -76,7 +74,7 @@ const ManageAvailability = () => {
       await API.post('/api/doctors/availability', payload);
       toast.success('Availability saved and slots generated successfully');
       setShowAddModal(false);
-      fetchAvailability();
+      refetchBoth();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save availability');
     } finally {
@@ -89,7 +87,7 @@ const ManageAvailability = () => {
     try {
       await API.delete(`/api/doctors/availability/${id}`);
       toast.success('Availability deleted');
-      fetchAvailability();
+      refetchBoth();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete availability');
     }
@@ -137,13 +135,13 @@ const ManageAvailability = () => {
         {/* Rules Section */}
         <div className="lg:col-span-1 space-y-4">
           <h2 className="font-bold text-gray-900">Your Schedules</h2>
-          {loading ? (
-            <p className="text-sm text-gray-500">Loading...</p>
-          ) : isError ? (
+          {availabilityLoading ? (
+            <p className="text-sm text-gray-500">Loading schedules...</p>
+          ) : availabilityError ? (
             <div className="bg-white p-6 rounded-2xl border border-red-100 text-center">
               <XCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
               <p className="font-bold text-gray-900 mb-1">Unable to load availability</p>
-              <p className="text-sm text-gray-500 mb-4">{error}</p>
+              <p className="text-sm text-gray-500 mb-4">{availabilityError}</p>
               <button 
                 onClick={() => fetchAvailability()}
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm transition-all text-sm"
@@ -201,8 +199,20 @@ const ManageAvailability = () => {
             </div>
             
             <div className="p-4 md:p-6 max-h-[600px] overflow-y-auto">
-              {loading ? (
+              {slotsLoading ? (
                 <p className="text-sm text-gray-500">Loading slots...</p>
+              ) : slotsError ? (
+                <div className="text-center py-8">
+                  <XCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+                  <p className="font-bold text-gray-900 mb-1">Unable to load upcoming slots</p>
+                  <p className="text-sm text-gray-500 mb-4">{slotsError}</p>
+                  <button 
+                    onClick={() => fetchUpcomingSlots()}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm transition-all text-sm"
+                  >
+                    Retry
+                  </button>
+                </div>
               ) : slots.length === 0 ? (
                 <div className="text-center py-8">
                   <Calendar className="w-12 h-12 text-gray-200 mx-auto mb-3" />

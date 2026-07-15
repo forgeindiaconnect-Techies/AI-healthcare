@@ -41,6 +41,7 @@ doctorRouter.post('/:id/rate', protect, authorize('patient'), doctorController.r
 const doctorAvailabilityController = require('../controllers/doctorAvailabilityController');
 doctorRouter.post('/availability', protect, authorize('doctor'), doctorAvailabilityController.createAvailability);
 doctorRouter.get('/availability', protect, authorize('doctor'), doctorAvailabilityController.getAvailability);
+doctorRouter.get('/slots/upcoming', protect, authorize('doctor'), doctorAvailabilityController.getUpcomingSlots);
 doctorRouter.delete('/availability/:id', protect, authorize('doctor'), doctorAvailabilityController.deleteAvailability);
 doctorRouter.patch('/slots/:id/toggle', protect, authorize('doctor'), doctorAvailabilityController.toggleSlot);
 

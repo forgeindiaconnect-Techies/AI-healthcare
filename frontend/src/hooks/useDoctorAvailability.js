@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { availabilityService } from '../api/availabilityService';
 
 const getErrorMessage = (error) => {
+  if (error.code === 'ECONNABORTED') return "Request timed out. Please try again.";
   if (error.response) {
     if (error.response.status === 400) return "Invalid availability request";
     if (error.response.status === 401) return "Session expired. Please sign in again.";
@@ -14,108 +15,138 @@ const getErrorMessage = (error) => {
   return error.message;
 };
 
-export const useDoctorAvailability = (user, isAuthReady) => {
-  const [data, setData] = useState({ rules: [], slots: [] });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isError, setIsError] = useState(false);
+export const useDoctorAvailability = (user, authLoading) => {
+  const [availability, setAvailability] = useState([]);
+  const [slots, setSlots] = useState([]);
+
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+
+  const [availabilityError, setAvailabilityError] = useState(null);
+  const [slotsError, setSlotsError] = useState(null);
+
   const location = useLocation();
-
   const isAvailabilityRoute = location.pathname === '/dashboard/doctor/availability' || location.pathname.startsWith('/dashboard/doctor/availability/');
-  const doctorId = user?.id || user?._id;
+  
+  const doctorId = user?.id || user?._id || null;
 
-  const refetch = async () => {
-    if (!isAuthReady || !doctorId || user?.role !== "doctor" || !isAvailabilityRoute) return;
-    
-    try {
-      setLoading(true);
-      setError(null);
-      setIsError(false);
-
-      const response = await availabilityService.getAvailability({
-        doctorId: doctorId,
-        signal: undefined
-      });
-
-      if (response.status === 200) {
-        setData({
-          rules: response.data?.rules || [],
-          slots: response.data?.slots || []
-        });
-      }
-    } catch (error) {
-      console.error({
-        message: error.message,
-        status: error.response?.status,
-        response: error.response?.data,
-        endpoint: error.config?.url,
-      });
-      setIsError(true);
-      setError(getErrorMessage(error));
-    } finally {
-      setLoading(false);
+  const fetchAvailability = useCallback(async (signal) => {
+    if (!doctorId) {
+      setAvailability([]);
+      setAvailabilityLoading(false);
+      setAvailabilityError("Doctor profile not found");
+      return;
     }
-  };
+
+    try {
+      setAvailabilityLoading(true);
+      setAvailabilityError(null);
+
+      const response = await availabilityService.getMyAvailability({
+        doctorId,
+        signal,
+      });
+
+      const records = response?.data?.data ?? response?.data ?? [];
+      setAvailability(Array.isArray(records) ? records : []);
+    } catch (error) {
+      if (error?.name === "AbortError" || error?.name === "CanceledError") return;
+
+      console.error("Failed to fetch doctor availability", {
+        message: error?.message,
+        status: error?.response?.status,
+        data: error?.response?.data,
+        url: error?.config?.url,
+      });
+
+      setAvailability([]);
+      setAvailabilityError(getErrorMessage(error));
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  }, [doctorId]);
+
+  const fetchUpcomingSlots = useCallback(async (signal) => {
+    if (!doctorId) {
+      setSlots([]);
+      setSlotsLoading(false);
+      setSlotsError("Doctor profile not found");
+      return;
+    }
+
+    try {
+      setSlotsLoading(true);
+      setSlotsError(null);
+
+      const response = await availabilityService.getUpcomingSlots({
+        doctorId,
+        signal,
+      });
+
+      const records = response?.data?.data ?? response?.data ?? [];
+      setSlots(Array.isArray(records) ? records : []);
+    } catch (error) {
+      if (error?.name === "AbortError" || error?.name === "CanceledError") return;
+
+      console.error("Failed to fetch upcoming slots", {
+        message: error?.message,
+        status: error?.response?.status,
+        data: error?.response?.data,
+        url: error?.config?.url,
+      });
+
+      setSlots([]);
+      setSlotsError(getErrorMessage(error));
+    } finally {
+      setSlotsLoading(false);
+    }
+  }, [doctorId]);
 
   useEffect(() => {
-    if (!isAuthReady) return;
-    if (!doctorId) return;
-    if (user.role !== "doctor") return;
-    if (!isAvailabilityRoute) {
-      if (loading) setLoading(false);
+    if (authLoading) return;
+
+    if (!user || user.role !== "doctor" || !isAvailabilityRoute) {
+      setAvailabilityLoading(false);
+      setSlotsLoading(false);
+      return;
+    }
+
+    if (!doctorId) {
+      setAvailability([]);
+      setSlots([]);
+      setAvailabilityLoading(false);
+      setSlotsLoading(false);
+      setAvailabilityError("Doctor profile not found");
       return;
     }
 
     const controller = new AbortController();
 
-    const loadAvailability = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        setIsError(false);
+    fetchAvailability(controller.signal);
+    fetchUpcomingSlots(controller.signal);
 
-        const response = await availabilityService.getAvailability({
-          doctorId: doctorId,
-          signal: controller.signal,
-        });
-
-        if (response.status === 200) {
-          setData({
-            rules: response.data?.rules || [],
-            slots: response.data?.slots || []
-          });
-        }
-      } catch (error) {
-        if (error.name === "AbortError" || error.name === "CanceledError") return;
-
-        console.error({
-          message: error.message,
-          status: error.response?.status,
-          response: error.response?.data,
-          endpoint: error.config?.url,
-        });
-        
-        setIsError(true);
-        setError(getErrorMessage(error));
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
+    return () => {
+      controller.abort();
     };
+  }, [authLoading, user?.role, doctorId, isAvailabilityRoute, fetchAvailability, fetchUpcomingSlots]);
 
-    loadAvailability();
-
-    return () => controller.abort();
-  }, [isAuthReady, doctorId, user?.role, isAvailabilityRoute]);
+  const refetchBoth = async () => {
+    await Promise.allSettled([
+      fetchAvailability(),
+      fetchUpcomingSlots(),
+    ]);
+  };
 
   return {
-    rules: data.rules,
-    slots: data.slots,
-    loading,
-    isError,
-    error,
-    refetch,
+    availability,
+    slots,
+    availabilityLoading,
+    slotsLoading,
+    availabilityError,
+    slotsError,
+    fetchAvailability,
+    fetchUpcomingSlots,
+    refetchBoth,
     isAvailabilityRoute
   };
 };

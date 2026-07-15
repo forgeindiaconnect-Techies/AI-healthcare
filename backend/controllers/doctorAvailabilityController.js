@@ -122,7 +122,17 @@ exports.createAvailability = asyncHandler(async (req, res, next) => {
 // @access  Private (doctor)
 exports.getAvailability = asyncHandler(async (req, res, next) => {
   const rules = await DoctorAvailability.find({ doctor: req.user.id });
-  // Also get the generated slots from today onwards
+
+  res.status(200).json({
+    success: true,
+    data: rules || []
+  });
+});
+
+// @desc    Get upcoming slots for doctor
+// @route   GET /api/doctors/slots/upcoming
+// @access  Private (doctor)
+exports.getUpcomingSlots = asyncHandler(async (req, res, next) => {
   const slots = await AppointmentSlot.find({ 
     doctor: req.user.id,
     startDateTime: { $gte: new Date() }
@@ -130,8 +140,7 @@ exports.getAvailability = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    rules,
-    slots
+    data: slots || []
   });
 });
 
