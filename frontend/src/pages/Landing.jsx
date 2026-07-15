@@ -50,6 +50,7 @@ const LandingPage = () => {
         </p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
           <Button variant="primary" onClick={() => navigate('/register')} size="lg">👤 Patient Register</Button>
+          <Button variant="outline" onClick={() => navigate('/login')} size="lg">🔑 Patient Login</Button>
           <Button variant="ghost" onClick={() => navigate('/doctor-login')} size="lg">👨‍⚕️ Doctor Login</Button>
           <Button variant="secondary" onClick={() => navigate('/doctor-register')} size="lg">⚕️ Join as Doctor</Button>
         </div>
