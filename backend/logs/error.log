@@ -435,3 +435,4 @@
 2026-07-14 14:10:55 [error]: Email failed to testdoc_new1@example.com: connect ECONNREFUSED ::1:587
 2026-07-14 14:10:55 [error]: Email failed to testdoc_new1@example.com: connect ECONNREFUSED ::1:587
 2026-07-15 11:58:51 [error]: MongoDB connection failed: MONGODB_URI is not defined in environment variables. Please add your MongoDB connection string in the Render Dashboard -> Environment variables.
+2026-07-15 17:38:47 [error]: MongoDB connection failed: MONGODB_URI is not defined in environment variables. Please add your MongoDB connection string in the Render Dashboard -> Environment variables.

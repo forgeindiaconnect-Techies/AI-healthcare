@@ -46,11 +46,12 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
 
   useEffect(() => {
     if (doctorId) {
+      fetchAvailableDates(doctorId);
+      fetchHospitalLocations(doctorId);
+      
       if (appointmentType === 'ONLINE') {
-        fetchAvailableDates(doctorId);
         setSelectedHospitalLocation(null);
       } else {
-        fetchHospitalLocations(doctorId);
         setSelectedDate('');
         setSelectedSlot(null);
         setSlots([]);
@@ -231,28 +232,43 @@ const BookAppointmentModal = ({ isOpen, onClose, doctors, onSuccess, user }) => 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Appointment Type *</label>
             <div className="grid grid-cols-2 gap-4">
-              <div 
+              <button 
+                type="button"
                 onClick={() => setAppointmentType('ONLINE')}
-                className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${appointmentType === 'ONLINE' ? 'border-indigo-500 bg-indigo-50/50' : 'border-gray-200 hover:border-indigo-300'}`}
+                className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex flex-1 items-center gap-3 text-left ${appointmentType === 'ONLINE' ? 'border-indigo-500 bg-indigo-50/50' : 'border-gray-200 hover:border-indigo-300'}`}
               >
                 <div className={`p-2 rounded-lg ${appointmentType === 'ONLINE' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'}`}><VideoIcon className="w-5 h-5"/></div>
                 <div>
                   <p className={`font-bold ${appointmentType === 'ONLINE' ? 'text-indigo-900' : 'text-gray-700'}`}>Online</p>
                   <p className="text-xs text-gray-500">Video Consultation</p>
                 </div>
-              </div>
+              </button>
               
-              <div 
+              <button 
+                type="button"
+                disabled={!doctorId || hospitalLocations.length === 0}
                 onClick={() => setAppointmentType('OFFLINE')}
-                className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${appointmentType === 'OFFLINE' ? 'border-emerald-500 bg-emerald-50/50' : 'border-gray-200 hover:border-emerald-300'}`}
+                className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex flex-1 items-center gap-3 text-left ${
+                  !doctorId || hospitalLocations.length === 0
+                    ? 'border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed'
+                    : appointmentType === 'OFFLINE' 
+                      ? 'border-emerald-500 bg-emerald-50/50' 
+                      : 'border-gray-200 hover:border-emerald-300'
+                }`}
               >
-                <div className={`p-2 rounded-lg ${appointmentType === 'OFFLINE' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}><Building2 className="w-5 h-5"/></div>
+                <div className={`p-2 rounded-lg ${!doctorId || hospitalLocations.length === 0 ? 'bg-gray-200 text-gray-400' : appointmentType === 'OFFLINE' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}><Building2 className="w-5 h-5"/></div>
                 <div>
-                  <p className={`font-bold ${appointmentType === 'OFFLINE' ? 'text-emerald-900' : 'text-gray-700'}`}>Offline</p>
+                  <p className={`font-bold ${!doctorId || hospitalLocations.length === 0 ? 'text-gray-400' : appointmentType === 'OFFLINE' ? 'text-emerald-900' : 'text-gray-700'}`}>Offline</p>
                   <p className="text-xs text-gray-500">Hospital Visit</p>
                 </div>
-              </div>
+              </button>
             </div>
+            
+            {doctorId && hospitalLocations.length === 0 && (
+              <p className="text-xs text-red-500 mt-2 font-medium">
+                * Offline hospital visit details are not available for this doctor.
+              </p>
+            )}
           </div>
 
           {/* ONLINE Date & Time Selection */}

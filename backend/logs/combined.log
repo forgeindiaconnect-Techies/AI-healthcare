@@ -2564,3 +2564,4 @@
 2026-07-15 11:58:51 [info]: Server bound to port 5000
 2026-07-15 11:58:51 [info]: ⏰ Starting scheduler service...
 2026-07-15 11:58:51 [info]: ✅ Scheduler service started
+2026-07-15 17:38:47 [error]: MongoDB connection failed: MONGODB_URI is not defined in environment variables. Please add your MongoDB connection string in the Render Dashboard -> Environment variables.
