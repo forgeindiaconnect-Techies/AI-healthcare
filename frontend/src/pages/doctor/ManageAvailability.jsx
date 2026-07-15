@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Clock, Plus, Trash2, CheckCircle2, XCircle, FileText, Settings, X, PlusCircle } from 'lucide-react';
 import API from '../../api/api';
 import toast from 'react-hot-toast';
@@ -7,8 +7,23 @@ import { useAuth } from '../../context/AuthContext';
 import { useDoctorAvailability } from '../../hooks/useDoctorAvailability';
 
 const ManageAvailability = () => {
-  const { user } = useAuth();
-  const { rules, slots, loading, error, refetch: fetchAvailability } = useDoctorAvailability(user);
+  const { user, loading: authLoading } = useAuth();
+  const isAuthReady = !authLoading;
+  const { rules, slots, loading, isError, error, refetch: fetchAvailability, isAvailabilityRoute } = useDoctorAvailability(user, isAuthReady);
+
+  const hasShownErrorToast = useRef(false);
+
+  useEffect(() => {
+    if (!isAvailabilityRoute || !isError) {
+      hasShownErrorToast.current = false;
+      return;
+    }
+
+    if (!hasShownErrorToast.current && error) {
+      toast.error(error);
+      hasShownErrorToast.current = true;
+    }
+  }, [isError, error, isAvailabilityRoute]);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
@@ -124,7 +139,7 @@ const ManageAvailability = () => {
           <h2 className="font-bold text-gray-900">Your Schedules</h2>
           {loading ? (
             <p className="text-sm text-gray-500">Loading...</p>
-          ) : error ? (
+          ) : isError ? (
             <div className="bg-white p-6 rounded-2xl border border-red-100 text-center">
               <XCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
               <p className="font-bold text-gray-900 mb-1">Unable to load availability</p>
